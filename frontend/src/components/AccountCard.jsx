@@ -4,7 +4,8 @@ export default function AccountCard({ data, selected, onSelect }) {
       className={`account-card ${selected === data.id ? "selected" : ""} ${data.popular ? "popular" : ""}`}
       onClick={() => onSelect(data.id)}
     >
-      {data.popular && <div className="popular-badge">Most Popular</div>}
+      {data.popular && <div className="popular-badge">Recommended</div>}
+      {data.badge && <div className="best-badge">{data.badge}</div>}
       <div className="card-header">
         <h2>{data.title}</h2>
         <span className="subtitle">{data.subtitle}</span>
@@ -12,7 +13,7 @@ export default function AccountCard({ data, selected, onSelect }) {
       <p className="description">{data.description}</p>
       <div className="card-details">
         <div className="detail-row">
-          <span className="label">Min Deposit</span>
+          <span className="label">Minimum deposit</span>
           <span className="value">{data.minDeposit}</span>
         </div>
         <div className="detail-row">
@@ -22,10 +23,6 @@ export default function AccountCard({ data, selected, onSelect }) {
         <div className="detail-row">
           <span className="label">Commission</span>
           <span className="value">{data.commission}</span>
-        </div>
-        <div className="detail-row">
-          <span className="label">Leverage</span>
-          <span className="value">{data.leverage}</span>
         </div>
       </div>
     </div>

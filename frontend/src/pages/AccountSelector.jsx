@@ -8,6 +8,7 @@ export default function AccountSelector() {
   return (
     <div className="account-container">
       <h1 className="account-title">Open New Account</h1>
+      <p className="subtitle-text">Choose the account type that best fits your trading style</p>
       <div className="account-grid">
         {accountTypes.map((acc) => (
           <AccountCard key={acc.id} data={acc} selected={selected} onSelect={setSelected} />
