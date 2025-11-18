@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Account Selection - PrintFree{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="header-section">
+        <h1 class="account-title">Open New Account</h1>
+        <p class="subtitle-text">Choose the account type that best fits your trading style and start your journey with professional trading conditions</p>
+    </div>
+    <div class="account-grid">
+        <div class="account-card popular" data-id="standard">
+            <div class="popular-badge">Popular</div>
+            <div class="card-header">
+                <h2>Standard</h2>
+                <div class="subtitle">Recommended</div>
+                <p class="description">Most popular! A great account for all types of traders</p>
+            </div>
+            <div class="card-details">
+                <div class="detail-row">
+                    <span class="label">Min. deposit</span>
+                    <span class="value">10 USD</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spread</span>
+                    <span class="value">From 0.20</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Commission</span>
+                    <span class="value">No commission</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-card" data-id="pro">
+            <div class="card-header">
+                <h2>Pro</h2>
+                <div class="subtitle">Instant or market execution</div>
+                <p class="description">Zero commission and low spreads with both instant or market execution.</p>
+            </div>
+            <div class="card-details">
+                <div class="detail-row">
+                    <span class="label">Min. deposit</span>
+                    <span class="value">500 USD</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spread</span>
+                    <span class="value">From 0.10</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Commission</span>
+                    <span class="value">No commission</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-card" data-id="raw-spread">
+            <div class="card-header">
+                <h2>Raw spread</h2>
+                <div class="subtitle">Professional</div>
+                <p class="description">Low raw spreads and a low fixed commission</p>
+            </div>
+            <div class="card-details">
+                <div class="detail-row">
+                    <span class="label">Min. deposit</span>
+                    <span class="value">500 USD</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spread</span>
+                    <span class="value">From 0.00</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Commission</span>
+                    <span class="value">To 3.50 USD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="account-card" data-id="zero">
+            <div class="best-badge">Best</div>
+            <div class="card-header">
+                <h2>Zero</h2>
+                <div class="subtitle">Professional</div>
+                <p class="description">Get 0 spreads for 95% of the day on 30 pairs</p>
+            </div>
+            <div class="card-details">
+                <div class="detail-row">
+                    <span class="label">Min. deposit</span>
+                    <span class="value">500 USD</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Spread</span>
+                    <span class="value">Best</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Commission</span>
+                    <span class="value">From 0.20 USD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="action-section" id="action-section" style="display: none;">
+        <button class="open-button" id="open-button">Open Account</button>
+        <p class="action-note">Your account will be ready in minutes</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.account-card');
+    const actionSection = document.getElementById('action-section');
+    const openButton = document.getElementById('open-button');
+    let selectedCard = null;
+
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            cards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedCard = this;
+            
+            const accountType = this.querySelector('h2').textContent;
+            openButton.textContent = `Open ${accountType} Account`;
+            actionSection.style.display = 'block';
+        });
+    });
+
+    openButton.addEventListener('click', function() {
+        if (selectedCard) {
+            const accountType = selectedCard.querySelector('h2').textContent;
+            alert(`Opening ${accountType} account...`);
+        }
+    });
+});
+</script>
+{% endblock %}

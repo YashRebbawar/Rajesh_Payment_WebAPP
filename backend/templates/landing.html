@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="landing-container">
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <span class="logo-text">PrintFree</span>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-signin">Sign In</button>
+                <button class="btn-register">Register</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Start Your Trading Journey with <span class="highlight">PrintFree</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Your trusted partner for opening professional trading accounts. Access global markets with competitive spreads, advanced tools, and expert support.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" onclick="window.location.href='/accounts'">Open Trading Account</button>
+                    <button class="btn-secondary">Learn More</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="trading-card">
+                    <div class="card-header">
+                        <span class="card-title">Trading Dashboard</span>
+                    </div>
+                    <div class="chart-placeholder">
+                        <div class="chart-line"></div>
+                        <div class="chart-bars">
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                            <div class="bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
