@@ -2,49 +2,87 @@
 
 {% block content %}
 <div class="landing-container">
-    <nav class="navbar">
-        <div class="nav-content">
-            <div class="logo">
-                <span class="logo-text">PrintFree</span>
-            </div>
-            <div class="nav-buttons">
-                <button class="btn-signin">Sign In</button>
-                <button class="btn-register">Register</button>
+    <div class="auth-buttons">
+        <button class="btn-signin">Sign In</button>
+        <button class="btn-register">Register</button>
+    </div>
+    
+    <div class="hero-section">
+        <div class="hero-background">
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
             </div>
         </div>
-    </nav>
-
-    <main class="main-content">
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    Start Your Trading Journey with <span class="highlight">PrintFree</span>
-                </h1>
+        
+        <div class="hero-content">
+            <div class="brand-section">
+                <div class="logo-container">
+                    <div class="logo-icon">₿</div>
+                    <h1 class="brand-name">PrintFree</h1>
+                </div>
+                <p class="brand-tagline">Professional Trading Made Simple</p>
+            </div>
+            
+            <div class="main-content">
+                <h2 class="hero-title">
+                    Start Your <span class="highlight">Trading Journey</span><br>
+                    with Confidence
+                </h2>
                 <p class="hero-subtitle">
-                    Your trusted partner for opening professional trading accounts. Access global markets with competitive spreads, advanced tools, and expert support.
+                    Access global markets with competitive spreads, advanced tools, and expert support. 
+                    Your trusted partner for professional trading accounts.
                 </p>
+                
                 <div class="hero-buttons">
-                    <button class="btn-primary" onclick="window.location.href='/accounts'">Open Trading Account</button>
-                    <button class="btn-secondary">Learn More</button>
+                    <button class="btn-primary" onclick="window.location.href='/accounts'">
+                        <span>Open Trading Account</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button class="btn-secondary">
+                        <span>Watch Demo</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <polygon points="5,3 19,12 5,21" fill="currentColor"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
-            <div class="hero-image">
-                <div class="trading-card">
-                    <div class="card-header">
-                        <span class="card-title">Trading Dashboard</span>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="trading-dashboard">
+                <div class="dashboard-header">
+                    <div class="status-indicator"></div>
+                    <span class="status-text">Live Trading</span>
+                </div>
+                <div class="chart-container">
+                    <div class="price-display">
+                        <span class="currency">EUR/USD</span>
+                        <span class="price">1.0847</span>
+                        <span class="change positive">+0.0023</span>
                     </div>
-                    <div class="chart-placeholder">
-                        <div class="chart-line"></div>
-                        <div class="chart-bars">
-                            <div class="bar"></div>
-                            <div class="bar"></div>
-                            <div class="bar"></div>
-                            <div class="bar"></div>
-                        </div>
+                    <div class="chart">
+                        <svg viewBox="0 0 300 120" class="price-chart">
+                            <path d="M10,80 Q50,60 90,70 T170,50 T250,40 T290,30" stroke="#ffed4e" stroke-width="3" fill="none"/>
+                            <circle cx="290" cy="30" r="4" fill="#ffed4e"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <span class="stat-label">Volume</span>
+                        <span class="stat-value">$2.4M</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Spread</span>
+                        <span class="stat-value">0.2</span>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 </div>
 {% endblock %}
