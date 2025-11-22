@@ -3,8 +3,16 @@
 {% block content %}
 <div class="landing-container">
     <div class="auth-buttons">
-        <button class="btn-signin">Sign In</button>
-        <button class="btn-register">Register</button>
+        {% if user %}
+        <div class="user-profile">
+            <span class="user-email">{{ user.email }}</span>
+            <button class="btn-profile" onclick="window.location.href='/accounts'">My Accounts</button>
+            <button class="btn-logout" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        {% else %}
+        <button class="btn-signin" onclick="window.location.href='/signin'">Sign In</button>
+        <button class="btn-register" onclick="window.location.href='/register'">Register</button>
+        {% endif %}
     </div>
     
     <div class="hero-section">

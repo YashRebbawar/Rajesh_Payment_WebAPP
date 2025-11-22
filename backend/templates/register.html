@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Register - PrintFree{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <a href="/" class="logo-link">
+            <div class="logo-icon-small">₿</div>
+            <span class="logo-text">PrintFree</span>
+        </a>
+        <button class="globe-btn">🌐</button>
+    </div>
+    
+    <div class="auth-box">
+        <h1 class="auth-title">Welcome to PrintFree</h1>
+        
+        <div class="auth-tabs">
+            <button class="auth-tab" data-tab="signin">Sign in</button>
+            <button class="auth-tab active" data-tab="register">Create an account</button>
+        </div>
+        
+        <form class="auth-form" id="register-form">
+            <div class="form-group">
+                <label>Country / Region of residence</label>
+                <select name="country" required>
+                    <option value="">Select country</option>
+                    <option value="US">United States</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="IN">India</option>
+                    <option value="CA">Canada</option>
+                    <option value="AU">Australia</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Your email address</label>
+                <input type="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <div class="password-input">
+                    <input type="password" name="password" id="register-password" required>
+                    <button type="button" class="toggle-password" data-target="register-password">👁</button>
+                </div>
+                <div class="password-requirements">
+                    <div class="requirement" data-rule="length">○ Between 8-15 characters</div>
+                    <div class="requirement" data-rule="case">○ At least one upper and one lower case letter</div>
+                    <div class="requirement" data-rule="number">○ At least one number</div>
+                    <div class="requirement" data-rule="special">○ At least one special character</div>
+                </div>
+            </div>
+            
+            <div class="form-group collapsible">
+                <button type="button" class="collapse-btn">Partner code (optional) ▼</button>
+                <div class="collapse-content">
+                    <input type="text" name="partner_code" placeholder="Enter partner code">
+                </div>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="us_citizen" required>
+                    <span>I declare and confirm that I am not a citizen or resident of the US for tax purposes.</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="auth-submit">Register</button>
+            
+            <div class="auth-divider">Or create an account with</div>
+            
+            <button type="button" class="google-btn" id="google-register">
+                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Google
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const targetTab = this.dataset.tab;
+        if (targetTab === 'signin') {
+            window.location.href = '/signin';
+        }
+    });
+});
+
+document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const input = document.getElementById(this.dataset.target);
+        input.type = input.type === 'password' ? 'text' : 'password';
+        this.textContent = input.type === 'password' ? '👁' : '👁🗨';
+    });
+});
+
+document.querySelector('.collapse-btn').addEventListener('click', function() {
+    const content = this.nextElementSibling;
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+    this.textContent = content.style.display === 'block' ? 'Partner code (optional) ▲' : 'Partner code (optional) ▼';
+});
+
+const passwordInput = document.getElementById('register-password');
+passwordInput.addEventListener('input', function() {
+    const value = this.value;
+    const requirements = {
+        length: value.length >= 8 && value.length <= 15,
+        case: /[a-z]/.test(value) && /[A-Z]/.test(value),
+        number: /\d/.test(value),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(value)
+    };
+    
+    Object.keys(requirements).forEach(rule => {
+        const elem = document.querySelector(`[data-rule="${rule}"]`);
+        if (requirements[rule]) {
+            elem.style.color = '#00ff88';
+            elem.textContent = elem.textContent.replace('○', '●');
+        } else {
+            elem.style.color = '#6c757d';
+            elem.textContent = elem.textContent.replace('●', '○');
+        }
+    });
+});
+
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            window.location.href = '/';
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        alert('Registration failed. Please try again.');
+    }
+});
+
+document.getElementById('google-register').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/auth/google');
+        if (response.ok) {
+            window.location.href = '/auth/google';
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Google sign-in is not configured. Please use email/password authentication.');
+        }
+    } catch (error) {
+        window.location.href = '/auth/google';
+    }
+});
+</script>
+{% endblock %}

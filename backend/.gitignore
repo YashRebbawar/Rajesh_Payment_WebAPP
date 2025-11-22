@@ -28,3 +28,8 @@ instance/
 # Environment variables
 .env
 .flaskenv
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
