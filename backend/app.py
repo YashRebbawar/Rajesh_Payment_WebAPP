@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
@@ -139,8 +142,7 @@ def google_login():
     if not google:
         logger.warning("Google OAuth attempt without configuration")
         return jsonify({'error': 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file'}), 400
-    redirect_uri = url_for('google_callback', _external=True, _scheme='http')
-    # Force localhost instead of 127.0.0.1
+    redirect_uri = url_for('google_callback', _external=True)
     redirect_uri = redirect_uri.replace('127.0.0.1', 'localhost')
     logger.info(f"Initiating Google OAuth flow, redirect_uri: {redirect_uri}")
     logger.info(f"Client ID: {app.config['GOOGLE_CLIENT_ID'][:20]}...")
