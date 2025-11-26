@@ -2,6 +2,8 @@
 
 {% block content %}
 <div class="landing-container">
+    <div id="status-message" class="status-message"></div>
+    
     <div class="auth-buttons">
         {% if user %}
         <div class="user-profile">
@@ -93,4 +95,28 @@
         </div>
     </div>
 </div>
+
+<script>
+function showStatus(message, type = 'success') {
+    const statusEl = document.getElementById('status-message');
+    statusEl.textContent = message;
+    statusEl.className = `status-message ${type}`;
+    statusEl.style.display = 'block';
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 4000);
+}
+
+const params = new URLSearchParams(window.location.search);
+if (params.get('status') === 'registered') {
+    showStatus('✓ Registration successful! Welcome!', 'success');
+    window.history.replaceState({}, document.title, window.location.pathname);
+} else if (params.get('status') === 'loggedin') {
+    showStatus('✓ Logged in successfully!', 'success');
+    window.history.replaceState({}, document.title, window.location.pathname);
+} else if (params.get('status') === 'loggedout') {
+    showStatus('✓ You have been logged out successfully!', 'success');
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
 {% endblock %}

@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from urllib.parse import quote_plus
 import os
 import logging
 from datetime import datetime
@@ -15,14 +17,42 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///printfree.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# MongoDB Atlas Config
+MONGO_URI = os.getenv('MONGO_URI')
+if not MONGO_URI or MONGO_URI.strip() == '':
+    logger.error("MONGO_URI not set in .env file")
+    logger.error("Please set up MongoDB Atlas and add MONGO_URI to .env")
+    logger.error("See MONGODB_SETUP.md for instructions")
+    raise Exception("MongoDB connection required. Please configure MONGO_URI in .env file")
+
+try:
+    # Handle URL encoding for special characters in password
+    if 'mongodb+srv://' in MONGO_URI and '@' in MONGO_URI:
+        prefix = MONGO_URI.split('://')[0] + '://'
+        rest = MONGO_URI.split('://', 1)[1]
+        if '@' in rest:
+            creds, host = rest.split('@', 1)
+            if ':' in creds:
+                username, password = creds.split(':', 1)
+                MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
+    
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    client.server_info()  # Test connection
+    logger.info("MongoDB connected successfully")
+except Exception as e:
+    logger.error(f"MongoDB connection failed: {e}")
+    logger.error("Please check your MONGO_URI in .env file")
+    logger.error("Make sure username, password, and cluster address are correct")
+    raise Exception(f"Failed to connect to MongoDB: {e}")
+
+db = client.printfree
+users_collection = db.users
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID', '')
 app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET', '')
 
-db = SQLAlchemy(app)
 oauth = OAuth(app)
 
 # Only register Google OAuth if credentials are provided
@@ -39,24 +69,20 @@ else:
     logger.warning("Google OAuth not configured - GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing")
     google = None
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200))
-    country = db.Column(db.String(50))
-    partner_code = db.Column(db.String(50))
-    google_id = db.Column(db.String(100), unique=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-with app.app_context():
-    db.create_all()
+# Create indexes for MongoDB
+users_collection.create_index('email', unique=True)
+users_collection.create_index('google_id', unique=True, sparse=True)
 
 @app.route('/')
 def landing_page():
     user = None
     if 'user_id' in session:
-        user = User.query.get(session['user_id'])
-        logger.info(f"User logged in: {user.email}")
+        try:
+            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+            if user:
+                logger.info(f"User logged in: {user['email']}")
+        except:
+            session.pop('user_id', None)
     return render_template('landing.html', user=user)
 
 @app.route('/signin')
@@ -77,31 +103,32 @@ def accounts():
 def api_register():
     data = request.json
     
-    if User.query.filter_by(email=data['email']).first():
+    if users_collection.find_one({'email': data['email']}):
         logger.warning(f"Registration attempt with existing email: {data['email']}")
         return jsonify({'success': False, 'message': 'Email already registered'})
     
-    user = User(
-        email=data['email'],
-        password=generate_password_hash(data['password']),
-        country=data.get('country'),
-        partner_code=data.get('partner_code')
-    )
-    db.session.add(user)
-    db.session.commit()
+    user_doc = {
+        'email': data['email'],
+        'password': generate_password_hash(data['password']),
+        'country': data.get('country'),
+        'partner_code': data.get('partner_code'),
+        'google_id': None,
+        'created_at': datetime.utcnow()
+    }
+    result = users_collection.insert_one(user_doc)
     
-    session['user_id'] = user.id
-    logger.info(f"New user registered: {user.email}")
+    session['user_id'] = str(result.inserted_id)
+    logger.info(f"New user registered: {data['email']}")
     return jsonify({'success': True})
 
 @app.route('/api/signin', methods=['POST'])
 def api_signin():
     data = request.json
-    user = User.query.filter_by(email=data['email']).first()
+    user = users_collection.find_one({'email': data['email']})
     
-    if user and check_password_hash(user.password, data['password']):
-        session['user_id'] = user.id
-        logger.info(f"User signed in: {user.email}")
+    if user and user.get('password') and check_password_hash(user['password'], data['password']):
+        session['user_id'] = str(user['_id'])
+        logger.info(f"User signed in: {user['email']}")
         return jsonify({'success': True})
     
     logger.warning(f"Failed sign in attempt for: {data['email']}")
@@ -144,24 +171,31 @@ def google_callback():
         user_info = token.get('userinfo')
         logger.info(f"Google OAuth successful for email: {user_info['email']}")
         
-        user = User.query.filter_by(google_id=user_info['sub']).first()
+        user = users_collection.find_one({'google_id': user_info['sub']})
         if not user:
-            user = User.query.filter_by(email=user_info['email']).first()
+            user = users_collection.find_one({'email': user_info['email']})
             if user:
-                logger.info(f"Linking existing user to Google account: {user.email}")
-                user.google_id = user_info['sub']
+                logger.info(f"Linking existing user to Google account: {user['email']}")
+                users_collection.update_one(
+                    {'_id': user['_id']},
+                    {'$set': {'google_id': user_info['sub']}}
+                )
             else:
                 logger.info(f"Creating new user from Google OAuth: {user_info['email']}")
-                user = User(
-                    email=user_info['email'],
-                    google_id=user_info['sub']
-                )
-                db.session.add(user)
-            db.session.commit()
+                user_doc = {
+                    'email': user_info['email'],
+                    'google_id': user_info['sub'],
+                    'password': None,
+                    'country': None,
+                    'partner_code': None,
+                    'created_at': datetime.utcnow()
+                }
+                result = users_collection.insert_one(user_doc)
+                user = users_collection.find_one({'_id': result.inserted_id})
         else:
-            logger.info(f"Existing Google user signed in: {user.email}")
+            logger.info(f"Existing Google user signed in: {user['email']}")
         
-        session['user_id'] = user.id
+        session['user_id'] = str(user['_id'])
         logger.info(f"User session created, redirecting to landing page")
         return redirect(url_for('landing_page'))
     except Exception as e:
@@ -174,11 +208,14 @@ def google_callback():
 @app.route('/logout')
 def logout():
     if 'user_id' in session:
-        user = User.query.get(session['user_id'])
-        if user:
-            logger.info(f"User logged out: {user.email}")
+        try:
+            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+            if user:
+                logger.info(f"User logged out: {user['email']}")
+        except:
+            pass
     session.pop('user_id', None)
-    return redirect(url_for('landing_page'))
+    return redirect(url_for('landing_page', status='loggedout'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -33,3 +33,6 @@ instance/
 *.db
 *.sqlite
 *.sqlite3
+
+# MongoDB
+mongodb_data/
