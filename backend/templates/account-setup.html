@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Set up your {{ account_type|title }} account - PrintFree{% endblock %}
+
+{% block content %}
+<div class="setup-container">
+    <button type="button" class="back-button" id="back-button" aria-label="Go back">←</button>
+
+    <div class="setup-header">
+        <h1>Set up your account</h1>
+    </div>
+
+    <div class="setup-content">
+        <div class="setup-form-section">
+            <div class="account-tabs">
+                <button class="tab-btn" data-tab="real" disabled>Real</button>
+            </div>
+            <p class="tab-description">Trade with real money and withdraw any profit you may make</p>
+
+            <form id="setup-form" class="setup-form">
+                <div class="form-group">
+                    <label for="currency">Currency <span class="required">*</span></label>
+                    <select id="currency" name="currency" required>
+                        <option value="">Select Currency</option>
+                        <option value="USD">USD - United States Dollar</option>
+                        <option value="INR">INR - Indian Rupee</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nickname">Nickname <span class="required">*</span></label>
+                    <input type="text" id="nickname" name="nickname" placeholder="{{ account_type|title }}" maxlength="36" required>
+                    <small class="form-hint">Nicknames can't contain special characters: &lt;&gt;"&amp;^*@</small>
+                    <div class="char-count"><span id="char-count">0</span>/36</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="leverage">Max leverage <span class="required">*</span></label>
+                    <select id="leverage" name="leverage" required>
+                        <option value="">Select Leverage</option>
+                        <option value="1:100">1:100</option>
+                        <option value="1:200">1:200</option>
+                        <option value="1:300">1:300</option>
+                        <option value="1:400">1:400</option>
+                        <option value="1:500">1:500</option>
+                        <option value="1:1000">1:1000</option>
+                        <option value="1:2000">1:2000</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="platform">Platform <span class="required">*</span></label>
+                    <select id="platform" name="platform" required>
+                        <option value="">Select Platform</option>
+                        <option value="MT5">MT5</option>
+                        <option value="MT4">MT4</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Trading password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter trading password">
+                        <button type="button" class="toggle-password" id="toggle-password">👁</button>
+                    </div>
+                    <div class="password-requirements">
+                        <div class="requirement" id="req-length">
+                            <span class="requirement-icon">○</span>
+                            <span>Between 8-15 characters</span>
+                        </div>
+                        <div class="requirement" id="req-case">
+                            <span class="requirement-icon">○</span>
+                            <span>At least one upper and one lower case letter</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <span class="requirement-icon">○</span>
+                            <span>At least one number</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <span class="requirement-icon">○</span>
+                            <span>At least one special character</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="create-account-btn">Create account</button>
+            </form>
+        </div>
+
+        <div class="setup-info-section">
+            <div class="account-info-card">
+                <h3>{{ account_type|title }}</h3>
+                {% if account_type == 'standard' %}
+                    <div class="info-row">
+                        <span class="info-label">Min deposit</span>
+                        <span class="info-value">10 USD</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Min spread</span>
+                        <span class="info-value">0.20 pips</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Max leverage</span>
+                        <span class="info-value">1:Unlimited</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Commission</span>
+                        <span class="info-value">No commission</span>
+                    </div>
+                {% elif account_type == 'pro' %}
+                    <div class="info-row">
+                        <span class="info-label">Min deposit</span>
+                        <span class="info-value">500 USD</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Min spread</span>
+                        <span class="info-value">0.10 pips</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Max leverage</span>
+                        <span class="info-value">1:Unlimited</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Commission</span>
+                        <span class="info-value">No commission</span>
+                    </div>
+                {% elif account_type == 'raw-spread' %}
+                    <div class="info-row">
+                        <span class="info-label">Min deposit</span>
+                        <span class="info-value">500 USD</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Min spread</span>
+                        <span class="info-value">0.00 pips</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Max leverage</span>
+                        <span class="info-value">1:Unlimited</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Commission</span>
+                        <span class="info-value">To 3.50 USD</span>
+                    </div>
+                {% elif account_type == 'zero' %}
+                    <div class="info-row">
+                        <span class="info-label">Min deposit</span>
+                        <span class="info-value">500 USD</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Min spread</span>
+                        <span class="info-value">0.00 pips</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Max leverage</span>
+                        <span class="info-value">1:Unlimited</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Commission</span>
+                        <span class="info-value">From 0.20 USD</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('back-button');
+    const nicknameInput = document.getElementById('nickname');
+    const charCount = document.getElementById('char-count');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const setupForm = document.getElementById('setup-form');
+
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            window.history.back();
+        });
+    }
+
+
+
+    nicknameInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+
+    togglePasswordBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        this.textContent = type === 'password' ? '👁' : '👁🗨';
+    });
+
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        const requirements = {
+            length: password.length >= 8 && password.length <= 15,
+            case: /[a-z]/.test(password) && /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+        };
+
+        updateRequirement('req-length', requirements.length);
+        updateRequirement('req-case', requirements.case);
+        updateRequirement('req-number', requirements.number);
+        updateRequirement('req-special', requirements.special);
+    });
+
+    function updateRequirement(id, met) {
+        const element = document.getElementById(id);
+        if (met) {
+            element.classList.add('met');
+            element.querySelector('.requirement-icon').textContent = '✓';
+        } else {
+            element.classList.remove('met');
+            element.querySelector('.requirement-icon').textContent = '○';
+        }
+    }
+
+    setupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = {
+            account_type: '{{ account_type }}',
+            currency: document.getElementById('currency').value,
+            nickname: document.getElementById('nickname').value,
+            leverage: document.getElementById('leverage').value,
+            platform: document.getElementById('platform').value,
+            password: document.getElementById('password').value
+        };
+
+        console.log('Account setup data:', formData);
+        alert(`Account created successfully!\nType: ${formData.account_type}\nNickname: ${formData.nickname}`);
+    });
+});
+</script>
+{% endblock %}

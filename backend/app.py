@@ -109,6 +109,16 @@ def accounts():
         return redirect(url_for('signin'))
     return render_template('accounts.html', user=user)
 
+@app.route('/account-setup/<account_type>')
+def account_setup(account_type):
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('signin'))
+    valid_types = ['standard', 'pro', 'raw-spread', 'zero']
+    if account_type not in valid_types:
+        return redirect(url_for('accounts'))
+    return render_template('account-setup.html', account_type=account_type, user=user)
+
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json

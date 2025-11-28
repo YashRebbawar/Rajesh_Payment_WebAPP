@@ -37,7 +37,7 @@
     {% endif %}
     <button type="button" class="back-button" id="back-button" aria-label="Go back">
         <span class="back-icon">←</span>
-        <span class="back-text">Back</span>
+       
     </button>
     <div class="header-section">
         <h1 class="account-title">Open New Account</h1>
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     openButton.addEventListener('click', function() {
         if (selectedCard) {
-            const accountType = selectedCard.querySelector('h2').textContent;
-            alert(`Opening ${accountType} account...`);
+            const accountId = selectedCard.dataset.id;
+            window.location.href = `/account-setup/${accountId}`;
         }
     });
 
