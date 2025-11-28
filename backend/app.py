@@ -40,7 +40,7 @@ try:
                 username, password = creds.split(':', 1)
                 MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
     
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True)
     client.server_info()  # Test connection
     logger.info("MongoDB connected successfully")
 except Exception as e:

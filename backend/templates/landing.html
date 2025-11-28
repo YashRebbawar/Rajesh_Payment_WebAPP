@@ -6,10 +6,27 @@
     
     <div class="auth-buttons">
         {% if user %}
-        <div class="user-profile">
-            <span class="user-email">{{ user.email }}</span>
-            <button class="btn-profile" onclick="window.location.href='/accounts'">My Accounts</button>
-            <button class="btn-logout" onclick="window.location.href='/logout'">Logout</button>
+        <div class="user-profile-wrapper">
+            <button class="profile-icon-btn" id="profile-toggle">
+                <div class="profile-icon">{{ user.email[0].upper() }}</div>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <div class="profile-card">
+                    <div class="profile-avatar">{{ user.email[0].upper() }}</div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">{{ user.email.split('@')[0] }}</h3>
+                        <p class="profile-email">{{ user.email }}</p>
+                        {% if user.country %}
+                        <p class="profile-country">📍 {{ user.country }}</p>
+                        {% endif %}
+                        <p class="profile-date">Member since {{ user.created_at.strftime('%b %Y') if user.created_at else 'Recently' }}</p>
+                    </div>
+                    <div class="profile-actions">
+                        <button class="btn-accounts" onclick="window.location.href='/accounts'">My Accounts</button>
+                        <button class="btn-logout-card" onclick="window.location.href='/logout'">Logout</button>
+                    </div>
+                </div>
+            </div>
         </div>
         {% else %}
         <button class="btn-signin" onclick="window.location.href='/signin'">Sign In</button>
@@ -97,6 +114,18 @@
 </div>
 
 <script>
+document.getElementById('profile-toggle')?.addEventListener('click', function() {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.toggle('active');
+});
+
+document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.user-profile-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('profile-dropdown')?.classList.remove('active');
+    }
+});
+
 function showStatus(message, type = 'success') {
     const statusEl = document.getElementById('status-message');
     statusEl.textContent = message;
