@@ -76,31 +76,38 @@ else:
 users_collection.create_index('email', unique=True)
 users_collection.create_index('google_id', unique=True, sparse=True)
 
-@app.route('/')
-def landing_page():
-    user = None
+def get_current_user():
+    """Helper function to get current user from session"""
     if 'user_id' in session:
         try:
-            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-            if user:
-                logger.info(f"User logged in: {user['email']}")
+            return users_collection.find_one({'_id': ObjectId(session['user_id'])})
         except:
             session.pop('user_id', None)
+    return None
+
+@app.route('/')
+def landing_page():
+    user = get_current_user()
+    if user:
+        logger.info(f"User logged in: {user['email']}")
     return render_template('landing.html', user=user)
 
 @app.route('/signin')
 def signin():
-    return render_template('signin.html')
+    user = get_current_user()
+    return render_template('signin.html', user=user)
 
 @app.route('/register')
 def register():
-    return render_template('register.html')
+    user = get_current_user()
+    return render_template('register.html', user=user)
 
 @app.route('/accounts')
 def accounts():
-    if 'user_id' not in session:
+    user = get_current_user()
+    if not user:
         return redirect(url_for('signin'))
-    return render_template('accounts.html')
+    return render_template('accounts.html', user=user)
 
 @app.route('/api/register', methods=['POST'])
 def api_register():

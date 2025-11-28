@@ -9,10 +9,43 @@
         <div class="account-shape account-shape-2"></div>
         <div class="account-shape account-shape-3"></div>
     </div>
+    {% if user %}
+    <div class="auth-buttons">
+        <div class="user-profile-wrapper">
+            <button class="profile-icon-btn" id="profile-toggle">
+                <div class="profile-icon">{{ user.email[0].upper() }}</div>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <div class="profile-card">
+                    <div class="profile-avatar">{{ user.email[0].upper() }}</div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">{{ user.email.split('@')[0] }}</h3>
+                        <p class="profile-email">{{ user.email }}</p>
+                        {% if user.country %}
+                        <p class="profile-country">📍 {{ user.country }}</p>
+                        {% endif %}
+                        <p class="profile-date">Member since {{ user.created_at.strftime('%b %Y') if user.created_at else 'Recently' }}</p>
+                    </div>
+                    <div class="profile-actions">
+                        <button class="btn-accounts" onclick="window.location.href='/accounts'">My Accounts</button>
+                        <button class="btn-logout-card" onclick="window.location.href='/logout'">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <button type="button" class="back-button" id="back-button" aria-label="Go back">
+        <span class="back-icon">←</span>
+        <span class="back-text">Back</span>
+    </button>
     <div class="header-section">
         <h1 class="account-title">Open New Account</h1>
-        <p class="subtitle-text">Choose the account type that best fits your trading style and start your journey with professional trading conditions</p>
+        <p class="subtitle-text">
+            Choose the account type that best fits your trading style and start your journey with professional trading conditions
+        </p>
     </div>
+
     <div class="account-grid">
         <div class="account-card popular" data-id="standard">
             <div class="popular-badge">Popular</div>
@@ -104,6 +137,7 @@
             </div>
         </div>
     </div>
+
     <div class="action-section" id="action-section" style="display: none;">
         <button class="open-button" id="open-button">Open Account</button>
         <p class="action-note">Your account will be ready in minutes</p>
@@ -115,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cards = document.querySelectorAll('.account-card');
     const actionSection = document.getElementById('action-section');
     const openButton = document.getElementById('open-button');
+    const backButton = document.getElementById('back-button');
     let selectedCard = null;
 
     cards.forEach(card => {
@@ -133,6 +168,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedCard) {
             const accountType = selectedCard.querySelector('h2').textContent;
             alert(`Opening ${accountType} account...`);
+        }
+    });
+
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            window.history.back();
+        });
+    }
+
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (profileToggle) {
+        profileToggle.addEventListener('click', function() {
+            profileDropdown.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        const wrapper = document.querySelector('.user-profile-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            profileDropdown?.classList.remove('active');
         }
     });
 });
