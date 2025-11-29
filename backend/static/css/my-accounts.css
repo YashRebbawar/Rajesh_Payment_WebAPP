@@ -312,3 +312,181 @@ body {
         font-size: 14px;
     }
 }
+
+.accounts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.account-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.account-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: #f0f0f0;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.account-id {
+    font-size: 14px;
+    color: #666;
+}
+
+.account-balance {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.balance-amount {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.balance-currency {
+    font-size: 16px;
+    color: #666;
+}
+
+.account-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.detail-row span:first-child {
+    color: #666;
+}
+
+.detail-row span:last-child {
+    font-weight: 600;
+}
+
+.account-footer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.footer-info {
+    display: flex;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.footer-info span:first-child {
+    color: #666;
+}
+
+.footer-info span:last-child {
+    font-weight: 600;
+}
+
+.change-password-btn {
+    background: transparent;
+    border: 1px solid #ddd;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.account-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.trade-btn {
+    background: #ffed4e;
+}
+
+.trade-btn:hover {
+    background: #ffe620;
+}
+
+.deposit-btn {
+    background: #f0f0f0;
+}
+
+.deposit-btn:hover {
+    background: #e0e0e0;
+}
+
+.withdraw-btn {
+    background: #f0f0f0;
+}
+
+.withdraw-btn:hover {
+    background: #e0e0e0;
+}
+
+@media (max-width: 768px) {
+    .account-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .account-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .change-password-btn {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .action-btn {
+        min-width: 100%;
+    }
+}

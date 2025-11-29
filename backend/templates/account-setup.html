@@ -45,6 +45,7 @@
                         <option value="1:500">1:500</option>
                         <option value="1:1000">1:1000</option>
                         <option value="1:2000">1:2000</option>
+                        <option value="1:2000">1:Unlimited</option>
                     </select>
                 </div>
 
@@ -58,9 +59,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Trading password</label>
+                    <label for="password">Trading password <span class="required">*</span></label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Enter trading password">
+                        <input type="password" id="password" name="password" placeholder="Enter trading password" required>
                         <button type="button" class="toggle-password" id="toggle-password">👁</button>
                     </div>
                     <div class="password-requirements">
@@ -229,8 +230,23 @@ document.addEventListener('DOMContentLoaded', function() {
             password: document.getElementById('password').value
         };
 
-        console.log('Account setup data:', formData);
-        alert(`Account created successfully!\nType: ${formData.account_type}\nNickname: ${formData.nickname}`);
+        fetch('/api/account-setup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message || 'Failed to create account');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while creating the account');
+        });
     });
 });
 </script>

@@ -90,11 +90,73 @@
         </div>
     </div>
 
+    {% if accounts %}
+    <div class="accounts-list">
+        {% for account in accounts %}
+        <div class="account-card">
+            <div class="account-header">
+                <div class="account-badges">
+                    <span class="badge">Real</span>
+                    <span class="badge">{{ account.platform }}</span>
+                    <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
+                    <span class="badge">{{ account.nickname }}</span>
+                </div>
+            </div>
+            <div class="account-balance">
+                <div class="balance-amount">0.00</div>
+                <div class="balance-currency">{{ account.currency }}</div>
+            </div>
+            <div class="account-details">
+                <div class="detail-row">
+                    <span>Actual leverage</span>
+                    <span>{{ account.leverage }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Free margin</span>
+                    <span>0.00 {{ account.currency }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Adjust leverage</span>
+                    <span>{{ account.leverage }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Equity</span>
+                    <span>0.00 {{ account.currency }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Floating P/L</span>
+                    <span>0.00 {{ account.currency }}</span>
+                </div>
+                <div class="detail-row">
+                    <span>Platform</span>
+                    <span>{{ account.platform }}</span>
+                </div>
+            </div>
+            <div class="account-footer">
+                <div class="footer-info">
+                    <span>Server</span>
+                    <span>Exness-{{ account.platform }}Real{{ loop.index }}</span>
+                </div>
+                <div class="footer-info">
+                    <span>{{ account.platform }} login</span>
+                    <span>{{ account._id }}</span>
+                </div>
+                <button class="change-password-btn">Change trading password</button>
+            </div>
+            <div class="account-actions">
+                <button class="action-btn deposit-btn">Deposit</button>
+                <button class="action-btn withdraw-btn">Withdraw</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
     <div class="empty-state">
         <img src="{{ url_for('static', filename='images/folder_icon.png') }}" alt="No accounts" class="empty-icon">
         <p class="empty-text">No active accounts</p>
         <button class="open-account-btn-yellow" onclick="window.location.href='/accounts'">Open account</button>
     </div>
+    {% endif %}
 </div>
 
 <footer class="footer-links">

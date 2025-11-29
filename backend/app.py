@@ -51,6 +51,7 @@ except Exception as e:
 
 db = client.printfree
 users_collection = db.users
+accounts_collection = db.trading_accounts
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID', '')
@@ -75,6 +76,8 @@ else:
 # Create indexes for MongoDB
 users_collection.create_index('email', unique=True)
 users_collection.create_index('google_id', unique=True, sparse=True)
+accounts_collection.create_index('user_id')
+accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
 
 def get_current_user():
     """Helper function to get current user from session"""
@@ -107,7 +110,8 @@ def my_accounts():
     user = get_current_user()
     if not user:
         return redirect(url_for('signin'))
-    return render_template('my-accounts.html', user=user)
+    accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
+    return render_template('my-accounts.html', user=user, accounts=accounts)
 
 @app.route('/accounts')
 def accounts():
@@ -248,6 +252,27 @@ def update_name():
     )
     logger.info(f"User {user['email']} updated name to: {new_name}")
     return jsonify({'success': True})
+
+@app.route('/api/account-setup', methods=['POST'])
+def account_setup_api():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    account_doc = {
+        'user_id': user['_id'],
+        'account_type': data['account_type'],
+        'currency': data['currency'],
+        'nickname': data['nickname'],
+        'leverage': data['leverage'],
+        'platform': data['platform'],
+        'trading_password': data['password'],
+        'created_at': datetime.utcnow()
+    }
+    accounts_collection.insert_one(account_doc)
+    logger.info(f"Account created for user {user['email']}: {data['nickname']}")
+    return jsonify({'success': True, 'redirect': '/my-accounts'})
 
 @app.route('/logout')
 def logout():
