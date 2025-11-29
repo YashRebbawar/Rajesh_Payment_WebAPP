@@ -224,6 +224,25 @@ def google_callback():
         logger.error(f"Traceback: {traceback.format_exc()}")
         return redirect(url_for('signin'))
 
+@app.route('/api/update-name', methods=['POST'])
+def update_name():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    new_name = data.get('name', '').strip()
+    
+    if not new_name:
+        return jsonify({'success': False, 'message': 'Name cannot be empty'})
+    
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'name': new_name}}
+    )
+    logger.info(f"User {user['email']} updated name to: {new_name}")
+    return jsonify({'success': True})
+
 @app.route('/logout')
 def logout():
     if 'user_id' in session:

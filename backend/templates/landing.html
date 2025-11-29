@@ -13,14 +13,26 @@
             </button>
             <div class="profile-dropdown" id="profile-dropdown">
                 <div class="profile-card">
-                    <div class="profile-avatar">{{ user.email[0].upper() }}</div>
+                    <div class="profile-avatar">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
                     <div class="profile-info">
-                        <h3 class="profile-name">{{ user.email.split('@')[0] }}</h3>
+                        <div class="profile-name-container" id="name-display">
+                            <h3 class="profile-name" id="profile-name-text">{{ user.name if user.name else user.email.split('@')[0] }}</h3>
+                            <button class="edit-name-btn" id="edit-name-btn" onclick="editName()">✏️</button>
+                        </div>
+                        <div class="profile-name-container" id="name-edit" style="display: none;">
+                            <input type="text" class="profile-name-input" id="name-input" value="{{ user.name if user.name else user.email.split('@')[0] }}">
+                            <div class="name-actions">
+                                <button class="save-name-btn" onclick="saveName()">✓</button>
+                                <button class="cancel-name-btn" onclick="cancelEdit()">✕</button>
+                            </div>
+                        </div>
                         <p class="profile-email">{{ user.email }}</p>
-                        {% if user.country %}
-                        <p class="profile-country">📍 {{ user.country }}</p>
-                        {% endif %}
-                        <p class="profile-date">Member since {{ user.created_at.strftime('%b %Y') if user.created_at else 'Recently' }}</p>
+                        <div class="profile-meta">
+                            {% if user.country %}
+                            <span class="profile-country">📍 {{ user.country }}</span>
+                            {% endif %}
+                            <span class="profile-date">{{ user.created_at.strftime('%b %Y') if user.created_at else 'Recently' }}</span>
+                        </div>
                     </div>
                     <div class="profile-actions">
                         <button class="btn-accounts" onclick="window.location.href='/accounts'">My Accounts</button>
@@ -52,7 +64,7 @@
                     <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo" class="logo-image">
                     <div>
                         <h1 class="brand-name">PrintFree</h1>
-                        <p class="brand-subtitle">Multi-asset Trading Platform</p>
+                        <p class="brand-subtitle">A Trading Firm</p>
                     </div>
                 </div>
                 <p class="brand-tagline">Professional Trading Made Simple</p>
@@ -182,5 +194,44 @@ document.addEventListener('keydown', (e) => {
         closeDemo();
     }
 });
+
+function editName() {
+    document.getElementById('name-display').style.display = 'none';
+    document.getElementById('name-edit').style.display = 'flex';
+    document.getElementById('name-input').focus();
+}
+
+function cancelEdit() {
+    document.getElementById('name-display').style.display = 'flex';
+    document.getElementById('name-edit').style.display = 'none';
+}
+
+async function saveName() {
+    const newName = document.getElementById('name-input').value.trim();
+    if (!newName) {
+        showStatus('Name cannot be empty', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/update-name', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: newName})
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('profile-name-text').textContent = newName;
+            document.querySelector('.profile-avatar').textContent = newName[0].toUpperCase();
+            cancelEdit();
+            showStatus('✓ Name updated successfully!', 'success');
+        } else {
+            showStatus(data.message || 'Failed to update name', 'error');
+        }
+    } catch (error) {
+        showStatus('Error updating name', 'error');
+    }
+}
 </script>
 {% endblock %}
