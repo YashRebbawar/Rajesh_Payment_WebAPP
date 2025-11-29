@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}My accounts - PrintFree{% endblock %}
+
+{% block content %}
+<header class="main-header">
+    <div class="header-content">
+        <a href="/" class="header-logo">
+            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo">
+            <span>PrintFree</span>
+        </a>
+        <nav class="header-nav">
+            <button class="nav-toggle" id="nav-toggle">☰</button>
+            
+            {% if user %}
+            <div class="user-profile-wrapper">
+                <button class="profile-icon-btn" id="profile-toggle">
+                    <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
+                </button>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <div class="profile-card-wrapper">
+                        <div class="profile-card-main">
+                            <div class="profile-card-header">
+                                <div class="profile-card-header-left">Trading Account</div>
+                                <div class="profile-card-header-right">
+                                    <div class="profile-time-icon">⏱</div>
+                                    <span id="current-time"></span>
+                                </div>
+                            </div>
+                            <div class="profile-card-content">
+                                <div class="profile-card-avatar">
+                                    {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                </div>
+                                <div class="profile-card-name-block">
+                                    <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
+                                        <h2 id="profile-name-text">{{ user.name if user.name else user.email.split('@')[0] }}</h2>
+                                        <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #000;" onclick="editName()"><i class="fa-solid fa-pencil"></i></button>
+                                    </div>
+                                    <div style="display: none; align-items: center; gap: 6px;" id="name-edit">
+                                        <input type="text" id="name-input" value="{{ user.name if user.name else user.email.split('@')[0] }}" style="font-size: 18px; font-weight: 700; border: 2px solid #ffed4e; border-radius: 8px; padding: 4px 8px; width: 180px;">
+                                        <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #28a745;" onclick="saveName()">✓</button>
+                                        <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545;" onclick="cancelEdit()">✕</button>
+                                    </div>
+                                    <div class="profile-card-status-row">
+                                        <span class="profile-status-dot"></span>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile-card-actions">
+                                <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
+                                    <span>My Account</span>
+                                </button>
+                                <button class="profile-card-btn" onclick="window.location.href='/logout'">
+                                    <span class="profile-card-btn-icon">▢</span>
+                                    <span>Log out</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="profile-intensity-card">
+                            <span>Account Type:</span>
+                            <span>Standard</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<div class="my-accounts-container">
+    <div class="my-accounts-header">
+        <h1>My accounts</h1>
+        <button class="open-account-btn" onclick="window.location.href='/accounts'">
+            <span>+</span> Open account
+        </button>
+    </div>
+
+    <div class="filter-section">
+        <select class="sort-dropdown">
+            <option>Newest</option>
+            <option>Oldest</option>
+            <option>Balance (High to Low)</option>
+            <option>Balance (Low to High)</option>
+        </select>
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="list">☰</button>
+            <button class="view-btn" data-view="grid">⊞</button>
+        </div>
+    </div>
+
+    <div class="empty-state">
+        <img src="{{ url_for('static', filename='images/folder_icon.png') }}" alt="No accounts" class="empty-icon">
+        <p class="empty-text">No active accounts</p>
+        <button class="open-account-btn-yellow" onclick="window.location.href='/accounts'">Open account</button>
+    </div>
+</div>
+
+<footer class="footer-links">
+    <a href="#">Client Agreement</a>
+    <a href="#">General Business Terms</a>
+</footer>
+
+<script>
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeEl = document.getElementById('current-time');
+    if (timeEl) timeEl.textContent = timeStr;
+}
+updateTime();
+setInterval(updateTime, 60000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const navToggle = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    
+    if (navToggle) {
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+    }
+
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (profileToggle) {
+        profileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        const wrapper = document.querySelector('.user-profile-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            profileDropdown?.classList.remove('active');
+        }
+    });
+
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+});
+
+function editName() {
+    document.getElementById('name-display').style.display = 'none';
+    document.getElementById('name-edit').style.display = 'flex';
+    document.getElementById('name-input').focus();
+}
+
+function cancelEdit() {
+    document.getElementById('name-display').style.display = 'flex';
+    document.getElementById('name-edit').style.display = 'none';
+}
+
+async function saveName() {
+    const newName = document.getElementById('name-input').value.trim();
+    if (!newName) return;
+    
+    try {
+        const response = await fetch('/api/update-name', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: newName})
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('profile-name-text').textContent = newName;
+            document.querySelector('.profile-card-avatar').textContent = newName[0].toUpperCase();
+            document.querySelector('.profile-icon').textContent = newName[0].toUpperCase();
+            cancelEdit();
+        }
+    } catch (error) {
+        console.error('Error updating name:', error);
+    }
+}
+</script>
+{% endblock %}

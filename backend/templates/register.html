@@ -137,7 +137,7 @@ document.getElementById('register-form').addEventListener('submit', async functi
         });
         const result = await response.json();
         if (result.success) {
-            window.location.href = '/';
+            window.location.href = result.redirect || '/signin';
         } else {
             alert(result.message);
         }

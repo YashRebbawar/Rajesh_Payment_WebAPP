@@ -102,6 +102,13 @@ def register():
     user = get_current_user()
     return render_template('register.html', user=user)
 
+@app.route('/my-accounts')
+def my_accounts():
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('signin'))
+    return render_template('my-accounts.html', user=user)
+
 @app.route('/accounts')
 def accounts():
     user = get_current_user()
@@ -137,9 +144,8 @@ def api_register():
     }
     result = users_collection.insert_one(user_doc)
     
-    session['user_id'] = str(result.inserted_id)
     logger.info(f"New user registered: {data['email']}")
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'redirect': '/signin'})
 
 @app.route('/api/signin', methods=['POST'])
 def api_signin():
@@ -149,7 +155,7 @@ def api_signin():
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
         logger.info(f"User signed in: {user['email']}")
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'redirect': '/my-accounts'})
     
     logger.warning(f"Failed sign in attempt for: {data['email']}")
     return jsonify({'success': False, 'message': 'Invalid credentials'})
@@ -215,8 +221,8 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
-        logger.info(f"User session created, redirecting to landing page")
-        return redirect(url_for('landing_page'))
+        logger.info(f"User session created, redirecting to my accounts page")
+        return redirect(url_for('my_accounts'))
     except Exception as e:
         logger.error(f"Google OAuth Error: {str(e)}")
         logger.error(f"Error type: {type(e).__name__}")
