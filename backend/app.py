@@ -111,6 +111,8 @@ def my_accounts():
     user = get_current_user()
     if not user:
         return redirect(url_for('signin'))
+    if user.get('is_admin'):
+        return redirect(url_for('admin_dashboard'))
     accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
     return render_template('my-accounts.html', user=user, accounts=accounts)
 
@@ -160,7 +162,8 @@ def api_signin():
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
         logger.info(f"User signed in: {user['email']}")
-        return jsonify({'success': True, 'redirect': '/my-accounts'})
+        redirect_url = '/admin/dashboard' if user.get('is_admin') else '/my-accounts'
+        return jsonify({'success': True, 'redirect': redirect_url})
     
     logger.warning(f"Failed sign in attempt for: {data['email']}")
     return jsonify({'success': False, 'message': 'Invalid credentials'})
@@ -225,8 +228,8 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
-        logger.info(f"User session created, redirecting to my accounts page")
-        return redirect(url_for('my_accounts'))
+        logger.info(f"User session created, redirecting to {'admin dashboard' if user.get('is_admin') else 'my accounts page'}")
+        return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
     except Exception as e:
         logger.error(f"Google OAuth Error: {str(e)}")
         logger.error(f"Error type: {type(e).__name__}")
@@ -320,6 +323,39 @@ def api_deposit():
     except Exception as e:
         logger.error(f"Deposit error: {e}")
         return jsonify({'success': False, 'message': 'Payment processing failed'})
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('signin'))
+    
+    all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
+    all_accounts = list(accounts_collection.find().sort('created_at', -1))
+    
+    user_accounts_map = {}
+    for account in all_accounts:
+        user_id = str(account['user_id'])
+        if user_id not in user_accounts_map:
+            user_accounts_map[user_id] = []
+        user_accounts_map[user_id].append(account)
+    
+    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map)
+
+@app.route('/api/admin/delete-user/<user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        accounts_collection.delete_many({'user_id': ObjectId(user_id)})
+        users_collection.delete_one({'_id': ObjectId(user_id)})
+        logger.info(f"Admin {user['email']} deleted user {user_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/logout')
 def logout():

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - PrintFree{% endblock %}
+
+{% block content %}
+<header class="main-header">
+    <div class="header-content">
+        <a href="/" class="header-logo">
+            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo">
+            <span>PrintFree</span>
+        </a>
+        <nav class="header-nav">
+            <button class="nav-toggle" id="nav-toggle">☰</button>
+            
+            {% if user %}
+            <div class="user-profile-wrapper">
+                <button class="profile-icon-btn" id="profile-toggle">
+                    <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
+                </button>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <div class="profile-card-wrapper">
+                        <div class="profile-card-main">
+                            <div class="profile-card-header">
+                                <div class="profile-card-header-left">Admin Account</div>
+                            </div>
+                            <div class="profile-card-content">
+                                <div class="profile-card-avatar">
+                                    {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                </div>
+                                <div class="profile-card-name-block">
+                                    <h2>{{ user.name if user.name else user.email.split('@')[0] }}</h2>
+                                    <div class="profile-card-status-row">
+                                        <span class="profile-status-dot"></span>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile-card-actions">
+                                <button class="profile-card-btn" onclick="window.location.href='/logout'">
+                                    <span class="profile-card-btn-icon">▢</span>
+                                    <span>Log out</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<div class="my-accounts-container">
+    <div class="my-accounts-header">
+        <h1>Admin Dashboard</h1>
+        <span style="color: #666;">Total Users: {{ all_users|length }}</span>
+    </div>
+
+    <div class="admin-users-list">
+        {% for u in all_users %}
+        <div class="admin-user-card">
+            <div class="admin-user-header">
+                <div class="admin-user-info">
+                    <div class="profile-icon">
+                        {{ (u.name[0] if u.name else u.email[0]).upper() }}
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name-row">
+                            <h3>{{ u.name if u.name else u.email.split('@')[0] }}</h3>
+                            {% if u.is_admin %}
+                            <span class="badge admin-badge">Admin</span>
+                            {% endif %}
+                        </div>
+                        <p class="user-email">{{ u.email }}</p>
+                    </div>
+                </div>
+                <button class="delete-btn" onclick="deleteUser('{{ u._id }}')">
+                    Delete User
+                </button>
+            </div>
+            
+            {% set user_accounts = user_accounts_map.get(u._id|string, []) %}
+            {% if user_accounts %}
+            <div class="admin-accounts-section">
+                <h4 style="margin: 15px 0 10px 0; color: #333;">Accounts ({{ user_accounts|length }})</h4>
+                {% for account in user_accounts %}
+                <div class="account-card" style="margin-bottom: 10px;">
+                    <div class="account-header">
+                        <div class="account-badges">
+                            <span class="badge">{{ account.platform }}</span>
+                            <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
+                            <span class="badge">{{ account.nickname }}</span>
+                        </div>
+                    </div>
+                    <div class="account-balance">
+                        <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
+                        <div class="balance-currency">{{ account.currency }}</div>
+                    </div>
+                    <div class="account-details">
+                        <div class="detail-row">
+                            <span>Leverage</span>
+                            <span>{{ account.leverage }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Platform</span>
+                            <span>{{ account.platform }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Created</span>
+                            <span>{{ account.created_at.strftime('%Y-%m-%d') if account.created_at else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: #999; font-size: 14px; margin-top: 10px;">No accounts</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.admin-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.admin-user-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s;
+}
+
+.admin-user-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.admin-user-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.admin-user-info {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1;
+}
+
+.admin-user-info .profile-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-details h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.user-email {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.admin-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.delete-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.delete-btn:hover {
+    background: #d32f2f;
+}
+
+.admin-accounts-section {
+    margin-top: 20px;
+}
+
+.admin-accounts-section h4 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.admin-accounts-section .account-card {
+    margin-bottom: 12px;
+}
+
+.admin-accounts-section p {
+    color: #999;
+    font-size: 14px;
+    margin: 0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (profileToggle) {
+        profileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        const wrapper = document.querySelector('.user-profile-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            profileDropdown?.classList.remove('active');
+        }
+    });
+});
+
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user and all their accounts?')) return;
+    
+    try {
+        const response = await fetch(`/api/admin/delete-user/${userId}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user');
+    }
+}
+
+
+</script>
+{% endblock %}
