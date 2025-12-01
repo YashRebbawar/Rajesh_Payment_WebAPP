@@ -21,7 +21,12 @@
                     <div class="profile-card-wrapper">
                         <div class="profile-card-main">
                             <div class="profile-card-header">
-                                <div class="profile-card-header-left">Admin Account</div>
+                                <div class="profile-card-header-left">
+                                    Admin Account
+                                    {% if pending_payments %}
+                                    <span class="notification-badge">{{ pending_payments|length }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="profile-card-content">
                                 <div class="profile-card-avatar">
@@ -55,6 +60,36 @@
         <h1>Admin Dashboard</h1>
         <span style="color: #666;">Total Users: {{ all_users|length }}</span>
     </div>
+
+    <!-- Pending Payments Section -->
+    {% if pending_payments %}
+    <div class="pending-payments-section">
+        <h2 style="margin-bottom: 20px; color: #1a1a1a;">
+            <span style="background: #ff6b6b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 10px;">{{ pending_payments|length }}</span>
+            Pending Payment Approvals
+        </h2>
+        <div class="pending-payments-list">
+            {% for payment in pending_payments %}
+            <div class="pending-payment-card">
+                <div class="payment-info">
+                    <div class="payment-user">
+                        <strong>{{ payment.user_email }}</strong>
+                        <span class="payment-account">{{ payment.account_nickname }}</span>
+                    </div>
+                    <div class="payment-amount">
+                        <span class="amount">{{ payment.amount }}</span>
+                        <span class="currency">{{ payment.currency }}</span>
+                    </div>
+                    <div class="payment-time">
+                        {{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}
+                    </div>
+                </div>
+                <button class="approve-btn" onclick="approvePayment('{{ payment.payment_id }}')">Approve</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <div class="admin-users-list">
         {% for u in all_users %}
@@ -233,6 +268,124 @@
     font-size: 14px;
     margin: 0;
 }
+
+/* Pending Payments Section */
+.pending-payments-section {
+    background: #fff9e6;
+    border: 2px solid #ffed4e;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 30px;
+}
+
+.pending-payments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pending-payment-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+}
+
+.pending-payment-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.payment-info {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex: 1;
+}
+
+.payment-user {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 200px;
+}
+
+.payment-user strong {
+    color: #1a1a1a;
+    font-size: 16px;
+}
+
+.payment-account {
+    color: #666;
+    font-size: 13px;
+}
+
+.payment-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.payment-amount .amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+}
+
+.payment-amount .currency {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+}
+
+.payment-time {
+    color: #999;
+    font-size: 13px;
+}
+
+.approve-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.approve-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.approve-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.notification-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
 </style>
 
 <script>
@@ -275,6 +428,46 @@ async function deleteUser(userId) {
     }
 }
 
+async function approvePayment(paymentId) {
+    if (!confirm('Approve this payment and credit the user account?')) return;
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    
+    try {
+        const response = await fetch(`/api/admin/approve-payment/${paymentId}`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Payment approved successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            btn.disabled = false;
+            btn.textContent = 'Approve';
+        }
+    } catch (error) {
+        console.error('Error approving payment:', error);
+        alert('Failed to approve payment');
+        btn.disabled = false;
+        btn.textContent = 'Approve';
+    }
+}
 
+// Auto-refresh for new payment notifications
+setInterval(async () => {
+    try {
+        const response = await fetch('/api/admin/notifications');
+        const data = await response.json();
+        if (data.success && data.notifications.length > {{ pending_payments|length }}) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error checking notifications:', error);
+    }
+}, 10000); // Check every 10 seconds
 </script>
 {% endblock %}

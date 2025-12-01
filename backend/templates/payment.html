@@ -2,6 +2,9 @@
 
 {% block title %}Deposit - PrintFree{% endblock %}
 
+{% block head %}
+{% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-floating-shapes">
@@ -105,11 +108,50 @@
     </div>
 </div>
 
+<!-- Payment QR Modal -->
+<div id="qr-modal" class="qr-modal">
+    <div class="qr-modal-content">
+        <span class="qr-close">&times;</span>
+        <h2>Complete Payment</h2>
+        <div class="qr-amount-display">
+            <span class="qr-amount-label">Amount to Pay:</span>
+            <span class="qr-amount-value" id="qr-amount">0.00</span>
+            <span class="qr-currency" id="qr-currency">USD</span>
+        </div>
+        <div class="qr-code-container">
+            <img src="/static/images/payment-qr.jpg" alt="Payment QR Code" class="qr-code-image">
+        </div>
+        <p class="qr-instruction">Scan the QR code to complete payment</p>
+        <div class="payment-status" id="payment-status">
+            <div class="status-spinner"></div>
+            <span>Waiting for payment...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="success-modal">
+    <div class="success-modal-content">
+        <div class="success-icon">✓</div>
+        <h2>Payment Received!</h2>
+        <p>We will set up your account in a while and let you know.</p>
+        <p class="success-note">You'll receive a notification once the admin approves your deposit.</p>
+        <button class="success-btn" onclick="window.location.href='/my-accounts'">Go to My Accounts</button>
+    </div>
+</div>
+
 <style>
 .payment-form-container {
     max-width: 500px;
-    margin: 40px auto;
-    padding: 0 20px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+    .payment-form-container {
+        margin: 10px auto;
+        padding: 0 10px;
+    }
 }
 
 .account-info-card {
@@ -118,6 +160,13 @@
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .account-info-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
 }
 
 .info-row {
@@ -148,6 +197,12 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+@media (max-width: 768px) {
+    .payment-card {
+        padding: 20px 15px;
+    }
+}
+
 .amount-section {
     margin-bottom: 30px;
 }
@@ -175,6 +230,13 @@
     outline: none;
 }
 
+@media (max-width: 768px) {
+    .amount-input-wrapper input {
+        font-size: 20px;
+        padding: 12px 50px 12px 12px;
+    }
+}
+
 .amount-input-wrapper input:focus {
     border-color: #ffd700;
 }
@@ -195,6 +257,13 @@
     gap: 10px;
 }
 
+@media (max-width: 768px) {
+    .quick-amounts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
 .quick-amount-btn {
     padding: 10px;
     background: #f5f5f5;
@@ -204,6 +273,13 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+}
+
+@media (max-width: 768px) {
+    .quick-amount-btn {
+        padding: 12px;
+        font-size: 15px;
+    }
 }
 
 .quick-amount-btn:hover {
@@ -223,6 +299,13 @@
     transition: all 0.3s;
 }
 
+@media (max-width: 768px) {
+    .pay-button {
+        padding: 14px;
+        font-size: 16px;
+    }
+}
+
 .pay-button:hover {
     background: #ffd700;
     transform: translateY(-2px);
@@ -233,6 +316,312 @@
     background: #ccc;
     cursor: not-allowed;
     transform: none;
+}
+
+/* QR Modal Styles */
+.qr-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    animation: fadeIn 0.3s;
+}
+
+.qr-modal-content {
+    background: white;
+    margin: 2vh auto;
+    padding: 15px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    animation: slideDown 0.3s;
+}
+
+@media (max-width: 768px) {
+    .qr-modal-content {
+        width: 95%;
+        margin: 1vh auto;
+        padding: 12px;
+    }
+}
+
+.qr-close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.3s;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-close:hover {
+    color: #000;
+}
+
+@media (max-width: 768px) {
+    .qr-close {
+        right: 10px;
+        top: 8px;
+        font-size: 24px;
+        width: 28px;
+        height: 28px;
+    }
+}
+
+.qr-modal-content h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    margin-top: 5px;
+    color: #000;
+    font-size: 20px;
+}
+
+@media (max-width: 768px) {
+    .qr-modal-content h2 {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+}
+
+.qr-amount-display {
+    text-align: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .qr-amount-display {
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+}
+
+.qr-amount-label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.qr-amount-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+    margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+    .qr-amount-value {
+        font-size: 20px;
+    }
+}
+
+.qr-currency {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .qr-currency {
+        font-size: 14px;
+    }
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .qr-code-container {
+        padding: 5px;
+        margin-bottom: 8px;
+    }
+}
+
+.qr-code-image {
+    max-width: 280px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .qr-code-image {
+        max-width: 240px;
+    }
+}
+
+.qr-instruction {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .qr-instruction {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+}
+
+.payment-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: #fff3cd;
+    border-radius: 8px;
+    color: #856404;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .payment-status {
+        padding: 10px;
+        font-size: 13px;
+    }
+}
+
+.status-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #ffed4e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.payment-status.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Success Modal */
+.success-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    animation: fadeIn 0.3s;
+}
+
+.success-modal-content {
+    background: white;
+    margin: 10% auto;
+    padding: 40px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    animation: scaleIn 0.3s;
+}
+
+@media (max-width: 768px) {
+    .success-modal-content {
+        width: 95%;
+        padding: 30px 20px;
+        margin: 5% auto;
+    }
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin: 0 auto 20px;
+    animation: bounceIn 0.5s;
+}
+
+.success-modal-content h2 {
+    color: #000;
+    margin-bottom: 15px;
+}
+
+.success-modal-content p {
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.success-note {
+    font-size: 14px;
+    color: #999;
+}
+
+.success-btn {
+    margin-top: 25px;
+    padding: 12px 30px;
+    background: #ffed4e;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.success-btn:hover {
+    background: #ffd700;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 
@@ -252,12 +641,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
 
     quickAmountBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
             amountInput.value = this.dataset.amount;
         });
     });
 
-    payButton.addEventListener('click', async function() {
+    payButton.addEventListener('click', async function(e) {
+        e.preventDefault();
         const amount = parseFloat(amountInput.value);
         
         if (!amount || amount < 10) {
@@ -265,35 +656,86 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        payButton.disabled = true;
-        payButton.textContent = 'Processing...';
+        showQRModal(amount, '{{ account.currency }}', '{{ account._id }}');
+    });
 
+    function showQRModal(amount, currency, accountId) {
+        const modal = document.getElementById('qr-modal');
+        document.getElementById('qr-amount').textContent = amount.toFixed(2);
+        document.getElementById('qr-currency').textContent = currency;
+        modal.style.display = 'block';
+        initiatePayment(accountId, amount, currency);
+    }
+
+    async function initiatePayment(accountId, amount, currency) {
         try {
-            const response = await fetch('/api/deposit', {
+            const response = await fetch('/api/payment/initiate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    account_id: '{{ account._id }}',
+                    account_id: accountId,
                     amount: amount,
-                    currency: '{{ account.currency }}'
+                    currency: currency
                 })
             });
             
             const data = await response.json();
             
             if (data.success) {
-                alert('Payment successful! Your account has been credited.');
-                window.location.href = '/my-accounts';
-            } else {
-                alert(data.message || 'Payment failed. Please try again.');
-                payButton.disabled = false;
-                payButton.textContent = 'Pay Now';
+                // Start polling for payment status
+                pollPaymentStatus(data.payment_id);
             }
         } catch (error) {
-            console.error('Payment error:', error);
-            alert('An error occurred. Please try again.');
-            payButton.disabled = false;
-            payButton.textContent = 'Pay Now';
+            console.error('Payment initiation error:', error);
+        }
+    }
+
+    let pollInterval = null;
+
+    function pollPaymentStatus(paymentId) {
+        pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`/api/payment/status/${paymentId}`);
+                const data = await response.json();
+                
+                if (data.status === 'completed') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('qr-modal').style.display = 'none';
+                    document.getElementById('success-modal').style.display = 'block';
+                } else if (data.status === 'failed') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    alert('Payment failed. Please try again.');
+                    document.getElementById('qr-modal').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }, 3000);
+    }
+
+    // Close modal handlers
+    document.querySelector('.qr-close').addEventListener('click', function() {
+        if (confirm('Are you sure you want to discard this payment?')) {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+    });
+
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('qr-modal');
+        if (event.target === modal) {
+            if (confirm('Are you sure you want to discard this payment?')) {
+                if (pollInterval) {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+                modal.style.display = 'none';
+            }
         }
     });
 
