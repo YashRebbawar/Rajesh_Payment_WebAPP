@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from urllib.parse import quote_plus
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -149,7 +149,7 @@ def api_register():
         'country': data.get('country'),
         'partner_code': data.get('partner_code'),
         'google_id': None,
-        'created_at': datetime.utcnow()
+        'created_at': datetime.now(timezone.utc)
     }
     result = users_collection.insert_one(user_doc)
     
@@ -222,7 +222,7 @@ def google_callback():
                     'password': None,
                     'country': None,
                     'partner_code': None,
-                    'created_at': datetime.utcnow()
+                    'created_at': datetime.now(timezone.utc)
                 }
                 result = users_collection.insert_one(user_doc)
                 user = users_collection.find_one({'_id': result.inserted_id})
@@ -273,7 +273,7 @@ def account_setup_api():
         'leverage': data['leverage'],
         'platform': data['platform'],
         'trading_password': data['password'],
-        'created_at': datetime.utcnow()
+        'created_at': datetime.now(timezone.utc)
     }
     accounts_collection.insert_one(account_doc)
     logger.info(f"Account created for user {user['email']}: {data['nickname']}")
@@ -309,8 +309,10 @@ def initiate_payment():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
-        if amount < 10:
-            return jsonify({'success': False, 'message': 'Minimum deposit is 10'})
+        currency = data['currency']
+        min_amount = 1 if currency == 'INR' else 10
+        if amount < min_amount:
+            return jsonify({'success': False, 'message': f'Minimum deposit is {min_amount} {currency}'})
         
         # Create payment record
         payment_doc = {
@@ -318,8 +320,9 @@ def initiate_payment():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': data['currency'],
+            'reference': data.get('reference', ''),
             'status': 'pending',
-            'created_at': datetime.utcnow(),
+            'created_at': datetime.now(timezone.utc),
             'qr_scanned': False
         }
         result = payments_collection.insert_one(payment_doc)
@@ -350,6 +353,71 @@ def payment_status(payment_id):
         logger.error(f"Payment status error: {e}")
         return jsonify({'success': False, 'message': 'Error checking status'})
 
+@app.route('/api/payment/webhook', methods=['POST'])
+def payment_webhook():
+    """Webhook endpoint for payment gateway to notify payment completion"""
+    try:
+        data = request.json
+        # Verify webhook signature if your payment gateway provides one
+        # webhook_secret = os.getenv('PAYMENT_WEBHOOK_SECRET')
+        # if not verify_webhook_signature(request, webhook_secret):
+        #     return jsonify({'success': False, 'message': 'Invalid signature'}), 401
+        
+        payment_id = data.get('payment_id')
+        transaction_id = data.get('transaction_id')
+        status = data.get('status')
+        
+        if not payment_id:
+            return jsonify({'success': False, 'message': 'Missing payment_id'}), 400
+        
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'}), 404
+        
+        if status == 'success':
+            # Update payment status
+            payments_collection.update_one(
+                {'_id': ObjectId(payment_id)},
+                {'$set': {
+                    'status': 'completed',
+                    'qr_scanned': True,
+                    'transaction_id': transaction_id,
+                    'completed_at': datetime.now(timezone.utc)
+                }}
+            )
+            
+            # Create admin notification
+            user = users_collection.find_one({'_id': payment['user_id']})
+            account = accounts_collection.find_one({'_id': payment['account_id']})
+            
+            notification_doc = {
+                'type': 'payment_received',
+                'payment_id': ObjectId(payment_id),
+                'user_id': payment['user_id'],
+                'user_email': user['email'],
+                'account_nickname': account['nickname'],
+                'amount': payment['amount'],
+                'currency': payment['currency'],
+                'status': 'pending_approval',
+                'created_at': datetime.now(timezone.utc)
+            }
+            notifications_collection.insert_one(notification_doc)
+            
+            logger.info(f"Payment webhook received - Payment completed: {payment_id}")
+            return jsonify({'success': True}), 200
+        else:
+            # Handle failed payment
+            payments_collection.update_one(
+                {'_id': ObjectId(payment_id)},
+                {'$set': {'status': 'failed', 'failed_at': datetime.now(timezone.utc)}}
+            )
+            logger.warning(f"Payment webhook received - Payment failed: {payment_id}")
+            return jsonify({'success': True}), 200
+            
+    except Exception as e:
+        logger.error(f"Payment webhook error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/payment/simulate/<payment_id>', methods=['POST'])
 def simulate_payment(payment_id):
     """Simulate QR payment completion - In production, this would be triggered by payment gateway webhook"""
@@ -361,7 +429,7 @@ def simulate_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'completed', 'qr_scanned': True, 'completed_at': datetime.utcnow()}}
+            {'$set': {'status': 'completed', 'qr_scanned': True, 'completed_at': datetime.now(timezone.utc)}}
         )
         
         # Create admin notification
@@ -376,8 +444,9 @@ def simulate_payment(payment_id):
             'account_nickname': account['nickname'],
             'amount': payment['amount'],
             'currency': payment['currency'],
+            'reference': payment.get('reference', ''),
             'status': 'pending_approval',
-            'created_at': datetime.utcnow()
+            'created_at': datetime.now(timezone.utc)
         }
         notifications_collection.insert_one(notification_doc)
         
@@ -425,24 +494,16 @@ def approve_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'approved', 'approved_at': datetime.utcnow(), 'approved_by': user['_id']}}
+            {'$set': {'status': 'approved', 'approved_at': datetime.now(timezone.utc), 'approved_by': user['_id']}}
         )
         
         # Update notification
         notifications_collection.update_one(
             {'payment_id': ObjectId(payment_id)},
-            {'$set': {'status': 'approved', 'approved_at': datetime.utcnow()}}
+            {'$set': {'status': 'approved', 'approved_at': datetime.now(timezone.utc)}}
         )
         
-        # Create user notification
-        user_notification = {
-            'user_id': payment['user_id'],
-            'type': 'payment_approved',
-            'message': f"Your deposit of {payment['amount']} {payment['currency']} has been approved and credited to your account.",
-            'read': False,
-            'created_at': datetime.utcnow()
-        }
-        notifications_collection.insert_one(user_notification)
+
         
         logger.info(f"Admin {user['email']} approved payment {payment_id}")
         return jsonify({'success': True})
