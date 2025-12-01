@@ -20,6 +20,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-pro
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_TYPE'] = 'filesystem'
 
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
@@ -170,7 +171,6 @@ def google_login():
         logger.warning("Google OAuth attempt without configuration")
         return jsonify({'error': 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file'}), 400
     redirect_uri = url_for('google_callback', _external=True)
-    redirect_uri = redirect_uri.replace('127.0.0.1', 'localhost')
     logger.info(f"Initiating Google OAuth flow, redirect_uri: {redirect_uri}")
     logger.info(f"Client ID: {app.config['GOOGLE_CLIENT_ID'][:20]}...")
     return google.authorize_redirect(redirect_uri)
@@ -273,6 +273,53 @@ def account_setup_api():
     accounts_collection.insert_one(account_doc)
     logger.info(f"Account created for user {user['email']}: {data['nickname']}")
     return jsonify({'success': True, 'redirect': '/my-accounts'})
+
+@app.route('/payment/<account_id>')
+def payment(account_id):
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('signin'))
+    try:
+        account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
+        if not account:
+            return redirect(url_for('my_accounts'))
+        return render_template('payment.html', user=user, account=account)
+    except:
+        return redirect(url_for('my_accounts'))
+
+@app.route('/api/deposit', methods=['POST'])
+def api_deposit():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    try:
+        account = accounts_collection.find_one({
+            '_id': ObjectId(data['account_id']),
+            'user_id': user['_id']
+        })
+        
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        amount = float(data['amount'])
+        if amount < 10:
+            return jsonify({'success': False, 'message': 'Minimum deposit is 10'})
+        
+        current_balance = account.get('balance', 0.0)
+        new_balance = current_balance + amount
+        
+        accounts_collection.update_one(
+            {'_id': ObjectId(data['account_id'])},
+            {'$set': {'balance': new_balance}}
+        )
+        
+        logger.info(f"Deposit successful for user {user['email']}: {amount} {data['currency']}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Deposit error: {e}")
+        return jsonify({'success': False, 'message': 'Payment processing failed'})
 
 @app.route('/logout')
 def logout():

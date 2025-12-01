@@ -103,7 +103,7 @@
                 </div>
             </div>
             <div class="account-balance">
-                <div class="balance-amount">0.00</div>
+                <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
                 <div class="balance-currency">{{ account.currency }}</div>
             </div>
             <div class="account-details">
@@ -144,8 +144,8 @@
                 <button class="change-password-btn">Change trading password</button>
             </div>
             <div class="account-actions">
-                <button class="action-btn deposit-btn">Deposit</button>
-                <button class="action-btn withdraw-btn">Withdraw</button>
+                <button class="action-btn deposit-btn" data-account-id="{{ account._id }}">Deposit</button>
+                <button class="action-btn withdraw-btn" data-account-id="{{ account._id }}">Withdraw</button>
             </div>
         </div>
         {% endfor %}
@@ -205,6 +205,23 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.deposit-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const accountId = this.getAttribute('data-account-id');
+            window.location.href = '/payment/' + accountId;
+        });
+    });
+
+    document.querySelectorAll('.withdraw-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('Withdraw functionality coming soon!');
         });
     });
 });
