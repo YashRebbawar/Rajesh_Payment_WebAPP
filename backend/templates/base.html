@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/account-setup.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-card.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/my-accounts.css') }}">
+    {% block head %}{% endblock %}
 </head>
 <body>
     {% block content %}{% endblock %}

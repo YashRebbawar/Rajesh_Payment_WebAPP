@@ -1,186 +1,3 @@
-{% extends "base.html" %}
-
-{% block title %}Deposit - PrintFree{% endblock %}
-
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
-{% endblock %}
-
-{% block content %}
-<div class="account-container">
-    <div class="account-floating-shapes">
-        <div class="account-shape account-shape-1"></div>
-        <div class="account-shape account-shape-2"></div>
-        <div class="account-shape account-shape-3"></div>
-    </div>
-    
-    {% if user %}
-    <div class="auth-buttons">
-        <div class="user-profile-wrapper">
-            <button class="profile-icon-btn" id="profile-toggle">
-                <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
-            </button>
-            <div class="profile-dropdown" id="profile-dropdown">
-                <div class="profile-card-wrapper">
-                    <div class="profile-card-main">
-                        <div class="profile-card-header">
-                            <div class="profile-card-header-left">Trading Account</div>
-                            <div class="profile-card-header-right">
-                                <div class="profile-time-icon">⏱</div>
-                                <span id="current-time"></span>
-                            </div>
-                        </div>
-                        <div class="profile-card-content">
-                            <div class="profile-card-avatar">
-                                {{ (user.name[0] if user.name else user.email[0]).upper() }}
-                            </div>
-                            <div class="profile-card-name-block">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <h2>{{ user.name if user.name else user.email.split('@')[0] }}</h2>
-                                </div>
-                                <div class="profile-card-status-row">
-                                    <span class="profile-status-dot"></span>
-                                    <span>{{ user.email }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="profile-card-actions">
-                            <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
-                                <span>My Account</span>
-                            </button>
-                            <button class="profile-card-btn" onclick="window.location.href='/logout'">
-                                <span class="profile-card-btn-icon">▢</span>
-                                <span>Log out</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="profile-intensity-card">
-                        <span>Account Type:</span>
-                        <span>Standard</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <button type="button" class="back-button" onclick="window.history.back()">
-        <span class="back-icon">←</span>
-    </button>
-
-    <div class="header-section">
-        <h1 class="account-title">Deposit Funds</h1>
-        <p class="subtitle-text">Enter the amount you want to deposit to your account</p>
-    </div>
-
-    <div class="payment-form-container">
-        <div class="account-info-card">
-            <div class="info-row">
-                <span>Account:</span>
-                <span>{{ account.nickname }}</span>
-            </div>
-            <div class="info-row">
-                <span>Type:</span>
-                <span>{{ account.account_type|replace('-', ' ')|title }}</span>
-            </div>
-            <div class="info-row">
-                <span>Currency:</span>
-                <span>{{ account.currency }}</span>
-            </div>
-        </div>
-
-        <div class="payment-card">
-            <div class="amount-section">
-                <label for="amount">Amount</label>
-                <div class="amount-input-wrapper">
-                    <input type="number" id="amount" placeholder="0.00" min="{% if account.currency == 'INR' %}1{% else %}10{% endif %}" step="0.01">
-                    <span class="currency-label">{{ account.currency }}</span>
-                </div>
-                <div class="quick-amounts">
-                    <button class="quick-amount-btn" data-amount="50">50</button>
-                    <button class="quick-amount-btn" data-amount="100">100</button>
-                    <button class="quick-amount-btn" data-amount="500">500</button>
-                    <button class="quick-amount-btn" data-amount="1000">1000</button>
-                </div>
-            </div>
-
-            <button class="pay-button" id="pay-button">Pay Now</button>
-        </div>
-    </div>
-</div>
-
-<!-- Payment QR Modal -->
-<div id="qr-modal" class="qr-modal">
-    <div class="qr-modal-content">
-        <span class="qr-close">&times;</span>
-        <h2>Complete Payment</h2>
-        <div class="qr-amount-display">
-            <span class="qr-amount-label">Amount to Pay:</span>
-            <span class="qr-amount-value" id="qr-amount">0.00</span>
-            <span class="qr-currency" id="qr-currency">USD</span>
-        </div>
-        <div class="qr-code-container">
-            <img src="/static/images/payment-qr.jpg" alt="Payment QR Code" class="qr-code-image">
-        </div>
-        <div class="payment-reference">
-            <span class="ref-label">Payment Reference:</span>
-            <span class="ref-code" id="payment-ref">-</span>
-        </div>
-        <p class="qr-instruction">Scan QR code and include the reference code in payment notes</p>
-        
-        <div class="screenshot-upload-section">
-            
-            <input type="file" id="screenshot-input" accept="image/*" style="display: none;">
-            <button class="upload-screenshot-btn" id="upload-screenshot-btn">
-                <span class="upload-icon">📎</span>
-                <span id="upload-text">Upload Payment Screenshot</span>
-            </button>
-            <div class="screenshot-filename" id="screenshot-filename" style="display: none;">
-                <span class="file-icon">📎</span>
-                <span class="filename-text" id="filename-text"></span>
-                <button class="remove-screenshot-btn" id="remove-screenshot-btn">✕</button>
-            </div>
-        </div>
-        
-        <button class="confirm-payment-btn" id="confirm-payment-btn" disabled>I have completed the payment</button>
-        <div class="payment-status" id="payment-status" style="display: none;">
-            <div class="status-spinner"></div>
-            <span>Waiting for payment...</span>
-        </div>
-    </div>
-</div>
-
-<!-- Discard Confirmation Modal -->
-<div id="discard-modal" class="discard-modal">
-    <div class="discard-modal-content">
-        <h3>Discard Payment?</h3>
-        <p>Are you sure you want to cancel this payment?</p>
-        <div class="discard-modal-buttons">
-            <button class="discard-cancel-btn" id="discard-cancel-btn">No, Continue</button>
-            <button class="discard-confirm-btn" id="discard-confirm-btn">Yes, Discard</button>
-        </div>
-    </div>
-</div>
-
-<!-- Success Modal -->
-<div id="success-modal" class="success-modal">
-    <div class="success-modal-content">
-        <div class="success-icon">✓</div>
-        <h2>Payment Received!</h2>
-        <p>We will set up your account in a while and let you know.</p>
-        <p class="success-note">You'll receive a notification once the admin approves your deposit.</p>
-        <button class="success-btn" onclick="window.location.href='/my-accounts'">Go to My Accounts</button>
-    </div>
-</div>
-
-<script>
-const payButton = document.getElementById('pay-button');
-payButton.dataset.currency = '{{ account.currency }}';
-payButton.dataset.accountId = '{{ account._id }}';
-</script>
-<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
-{% endblock %}
-<style style="display:none;">
 .payment-form-container {
     max-width: 500px;
     margin: 20px auto;
@@ -358,7 +175,6 @@ payButton.dataset.accountId = '{{ account._id }}';
     transform: none;
 }
 
-/* QR Modal Styles */
 .qr-modal {
     display: none;
     position: fixed;
@@ -698,7 +514,6 @@ payButton.dataset.accountId = '{{ account._id }}';
     color: #155724;
 }
 
-/* Discard Modal */
 .discard-modal {
     display: none;
     position: fixed;
@@ -767,7 +582,6 @@ payButton.dataset.accountId = '{{ account._id }}';
     background: #d32f2f;
 }
 
-/* Success Modal */
 .success-modal {
     display: none;
     position: fixed;
@@ -867,4 +681,7 @@ payButton.dataset.accountId = '{{ account._id }}';
     100% { transform: scale(1); }
 }
 
-</style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

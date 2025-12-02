@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from authlib.integrations.flask_client import OAuth
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from urllib.parse import quote_plus
 import os
 import logging
+import base64
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
@@ -21,6 +23,7 @@ app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
@@ -323,7 +326,8 @@ def initiate_payment():
             'reference': data.get('reference', ''),
             'status': 'pending',
             'created_at': datetime.now(timezone.utc),
-            'qr_scanned': False
+            'qr_scanned': False,
+            'screenshot': None
         }
         result = payments_collection.insert_one(payment_doc)
         
@@ -418,6 +422,47 @@ def payment_webhook():
         logger.error(f"Payment webhook error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/payment/upload-screenshot/<payment_id>', methods=['POST'])
+def upload_screenshot(payment_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        payment = payments_collection.find_one({
+            '_id': ObjectId(payment_id),
+            'user_id': user['_id']
+        })
+        
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        if 'screenshot' not in request.files:
+            return jsonify({'success': False, 'message': 'No file uploaded'})
+        
+        file = request.files['screenshot']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected'})
+        
+        # Read and encode file as base64
+        file_data = file.read()
+        if len(file_data) > 5 * 1024 * 1024:  # 5MB limit
+            return jsonify({'success': False, 'message': 'File too large (max 5MB)'})
+        
+        screenshot_base64 = base64.b64encode(file_data).decode('utf-8')
+        
+        # Update payment with screenshot
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'screenshot': screenshot_base64}}
+        )
+        
+        logger.info(f"Screenshot uploaded for payment {payment_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Screenshot upload error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/payment/simulate/<payment_id>', methods=['POST'])
 def simulate_payment(payment_id):
     """Simulate QR payment completion - In production, this would be triggered by payment gateway webhook"""
@@ -445,6 +490,7 @@ def simulate_payment(payment_id):
             'amount': payment['amount'],
             'currency': payment['currency'],
             'reference': payment.get('reference', ''),
+            'screenshot': payment.get('screenshot'),
             'status': 'pending_approval',
             'created_at': datetime.now(timezone.utc)
         }
@@ -469,6 +515,35 @@ def get_admin_notifications():
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/reject-payment/<payment_id>', methods=['POST'])
+def reject_payment(payment_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        # Update payment status
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'status': 'rejected', 'rejected_at': datetime.now(timezone.utc), 'rejected_by': user['_id']}}
+        )
+        
+        # Update notification
+        notifications_collection.update_one(
+            {'payment_id': ObjectId(payment_id)},
+            {'$set': {'status': 'rejected', 'rejected_at': datetime.now(timezone.utc)}}
+        )
+        
+        logger.info(f"Admin {user['email']} rejected payment {payment_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Payment rejection error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/admin/approve-payment/<payment_id>', methods=['POST'])
 def approve_payment(payment_id):

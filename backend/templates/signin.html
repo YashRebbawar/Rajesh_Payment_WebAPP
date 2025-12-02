@@ -48,7 +48,9 @@
     </div>
 </div>
 
-<script>
+<script src="{{ url_for('static', filename='js/signin.js') }}"></script>
+{% endblock %}
+<script style="display:none;">
 document.querySelectorAll('.auth-tab').forEach(tab => {
     tab.addEventListener('click', function() {
         const targetTab = this.dataset.tab;
@@ -106,8 +108,4 @@ document.getElementById('google-signin').addEventListener('click', async functio
     }, 800);
 });
 
-const style = document.createElement('style');
-style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-document.head.appendChild(style);
 </script>
-{% endblock %}
