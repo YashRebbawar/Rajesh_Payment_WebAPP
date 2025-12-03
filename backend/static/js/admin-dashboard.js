@@ -2,8 +2,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileToggle = document.getElementById('profile-toggle');
     const profileDropdown = document.getElementById('profile-dropdown');
     
-    if (profileToggle) {
+    if (profileToggle && profileDropdown) {
         profileToggle.addEventListener('click', function(e) {
+            e.preventDefault();
             e.stopPropagation();
             profileDropdown.classList.toggle('active');
         });
@@ -14,6 +15,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (wrapper && !wrapper.contains(e.target)) {
             profileDropdown?.classList.remove('active');
         }
+    });
+
+    const usersList = document.querySelector('.admin-users-list');
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const view = this.dataset.view;
+            if (usersList) {
+                usersList.className = view === 'grid' ? 'admin-users-grid' : 'admin-users-list';
+            }
+        });
     });
 });
 

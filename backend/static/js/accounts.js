@@ -42,8 +42,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileToggle = document.getElementById('profile-toggle');
     const profileDropdown = document.getElementById('profile-dropdown');
     
-    if (profileToggle) {
-        profileToggle.addEventListener('click', function() {
+    if (profileToggle && profileDropdown) {
+        profileToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             profileDropdown.classList.toggle('active');
         });
     }

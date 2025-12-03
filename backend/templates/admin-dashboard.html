@@ -14,7 +14,6 @@
             <span>PrintFree</span>
         </a>
         <nav class="header-nav">
-            <button class="nav-toggle" id="nav-toggle">☰</button>
             
             {% if user %}
             <div class="user-profile-wrapper">
@@ -59,117 +58,148 @@
     </div>
 </header>
 
-<div class="my-accounts-container">
-    <div class="my-accounts-header">
-        <h1>Admin Dashboard</h1>
-        <span style="color: #666;">Total Users: {{ all_users|length }}</span>
-    </div>
+<div class="admin-dashboard-wrapper">
+    <!-- Left Section: All Users & Accounts -->
+    <div class="admin-users-section">
+        <div class="section-header">
+            <h2>All Users & Accounts</h2>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="user-count">{{ all_users|length }} Users</span>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="list">☰</button>
+                    <button class="view-btn" data-view="grid">⊞</button>
+                </div>
+            </div>
+        </div>
 
-    <!-- Pending Payments Section -->
-    {% if pending_payments %}
-    <div class="pending-payments-section">
-        <h2 style="margin-bottom: 20px; color: #1a1a1a;">
-            <span style="background: #ff6b6b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; margin-right: 10px;">{{ pending_payments|length }}</span>
-            Pending Payment Approvals
-        </h2>
-        <div class="pending-payments-list">
-            {% for payment in pending_payments %}
-            <div class="pending-payment-card">
-                <div class="payment-info">
-                    <div class="payment-user">
-                        <strong>{{ payment.user_email }}</strong>
-                        <span class="payment-account">{{ payment.account_nickname }}</span>
+        <div class="admin-users-list">
+            {% for u in all_users %}
+            <div class="admin-user-card">
+                <div class="admin-user-header">
+                    <div class="admin-user-info">
+                        <div class="profile-icon">
+                            {{ (u.name[0] if u.name else u.email[0]).upper() }}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name-row">
+                                <h3>{{ u.name if u.name else u.email.split('@')[0] }}</h3>
+                                {% if u.is_admin %}
+                                <span class="admin-badge">Admin</span>
+                                {% endif %}
+                            </div>
+                            <p class="user-email">{{ u.email }}</p>
+                        </div>
                     </div>
-                    <div class="payment-amount">
-                        <span class="amount">{{ payment.amount }}</span>
-                        <span class="currency">{{ payment.currency }}</span>
+                    <button class="delete-btn" onclick="deleteUser('{{ u._id }}')">
+                        Delete User
+                    </button>
+                </div>
+                
+                {% set user_accounts = user_accounts_map.get(u._id|string, []) %}
+                {% if user_accounts %}
+                <div class="admin-accounts-section">
+                    <h4>Accounts ({{ user_accounts|length }})</h4>
+                    {% for account in user_accounts %}
+                    <div class="account-card">
+                        <div class="account-header">
+                            <div class="account-badges">
+                                <span class="badge">{{ account.platform }}</span>
+                                <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
+                                <span class="badge">{{ account.nickname }}</span>
+                            </div>
+                        </div>
+                        <div class="account-balance">
+                            <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
+                            <div class="balance-currency">{{ account.currency }}</div>
+                        </div>
+                        <div class="account-details">
+                            <div class="detail-row">
+                                <span>Leverage</span>
+                                <span>{{ account.leverage }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Platform</span>
+                                <span>{{ account.platform }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Created</span>
+                                <span>{{ account.created_at.strftime('%Y-%m-%d') if account.created_at else 'N/A' }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="payment-time">
-                        {{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}
-                    </div>
+                    {% endfor %}
                 </div>
-                <div class="payment-reference-display">
-                    <span class="ref-label">Ref:</span>
-                    <span class="ref-value">{{ payment.reference if payment.reference else 'N/A' }}</span>
-                </div>
-                <div class="payment-actions">
-                    {% if payment.screenshot %}
-                    <button class="view-screenshot-btn" onclick="viewScreenshot('{{ payment.screenshot }}')">View Screenshot</button>
-                    {% endif %}
-                    <button class="reject-btn" onclick="rejectPayment('{{ payment.payment_id }}')">Reject</button>
-                    <button class="approve-btn" onclick="approvePayment('{{ payment.payment_id }}')">Approve</button>
-                </div>
+                {% else %}
+                <p style="color: #999; font-size: 13px; margin-top: 12px; margin-left: 56px;">No accounts</p>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
-    {% endif %}
 
-    <div class="admin-users-list">
-        {% for u in all_users %}
-        <div class="admin-user-card">
-            <div class="admin-user-header">
-                <div class="admin-user-info">
-                    <div class="profile-icon">
-                        {{ (u.name[0] if u.name else u.email[0]).upper() }}
-                    </div>
-                    <div class="user-details">
-                        <div class="user-name-row">
-                            <h3>{{ u.name if u.name else u.email.split('@')[0] }}</h3>
-                            {% if u.is_admin %}
-                            <span class="badge admin-badge">Admin</span>
-                            {% endif %}
+    <!-- Right Section: Pending Payments -->
+    <div class="pending-payments-wrapper">
+        <div class="section-header">
+            <h2>Pending Payments</h2>
+            {% if pending_payments %}
+            <span class="notification-badge">{{ pending_payments|length }}</span>
+            {% endif %}
+        </div>
+
+        {% if pending_payments %}
+        <div class="pending-payments-section">
+            <div class="pending-payments-list">
+                {% for payment in pending_payments %}
+                <div class="pending-payment-card">
+                    <div class="payment-info">
+                        <div class="payment-user">
+                            <strong>{{ payment.user_email }}</strong>
+                            <span class="payment-account">{{ payment.account_nickname }}</span>
                         </div>
-                        <p class="user-email">{{ u.email }}</p>
-                    </div>
-                </div>
-                <button class="delete-btn" onclick="deleteUser('{{ u._id }}')">
-                    Delete User
-                </button>
-            </div>
-            
-            {% set user_accounts = user_accounts_map.get(u._id|string, []) %}
-            {% if user_accounts %}
-            <div class="admin-accounts-section">
-                <h4 style="margin: 15px 0 10px 0; color: #333;">Accounts ({{ user_accounts|length }})</h4>
-                {% for account in user_accounts %}
-                <div class="account-card" style="margin-bottom: 10px;">
-                    <div class="account-header">
-                        <div class="account-badges">
-                            <span class="badge">{{ account.platform }}</span>
-                            <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
-                            <span class="badge">{{ account.nickname }}</span>
+                        <div class="payment-amount">
+                            <span class="amount">{{ payment.amount }}</span>
+                            <span class="currency">{{ payment.currency }}</span>
+                        </div>
+                        <div class="payment-time">
+                            {{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}
                         </div>
                     </div>
-                    <div class="account-balance">
-                        <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
-                        <div class="balance-currency">{{ account.currency }}</div>
+                    
+                    <div class="payment-reference-display">
+                        <span class="ref-label">Reference Number</span>
+                        <span class="ref-value">{{ payment.reference if payment.reference else 'N/A' }}</span>
                     </div>
-                    <div class="account-details">
-                        <div class="detail-row">
-                            <span>Leverage</span>
-                            <span>{{ account.leverage }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span>Platform</span>
-                            <span>{{ account.platform }}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span>Created</span>
-                            <span>{{ account.created_at.strftime('%Y-%m-%d') if account.created_at else 'N/A' }}</span>
-                        </div>
+                    
+                    <div class="payment-actions">
+                        {% if payment.screenshot %}
+                        <button class="view-screenshot-btn" onclick="viewScreenshot('{{ payment.screenshot }}')">
+                            View Screenshot
+                        </button>
+                        {% endif %}
+                        <button class="reject-btn" onclick="rejectPayment('{{ payment.payment_id }}')">
+                            Reject
+                        </button>
+                        <button class="approve-btn" onclick="approvePayment('{{ payment.payment_id }}')">
+                            Approve
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <p style="color: #999; font-size: 14px; margin-top: 10px;">No accounts</p>
-            {% endif %}
         </div>
-        {% endfor %}
+        {% else %}
+        <div class="no-payments-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p>No pending payments at the moment</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 
+<!-- Screenshot Modal -->
 <div id="screenshot-modal" class="screenshot-modal">
     <span class="screenshot-close" onclick="closeScreenshotModal()">&times;</span>
     <div class="screenshot-modal-content">

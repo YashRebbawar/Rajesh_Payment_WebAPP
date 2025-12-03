@@ -77,6 +77,7 @@
         </button>
     </div>
 
+    {% if accounts %}
     <div class="filter-section">
         <select class="sort-dropdown">
             <option>Newest</option>
@@ -90,7 +91,7 @@
         </div>
     </div>
 
-    {% if accounts %}
+
     <div class="accounts-list">
         {% for account in accounts %}
         <div class="account-card">
