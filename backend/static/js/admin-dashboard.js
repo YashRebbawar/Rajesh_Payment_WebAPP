@@ -19,6 +19,48 @@ function updatePaymentTimes() {
     });
 }
 
+let currentEditAccountId = null;
+
+function openEditModal(accountId, mtLogin, mtServer) {
+    currentEditAccountId = accountId;
+    document.getElementById('mt-login').value = mtLogin;
+    document.getElementById('mt-server').value = mtServer;
+    document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+    currentEditAccountId = null;
+}
+
+async function submitEditForm(event) {
+    event.preventDefault();
+    if (!currentEditAccountId) return;
+    
+    const mtLogin = document.getElementById('mt-login').value;
+    const mtServer = document.getElementById('mt-server').value;
+    
+    try {
+        const response = await fetch(`/api/admin/update-account-mt/${currentEditAccountId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mt_login: mtLogin, mt_server: mtServer })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccessMessage('MT details updated successfully!');
+            closeEditModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showErrorMessage('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error updating MT details:', error);
+        showErrorMessage('Failed to update MT details');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     updatePaymentTimes();
     const profileToggle = document.getElementById('profile-toggle');
@@ -51,6 +93,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Edit button click handler
+    document.querySelectorAll('.edit-account-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const accountId = this.getAttribute('data-account-id');
+            const mtLogin = this.getAttribute('data-mt-login');
+            const mtServer = this.getAttribute('data-mt-server');
+            openEditModal(accountId, mtLogin, mtServer);
+        });
+    });
+
     // Payment filtering
     const searchInput = document.getElementById('payment-search');
     const currencyFilter = document.getElementById('currency-filter');
@@ -77,6 +129,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     searchInput?.addEventListener('input', filterPayments);
     currencyFilter?.addEventListener('change', filterPayments);
+
+    // Close edit modal on outside click
+    const editModal = document.getElementById('edit-modal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    }
 });
 
 async function deleteUser(userId) {

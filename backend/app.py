@@ -8,11 +8,12 @@ from urllib.parse import quote_plus
 import os
 import logging
 import base64
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 def get_current_utc_time():
-    """Helper to always get current UTC time"""
-    return datetime.now(timezone.utc)
+    """Helper to get current Indian Standard Time"""
+    ist = timezone(timedelta(hours=5, minutes=30))
+    return datetime.now(ist)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -641,6 +642,47 @@ def admin_dashboard():
     
     return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
 
+@app.route('/api/admin/update-account-mt/<account_id>', methods=['POST'])
+def update_account_mt(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        data = request.json
+        account = accounts_collection.find_one({'_id': ObjectId(account_id)})
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        accounts_collection.update_one(
+            {'_id': ObjectId(account_id)},
+            {'$set': {
+                'mt_login': data.get('mt_login'),
+                'mt_server': data.get('mt_server'),
+                'mt_updated_at': get_current_utc_time(),
+                'mt_updated_by': user['_id']
+            }}
+        )
+        
+        # Create notification for user
+        notification_doc = {
+            'type': 'mt_credentials_updated',
+            'user_id': account['user_id'],
+            'account_id': ObjectId(account_id),
+            'account_nickname': account['nickname'],
+            'mt_login': data.get('mt_login'),
+            'mt_server': data.get('mt_server'),
+            'status': 'unread',
+            'created_at': get_current_utc_time()
+        }
+        notifications_collection.insert_one(notification_doc)
+        
+        logger.info(f"Admin {user['email']} updated MT details for account {account_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error updating account MT: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/admin/delete-user/<user_id>', methods=['DELETE'])
 def delete_user(user_id):
     user = get_current_user()
@@ -680,3 +722,5 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# Updated get_user_notifications to include MT credentials

@@ -238,6 +238,7 @@
     padding: 16px;
     margin-bottom: 8px;
     transition: all 0.2s;
+    position: relative;
 }
 
 .account-card:hover {
@@ -246,13 +247,18 @@
 }
 
 .account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
+    gap: 8px;
 }
 
 .account-badges {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
+    flex: 1;
 }
 
 .badge {
@@ -262,6 +268,27 @@
     border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
+}
+
+.edit-account-btn {
+    background: transparent;
+    border: 1px solid var(--exness-border);
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--exness-dark);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+}
+
+.edit-account-btn:hover {
+    background: var(--exness-gold);
+    border-color: var(--exness-gold);
 }
 
 .account-balance {
@@ -634,6 +661,133 @@
     transform: rotate(90deg);
 }
 
+/* Edit Modal */
+.edit-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+
+.edit-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s;
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--exness-border);
+}
+
+.edit-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--exness-dark);
+}
+
+.edit-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.edit-modal-close:hover {
+    color: var(--exness-dark);
+    transform: rotate(90deg);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--exness-dark);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--exness-border);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--exness-gold);
+    box-shadow: 0 0 0 3px rgba(255, 237, 78, 0.1);
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 28px;
+}
+
+.edit-cancel-btn,
+.edit-save-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.edit-cancel-btn {
+    background: #f0f0f0;
+    color: var(--exness-dark);
+}
+
+.edit-cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+.edit-save-btn {
+    background: var(--exness-gold);
+    color: var(--exness-dark);
+    font-weight: 700;
+}
+
+.edit-save-btn:hover {
+    background: #ffd700;
+    box-shadow: 0 2px 8px rgba(255,237,78,0.4);
+}
+
 .notification-badge {
     background: var(--exness-red);
     color: white;
@@ -653,6 +807,17 @@
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Confirm Modal */
@@ -752,17 +917,6 @@
 
 .toast-error {
     background: var(--exness-red);
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 @keyframes slideInRight {

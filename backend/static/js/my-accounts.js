@@ -209,24 +209,42 @@ async function loadNotifications() {
                 clearAllBtn.style.display = 'block';
                 
                 notificationList.innerHTML = visibleNotifications.map(notif => {
-                    const isApproved = notif.status === 'approved';
-                    const statusClass = isApproved ? 'approved' : 'rejected';
-                    const statusText = isApproved ? 'Approved' : 'Rejected';
-                    const icon = isApproved ? '✓' : '✕';
-                    
-                    return `
-                        <div class="notification-item ${statusClass}" data-id="${notif._id}">
-                            <div class="notification-icon">${icon}</div>
-                            <div class="notification-content">
-                                <div class="notification-title">Account ${statusText}</div>
-                                <div class="notification-text">
-                                    ${notif.account_nickname}: ${notif.amount} ${notif.currency}
+                    if (notif.type === 'mt_credentials_updated') {
+                        return `
+                            <div class="notification-item mt-updated" data-id="${notif._id}">
+                                <div class="notification-icon">🔐</div>
+                                <div class="notification-content">
+                                    <div class="notification-title">MT Credentials Updated</div>
+                                    <div class="notification-text">
+                                        ${notif.account_nickname}<br>
+                                        <small>Login: ${notif.mt_login}</small><br>
+                                        <small>Server: ${notif.mt_server}</small>
+                                    </div>
+                                    <div class="notification-time">${formatTime(notif.created_at)}</div>
                                 </div>
-                                <div class="notification-time">${formatTime(notif.created_at)}</div>
+                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
                             </div>
-                            <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        const isApproved = notif.status === 'approved';
+                        const statusClass = isApproved ? 'approved' : 'rejected';
+                        const statusText = isApproved ? 'Approved' : 'Rejected';
+                        const icon = isApproved ? '✓' : '✕';
+                        
+                        return `
+                            <div class="notification-item ${statusClass}" data-id="${notif._id}">
+                                <div class="notification-icon">${icon}</div>
+                                <div class="notification-content">
+                                    <div class="notification-title">Account ${statusText}</div>
+                                    <div class="notification-text">
+                                        ${notif.account_nickname}: ${notif.amount} ${notif.currency}
+                                    </div>
+                                    <div class="notification-time">${formatTime(notif.created_at)}</div>
+                                </div>
+                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
+                            </div>
+                        `;
+                    }
                 }).join('');
             }
         }
