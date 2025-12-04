@@ -24,7 +24,7 @@
                                 <span id="current-time"></span>
                             </div>
                         </div>
-                        <div class="profile-card-content">
+                        <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                             <div class="profile-card-avatar">
                                 {{ (user.name[0] if user.name else user.email[0]).upper() }}
                             </div>
@@ -49,8 +49,8 @@
                         </div>
                     </div>
                     <div class="profile-intensity-card">
-                        <span>Account Type:</span>
-                        <span>Standard</span>
+                        <span>Member Since:</span>
+                        <span id="member-since"></span>
                     </div>
                 </div>
             </div>
@@ -172,6 +172,7 @@ const payButton = document.getElementById('pay-button');
 payButton.dataset.currency = '{{ account.currency }}';
 payButton.dataset.accountId = '{{ account._id }}';
 </script>
+<script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/payment.js') }}"></script>
 {% endblock %}
 

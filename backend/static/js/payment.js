@@ -1,11 +1,11 @@
 function updateTime() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const timeEl = document.getElementById('current-time');
     if (timeEl) timeEl.textContent = timeStr;
 }
 updateTime();
-setInterval(updateTime, 60000);
+setInterval(updateTime, 1000);
 
 document.addEventListener('DOMContentLoaded', function() {
     const amountInput = document.getElementById('amount');
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('qr-amount').textContent = amount.toFixed(2);
         document.getElementById('qr-currency').textContent = currency;
         modal.style.display = 'block';
-        initiatePayment(accountId, amount, currency);
+        initializePaymentData(accountId, amount, currency);
     }
 
     function generateReference() {
@@ -48,31 +48,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentPaymentId = null;
     let screenshotFile = null;
+    let pendingPaymentData = null;
 
-    async function initiatePayment(accountId, amount, currency) {
-        try {
-            const reference = generateReference();
-            document.getElementById('payment-ref').textContent = reference;
-            
-            const response = await fetch('/api/payment/initiate', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    account_id: accountId,
-                    amount: amount,
-                    currency: currency,
-                    reference: reference
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                currentPaymentId = data.payment_id;
-            }
-        } catch (error) {
-            console.error('Payment initiation error:', error);
-        }
+    function initializePaymentData(accountId, amount, currency) {
+        const reference = generateReference();
+        document.getElementById('payment-ref').textContent = reference;
+        pendingPaymentData = { accountId, amount, currency, reference };
     }
 
     document.getElementById('upload-screenshot-btn').addEventListener('click', function() {
@@ -104,13 +85,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('confirm-payment-btn').addEventListener('click', async function() {
-        if (!currentPaymentId || !screenshotFile) return;
+        if (!screenshotFile || !pendingPaymentData) return;
         
         const btn = this;
         btn.style.display = 'none';
         document.getElementById('payment-status').style.display = 'flex';
         
         try {
+            const initiateResponse = await fetch('/api/payment/initiate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    account_id: pendingPaymentData.accountId,
+                    amount: pendingPaymentData.amount,
+                    currency: pendingPaymentData.currency,
+                    reference: pendingPaymentData.reference
+                })
+            });
+            
+            const initiateData = await initiateResponse.json();
+            if (!initiateData.success) {
+                alert('Error creating payment. Please try again.');
+                btn.style.display = 'block';
+                document.getElementById('payment-status').style.display = 'none';
+                return;
+            }
+            
+            currentPaymentId = initiateData.payment_id;
+            
             const formData = new FormData();
             formData.append('screenshot', screenshotFile);
             
@@ -168,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('qr-modal').style.display = 'none';
         currentPaymentId = null;
         screenshotFile = null;
+        pendingPaymentData = null;
         document.getElementById('screenshot-input').value = '';
         document.getElementById('screenshot-filename').style.display = 'none';
         document.getElementById('upload-screenshot-btn').style.display = 'flex';

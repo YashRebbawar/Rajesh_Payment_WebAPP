@@ -3,12 +3,17 @@ loadNotifications();
 
 function updateTime() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const timeEl = document.getElementById('current-time');
     if (timeEl) timeEl.textContent = timeStr;
 }
 updateTime();
-setInterval(updateTime, 60000);
+setInterval(updateTime, 1000);
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const navToggle = document.getElementById('nav-toggle');
@@ -29,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             profileDropdown.classList.toggle('active');
         });
+    }
+
+    const memberSinceEl = document.getElementById('member-since');
+    if (memberSinceEl) {
+        const userCreatedAt = document.querySelector('[data-user-created-at]')?.getAttribute('data-user-created-at');
+        if (userCreatedAt) {
+            memberSinceEl.textContent = formatMemberSince(userCreatedAt);
+        }
     }
 
     const bellToggle = document.getElementById('bell-toggle');
@@ -100,6 +113,34 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Withdraw functionality coming soon!');
         });
     });
+
+    const sortDropdown = document.querySelector('.sort-dropdown');
+    if (sortDropdown) {
+        sortDropdown.addEventListener('change', function() {
+            const accountsContainer = document.querySelector('.accounts-list') || document.querySelector('.accounts-grid');
+            if (!accountsContainer) return;
+            
+            const cards = Array.from(accountsContainer.querySelectorAll('.account-card'));
+            const sortValue = this.value;
+            
+            cards.sort((a, b) => {
+                if (sortValue === 'Oldest') {
+                    return 0;
+                } else if (sortValue === 'Balance (High to Low)') {
+                    const balanceA = parseFloat(a.querySelector('.balance-amount').textContent);
+                    const balanceB = parseFloat(b.querySelector('.balance-amount').textContent);
+                    return balanceB - balanceA;
+                } else if (sortValue === 'Balance (Low to High)') {
+                    const balanceA = parseFloat(a.querySelector('.balance-amount').textContent);
+                    const balanceB = parseFloat(b.querySelector('.balance-amount').textContent);
+                    return balanceA - balanceB;
+                }
+                return 0;
+            });
+            
+            cards.forEach(card => accountsContainer.appendChild(card));
+        });
+    }
 });
 
 function editName() {
@@ -212,10 +253,12 @@ function clearAllNotifications() {
 function formatTime(isoString) {
     const date = new Date(isoString);
     const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
     
+    if (diff < 0) return 'Just now';
     if (diff < 60) return 'Just now';
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

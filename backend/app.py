@@ -9,6 +9,10 @@ import os
 import logging
 import base64
 from datetime import datetime, timezone
+
+def get_current_utc_time():
+    """Helper to always get current UTC time"""
+    return datetime.now(timezone.utc)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -153,7 +157,7 @@ def api_register():
         'country': data.get('country'),
         'partner_code': data.get('partner_code'),
         'google_id': None,
-        'created_at': datetime.now(timezone.utc)
+        'created_at': get_current_utc_time()
     }
     result = users_collection.insert_one(user_doc)
     
@@ -226,7 +230,7 @@ def google_callback():
                     'password': None,
                     'country': None,
                     'partner_code': None,
-                    'created_at': datetime.now(timezone.utc)
+                    'created_at': get_current_utc_time()
                 }
                 result = users_collection.insert_one(user_doc)
                 user = users_collection.find_one({'_id': result.inserted_id})
@@ -277,7 +281,7 @@ def account_setup_api():
         'leverage': data['leverage'],
         'platform': data['platform'],
         'trading_password': data['password'],
-        'created_at': datetime.now(timezone.utc)
+        'created_at': get_current_utc_time()
     }
     accounts_collection.insert_one(account_doc)
     logger.info(f"Account created for user {user['email']}: {data['nickname']}")
@@ -326,8 +330,7 @@ def initiate_payment():
             'currency': data['currency'],
             'reference': data.get('reference', ''),
             'status': 'pending',
-            'created_at': datetime.now(timezone.utc),
-            'qr_scanned': False,
+            'created_at': get_current_utc_time(),
             'screenshot': None
         }
         result = payments_collection.insert_one(payment_doc)
@@ -385,9 +388,8 @@ def payment_webhook():
                 {'_id': ObjectId(payment_id)},
                 {'$set': {
                     'status': 'completed',
-                    'qr_scanned': True,
                     'transaction_id': transaction_id,
-                    'completed_at': datetime.now(timezone.utc)
+                    'completed_at': get_current_utc_time()
                 }}
             )
             
@@ -404,7 +406,7 @@ def payment_webhook():
                 'amount': payment['amount'],
                 'currency': payment['currency'],
                 'status': 'pending_approval',
-                'created_at': datetime.now(timezone.utc)
+                'created_at': get_current_utc_time()
             }
             notifications_collection.insert_one(notification_doc)
             
@@ -414,7 +416,7 @@ def payment_webhook():
             # Handle failed payment
             payments_collection.update_one(
                 {'_id': ObjectId(payment_id)},
-                {'$set': {'status': 'failed', 'failed_at': datetime.now(timezone.utc)}}
+                {'$set': {'status': 'failed', 'failed_at': get_current_utc_time()}}
             )
             logger.warning(f"Payment webhook received - Payment failed: {payment_id}")
             return jsonify({'success': True}), 200
@@ -475,7 +477,7 @@ def simulate_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'completed', 'qr_scanned': True, 'completed_at': datetime.now(timezone.utc)}}
+            {'$set': {'status': 'completed', 'completed_at': get_current_utc_time()}}
         )
         
         # Create admin notification
@@ -494,7 +496,7 @@ def simulate_payment(payment_id):
             'reference': payment.get('reference', ''),
             'screenshot': payment.get('screenshot'),
             'status': 'pending_approval',
-            'created_at': datetime.now(timezone.utc)
+            'created_at': get_current_utc_time()
         }
         notifications_collection.insert_one(notification_doc)
         
@@ -532,13 +534,13 @@ def reject_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'rejected', 'rejected_at': datetime.now(timezone.utc), 'rejected_by': user['_id']}}
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time(), 'rejected_by': user['_id']}}
         )
         
         # Update notification
         notifications_collection.update_one(
             {'payment_id': ObjectId(payment_id)},
-            {'$set': {'status': 'rejected', 'rejected_at': datetime.now(timezone.utc)}}
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time()}}
         )
         
         logger.info(f"Admin {user['email']} rejected payment {payment_id}")
@@ -571,13 +573,13 @@ def approve_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'approved', 'approved_at': datetime.now(timezone.utc), 'approved_by': user['_id']}}
+            {'$set': {'status': 'approved', 'approved_at': get_current_utc_time(), 'approved_by': user['_id']}}
         )
         
         # Update notification
         notifications_collection.update_one(
             {'payment_id': ObjectId(payment_id)},
-            {'$set': {'status': 'approved', 'approved_at': datetime.now(timezone.utc)}}
+            {'$set': {'status': 'approved', 'approved_at': get_current_utc_time()}}
         )
         
         logger.info(f"Admin {user['email']} approved payment {payment_id}")

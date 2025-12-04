@@ -31,7 +31,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            <div class="profile-card-content">
+                            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                                 <div class="profile-card-avatar">
                                     {{ (user.name[0] if user.name else user.email[0]).upper() }}
                                 </div>
@@ -49,6 +49,10 @@
                                     <span>Log out</span>
                                 </button>
                             </div>
+                        </div>
+                        <div class="profile-intensity-card">
+                            <span>Member Since:</span>
+                            <span id="member-since"></span>
                         </div>
                     </div>
                 </div>
@@ -158,7 +162,7 @@
                 <option value="all">All Currencies</option>
                 <option value="USD">USD</option>
                 <option value="INR">INR</option>
-                <option value="EUR">EUR</option>
+                
             </select>
         </div>
 
@@ -174,7 +178,7 @@
                                 <div class="payment-account">{{ payment.account_nickname }}</div>
                             </div>
                         </div>
-                        <div class="payment-time">
+                        <div class="payment-time" data-timestamp="{{ payment.created_at.isoformat() if payment.created_at else '' }}">
                             {{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}
                         </div>
                     </div>
@@ -239,5 +243,6 @@
     </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin-dashboard.js') }}"></script>
 {% endblock %}
