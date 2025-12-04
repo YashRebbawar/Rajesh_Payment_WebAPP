@@ -14,9 +14,9 @@
 .account-info-card {
     background: white;
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
 }
 
 @media (max-width: 768px) {
@@ -44,14 +44,14 @@
 
 .info-row span:last-child {
     color: #000;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .payment-card {
     background: white;
     border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 32px;
+    border: 1px solid #e0e0e0;
 }
 
 @media (max-width: 768px) {
@@ -66,9 +66,9 @@
 
 .amount-section label {
     display: block;
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
     color: #000;
 }
 
@@ -79,12 +79,13 @@
 
 .amount-input-wrapper input {
     width: 100%;
-    padding: 15px 60px 15px 15px;
-    font-size: 24px;
-    font-weight: 600;
-    border: 2px solid #ffed4e;
+    padding: 16px 60px 16px 16px;
+    font-size: 28px;
+    font-weight: 700;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
     outline: none;
+    transition: all 0.2s ease;
 }
 
 @media (max-width: 768px) {
@@ -95,7 +96,8 @@
 }
 
 .amount-input-wrapper input:focus {
-    border-color: #ffd700;
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
 }
 
 .currency-label {
@@ -122,14 +124,14 @@
 }
 
 .quick-amount-btn {
-    padding: 10px;
-    background: #f5f5f5;
-    border: 2px solid transparent;
+    padding: 12px;
+    background: #fff;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
 }
 
 @media (max-width: 768px) {
@@ -140,20 +142,20 @@
 }
 
 .quick-amount-btn:hover {
-    background: #ffed4e;
-    border-color: #ffd700;
+    border-color: #000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .pay-button {
     width: 100%;
-    padding: 15px;
+    padding: 16px;
     background: #ffed4e;
     border: none;
     border-radius: 8px;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
 }
 
 @media (max-width: 768px) {
@@ -165,7 +167,6 @@
 
 .pay-button:hover {
     background: #ffd700;
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255,237,78,0.4);
 }
 
@@ -458,21 +459,21 @@
 
 .confirm-payment-btn {
     width: 100%;
-    padding: 14px;
-    background: #28a745;
+    padding: 16px;
+    background: #000;
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
     margin-bottom: 10px;
 }
 
 .confirm-payment-btn:hover:not(:disabled) {
-    background: #218838;
-    transform: translateY(-2px);
+    background: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .confirm-payment-btn:disabled {
@@ -645,19 +646,19 @@
 
 .success-btn {
     margin-top: 25px;
-    padding: 12px 30px;
+    padding: 14px 32px;
     background: #ffed4e;
     border: none;
     border-radius: 8px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
 }
 
 .success-btn:hover {
     background: #ffd700;
-    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,237,78,0.4);
 }
 
 @keyframes fadeIn {

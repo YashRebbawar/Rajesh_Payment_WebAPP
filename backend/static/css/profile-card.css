@@ -6,18 +6,20 @@
 .profile-card-main {
   width: 420px;
   background: #ffffff;
-  border-radius: 26px;
-  padding: 16px 22px 22px;
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
 }
 
 .profile-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   font-size: 12px;
-  color: #7a7f86;
+  color: #666;
+  font-weight: 500;
 }
 
 .profile-card-header-left {
@@ -44,14 +46,14 @@
 .profile-card-content {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .profile-card-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
   background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
@@ -59,7 +61,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 24px;
   color: #000;
 }
 
@@ -70,18 +72,20 @@
 }
 
 .profile-card-name-block h2 {
-  margin: 0 0 3px;
+  margin: 0 0 4px;
   font-size: 20px;
   font-weight: 700;
-  color: #15171a;
+  color: #000;
+  letter-spacing: -0.5px;
 }
 
 .profile-card-status-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
-  color: #7d8087;
+  color: #666;
+  font-weight: 500;
 }
 
 .profile-status-dot {
@@ -94,29 +98,29 @@
 .profile-card-actions {
   display: flex;
   gap: 12px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .profile-card-btn {
   flex: 1;
-  border-radius: 999px;
+  border-radius: 8px;
   border: none;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  background: #000000;
-  color: #ffffff;
-  transition: all 0.3s ease;
+  gap: 8px;
+  background: #000;
+  color: #fff;
+  transition: all 0.2s ease;
 }
 
 .profile-card-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .profile-card-btn-icon {
@@ -138,20 +142,21 @@
   margin-inline: auto;
   width: 100%;
   max-width: 420px;
-  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
-  border-radius: 22px;
-  padding: 10px 20px 12px;
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+  background: #ffed4e;
+  border-radius: 12px;
+  padding: 12px 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 14px;
   color: #000;
 }
 
 .profile-intensity-card span {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 @media (max-width: 480px) {
