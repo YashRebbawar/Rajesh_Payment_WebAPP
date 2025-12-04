@@ -119,7 +119,8 @@ def my_accounts():
     if user.get('is_admin'):
         return redirect(url_for('admin_dashboard'))
     accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
-    return render_template('my-accounts.html', user=user, accounts=accounts)
+    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': 'completed'}).sort('created_at', -1))
+    return render_template('my-accounts.html', user=user, accounts=accounts, pending_payments=pending_payments)
 
 @app.route('/accounts')
 def accounts():
@@ -578,8 +579,6 @@ def approve_payment(payment_id):
             {'$set': {'status': 'approved', 'approved_at': datetime.now(timezone.utc)}}
         )
         
-
-        
         logger.info(f"Admin {user['email']} approved payment {payment_id}")
         return jsonify({'success': True})
     except Exception as e:
@@ -592,16 +591,26 @@ def get_user_notifications():
     if not user:
         return jsonify({'success': False, 'message': 'Not authenticated'})
     
-    notifications = list(notifications_collection.find({
-        'user_id': user['_id'],
-        'type': 'payment_approved'
+    # Get all payment notifications for the user
+    user_payments = list(payments_collection.find({
+        'user_id': user['_id']
     }).sort('created_at', -1).limit(10))
     
-    for notif in notifications:
-        notif['_id'] = str(notif['_id'])
-        notif['user_id'] = str(notif['user_id'])
+    notifications = []
+    for payment in user_payments:
+        if payment['status'] in ['approved', 'rejected']:
+            account = accounts_collection.find_one({'_id': payment['account_id']})
+            notifications.append({
+                '_id': str(payment['_id']),
+                'type': 'account_status',
+                'status': payment['status'],
+                'account_nickname': account['nickname'] if account else 'Unknown',
+                'amount': payment['amount'],
+                'currency': payment['currency'],
+                'created_at': payment.get('approved_at' if payment['status'] == 'approved' else 'rejected_at', payment['created_at']).isoformat()
+            })
     
-    return jsonify({'success': True, 'notifications': notifications})
+    return jsonify({'success': True, 'notifications': notifications, 'count': len(notifications)})
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
