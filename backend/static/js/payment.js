@@ -107,8 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentPaymentId || !screenshotFile) return;
         
         const btn = this;
-        btn.disabled = true;
-        btn.textContent = 'Uploading...';
+        btn.style.display = 'none';
         document.getElementById('payment-status').style.display = 'flex';
         
         try {
@@ -123,13 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!uploadData.success) {
                 alert('Error uploading screenshot: ' + uploadData.message);
-                btn.disabled = false;
-                btn.textContent = 'I have completed the payment';
+                btn.style.display = 'block';
                 document.getElementById('payment-status').style.display = 'none';
                 return;
             }
-            
-            btn.textContent = 'Processing...';
             
             const response = await fetch(`/api/payment/simulate/${currentPaymentId}`, {
                 method: 'POST'
@@ -141,14 +137,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('success-modal').style.display = 'block';
             } else {
                 alert('Error processing payment. Please contact support.');
-                btn.disabled = false;
-                btn.textContent = 'I have completed the payment';
+                btn.style.display = 'block';
+                document.getElementById('payment-status').style.display = 'none';
             }
         } catch (error) {
             console.error('Payment confirmation error:', error);
             alert('Error processing payment. Please contact support.');
-            btn.disabled = false;
-            btn.textContent = 'I have completed the payment';
+            btn.style.display = 'block';
             document.getElementById('payment-status').style.display = 'none';
         }
     });

@@ -28,6 +28,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Payment filtering
+    const searchInput = document.getElementById('payment-search');
+    const currencyFilter = document.getElementById('currency-filter');
+    
+    function filterPayments() {
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        const selectedCurrency = currencyFilter?.value || 'all';
+        const paymentCards = document.querySelectorAll('.pending-payment-card');
+        
+        paymentCards.forEach(card => {
+            const userEmail = card.dataset.userEmail.toLowerCase();
+            const currency = card.dataset.currency;
+            
+            const matchesSearch = userEmail.includes(searchTerm);
+            const matchesCurrency = selectedCurrency === 'all' || currency === selectedCurrency;
+            
+            if (matchesSearch && matchesCurrency) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+    
+    searchInput?.addEventListener('input', filterPayments);
+    currencyFilter?.addEventListener('change', filterPayments);
 });
 
 async function deleteUser(userId) {
@@ -174,11 +201,11 @@ setInterval(async () => {
     try {
         const response = await fetch('/api/admin/notifications');
         const data = await response.json();
-        const currentCount = parseInt(document.querySelector('.notification-badge')?.textContent || '0');
+        const currentCount = document.querySelectorAll('.pending-payment-card:not(.hidden)').length;
         if (data.success && data.notifications.length > currentCount) {
             location.reload();
         }
     } catch (error) {
         console.error('Error checking notifications:', error);
     }
-}, 10000);
+}, 15000);

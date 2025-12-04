@@ -152,39 +152,66 @@
         </div>
 
         {% if pending_payments %}
+        <div class="payment-filters">
+            <input type="text" id="payment-search" placeholder="Search by user email..." class="payment-search-input">
+            <select id="currency-filter" class="currency-filter">
+                <option value="all">All Currencies</option>
+                <option value="USD">USD</option>
+                <option value="INR">INR</option>
+                <option value="EUR">EUR</option>
+            </select>
+        </div>
+
         <div class="pending-payments-section">
             <div class="pending-payments-list">
                 {% for payment in pending_payments %}
-                <div class="pending-payment-card">
-                    <div class="payment-info">
-                        <div class="payment-user">
-                            <strong>{{ payment.user_email }}</strong>
-                            <span class="payment-account">{{ payment.account_nickname }}</span>
+                <div class="pending-payment-card" data-user-email="{{ payment.user_email }}" data-currency="{{ payment.currency }}">
+                    <div class="payment-header">
+                        <div class="payment-user-info">
+                            <div class="user-avatar">{{ (payment.user_name[0] if payment.user_name else payment.user_email[0]).upper() }}</div>
+                            <div>
+                                <div class="payment-username">{{ payment.user_name if payment.user_name else payment.user_email.split('@')[0] }}</div>
+                                <div class="payment-account">{{ payment.account_nickname }}</div>
+                            </div>
                         </div>
+                        <div class="payment-time">
+                            {{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}
+                        </div>
+                    </div>
+                    
+                    <div class="payment-details">
                         <div class="payment-amount">
                             <span class="amount">{{ payment.amount }}</span>
                             <span class="currency">{{ payment.currency }}</span>
                         </div>
-                        <div class="payment-time">
-                            {{ payment.created_at.strftime('%Y-%m-%d %H:%M') if payment.created_at else 'N/A' }}
+                        {% if payment.reference %}
+                        <div class="payment-reference">
+                            <span class="ref-value">{{ payment.reference }}</span>
                         </div>
-                    </div>
-                    
-                    <div class="payment-reference-display">
-                        <span class="ref-label">Reference Number</span>
-                        <span class="ref-value">{{ payment.reference if payment.reference else 'N/A' }}</span>
+                        {% endif %}
                     </div>
                     
                     <div class="payment-actions">
                         {% if payment.screenshot %}
                         <button class="view-screenshot-btn" onclick="viewScreenshot('{{ payment.screenshot }}')">
-                            View Screenshot
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Screenshot
                         </button>
                         {% endif %}
                         <button class="reject-btn" onclick="rejectPayment('{{ payment.payment_id }}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
                             Reject
                         </button>
                         <button class="approve-btn" onclick="approvePayment('{{ payment.payment_id }}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
                             Approve
                         </button>
                     </div>

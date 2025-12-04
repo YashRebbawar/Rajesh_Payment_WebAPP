@@ -171,65 +171,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.account-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(255, 237, 78, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
-              radial-gradient(circle at 50% 10%, rgba(255, 237, 78, 0.04) 0%, transparent 40%);
-  pointer-events: none;
-}
 
-.account-floating-shapes {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.account-shape {
-  position: absolute;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 237, 78, 0.12), rgba(255, 215, 0, 0.08));
-  animation: accountFloat 8s ease-in-out infinite;
-}
-
-.account-shape-1 {
-  width: 200px;
-  height: 200px;
-  top: 15%;
-  right: 10%;
-  animation-delay: 0s;
-}
-
-.account-shape-2 {
-  width: 150px;
-  height: 150px;
-  bottom: 20%;
-  left: 15%;
-  animation-delay: 3s;
-}
-
-.account-shape-3 {
-  width: 100px;
-  height: 100px;
-  top: 60%;
-  right: 25%;
-  animation-delay: 6s;
-}
-
-@keyframes accountFloat {
-  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-  33% { transform: translateY(-15px) rotate(120deg) scale(1.05); }
-  66% { transform: translateY(-10px) rotate(240deg) scale(0.95); }
-}
 
 .account-title {
   font-size: 36px;

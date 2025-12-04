@@ -487,6 +487,7 @@ def simulate_payment(payment_id):
             'payment_id': ObjectId(payment_id),
             'user_id': payment['user_id'],
             'user_email': user['email'],
+            'user_name': user.get('name'),
             'account_nickname': account['nickname'],
             'amount': payment['amount'],
             'currency': payment['currency'],
@@ -621,6 +622,13 @@ def admin_dashboard():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
     pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
+    
+    # Enrich pending payments with current user data
+    for payment in pending_payments:
+        payment_user = users_collection.find_one({'_id': payment['user_id']})
+        if payment_user:
+            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+            payment['user_email'] = payment_user['email']
     
     user_accounts_map = {}
     for account in all_accounts:
