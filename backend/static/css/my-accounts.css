@@ -794,17 +794,17 @@ body {
     border-radius: 12px;
     padding: 28px;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .account-card:hover {
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    transform: translateY(-2px);
 }
 
 .account-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
 }
 
@@ -923,23 +923,20 @@ body {
 
 .account-actions {
     display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 8px;
     position: relative;
     z-index: 10;
 }
 
 .action-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 14px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
-    pointer-events: auto;
+    white-space: nowrap;
     position: relative;
     z-index: 10;
 }
@@ -971,8 +968,10 @@ body {
 }
 
 .withdraw-btn:hover {
-    background: #000;
-    color: #fff;
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 
