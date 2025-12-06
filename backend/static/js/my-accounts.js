@@ -212,13 +212,11 @@ async function loadNotifications() {
                     if (notif.type === 'mt_credentials_updated') {
                         return `
                             <div class="notification-item mt-updated" data-id="${notif._id}">
-                                <div class="notification-icon">🔐</div>
+                                <div class="notification-icon">🎉</div>
                                 <div class="notification-content">
-                                    <div class="notification-title">MT Credentials Updated</div>
+                                    <div class="notification-title">Great News!</div>
                                     <div class="notification-text">
-                                        ${notif.account_nickname}<br>
-                                        <small>Login: ${notif.mt_login}</small><br>
-                                        <small>Server: ${notif.mt_server}</small>
+                                        Your MT credentials for ${notif.account_nickname} are ready! Check your account details.
                                     </div>
                                     <div class="notification-time">${formatTime(notif.created_at)}</div>
                                 </div>

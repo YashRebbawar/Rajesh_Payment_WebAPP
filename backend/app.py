@@ -595,12 +595,29 @@ def get_user_notifications():
     if not user:
         return jsonify({'success': False, 'message': 'Not authenticated'})
     
-    # Get all payment notifications for the user
+    notifications = []
+    
+    # Get MT credential update notifications
+    mt_notifications = list(notifications_collection.find({
+        'user_id': user['_id'],
+        'type': 'mt_credentials_updated'
+    }).sort('created_at', -1).limit(10))
+    
+    for notif in mt_notifications:
+        notifications.append({
+            '_id': str(notif['_id']),
+            'type': 'mt_credentials_updated',
+            'account_nickname': notif['account_nickname'],
+            'mt_login': notif['mt_login'],
+            'mt_server': notif['mt_server'],
+            'created_at': notif['created_at'].isoformat()
+        })
+    
+    # Get payment notifications
     user_payments = list(payments_collection.find({
         'user_id': user['_id']
     }).sort('created_at', -1).limit(10))
     
-    notifications = []
     for payment in user_payments:
         if payment['status'] in ['approved', 'rejected']:
             account = accounts_collection.find_one({'_id': payment['account_id']})
@@ -614,7 +631,8 @@ def get_user_notifications():
                 'created_at': payment.get('approved_at' if payment['status'] == 'approved' else 'rejected_at', payment['created_at']).isoformat()
             })
     
-    return jsonify({'success': True, 'notifications': notifications, 'count': len(notifications)})
+    notifications.sort(key=lambda x: x['created_at'], reverse=True)
+    return jsonify({'success': True, 'notifications': notifications[:10], 'count': len(notifications[:10])})
 
 @app.route('/admin/dashboard')
 def admin_dashboard():

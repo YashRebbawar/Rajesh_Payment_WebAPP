@@ -129,6 +129,18 @@
                         </div>
                         <div class="account-details">
                             <div class="detail-row">
+                                <span>MT Login</span>
+                                <span>{{ account.mt_login or 'Not Set' }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>MT Server</span>
+                                <span>{{ account.mt_server or 'Not Set' }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>User Password</span>
+                                <span>{{ account.trading_password }}</span>
+                            </div>
+                            <div class="detail-row">
                                 <span>Leverage</span>
                                 <span>{{ account.leverage }}</span>
                             </div>
