@@ -669,14 +669,21 @@ body {
         text-align: center;
     }
 
-    .account-actions {
+    .account-header {
         flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .account-actions {
+        flex-direction: row;
         gap: 10px;
+        width: 100%;
     }
 
     .action-btn {
-        width: 100%;
-        min-width: auto;
+        flex: 1;
+        padding: 12px 16px;
     }
 
     .empty-state {
@@ -792,7 +799,7 @@ body {
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
-    padding: 28px;
+    padding: 20px;
     transition: all 0.2s ease;
     position: relative;
 }
@@ -805,7 +812,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .account-badges {
@@ -830,33 +837,41 @@ body {
     color: #666;
 }
 
+.account-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 8px;
+    margin-top: 0;
+}
+
 .account-balance {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .balance-amount {
-    font-size: 40px;
+    font-size: 28px;
     font-weight: 700;
     color: #000;
-    letter-spacing: -1.5px;
+    letter-spacing: -0.5px;
 }
 
 .balance-currency {
-    font-size: 16px;
+    font-size: 14px;
     color: #666;
 }
 
 .account-details {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
-    padding: 20px;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px;
     background: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 .detail-row {
@@ -877,12 +892,12 @@ body {
 
 .account-footer {
     display: flex;
-    gap: 20px;
+    gap: 12px;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 16px 20px;
+    margin-bottom: 0;
+    padding: 12px;
     background: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 6px;
     flex-wrap: wrap;
 }
 
