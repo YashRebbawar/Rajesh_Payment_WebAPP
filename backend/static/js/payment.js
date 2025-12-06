@@ -10,21 +10,29 @@ setInterval(updateTime, 1000);
 document.addEventListener('DOMContentLoaded', function() {
     const amountInput = document.getElementById('amount');
     const payButton = document.getElementById('pay-button');
-    const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
+    const depositValueEl = document.getElementById('deposit-value');
     const accountCurrency = payButton.dataset.currency;
     const accountId = payButton.dataset.accountId;
+    const accountType = payButton.dataset.accountType;
 
-    quickAmountBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            amountInput.value = this.dataset.amount;
-        });
+    const minAmount = accountType === 'standard' ? 1000 : 50000;
+    const maxAmount = accountType === 'standard' ? 50000 : 100000;
+
+    amountInput.addEventListener('input', function() {
+        const value = parseFloat(this.value) || 0;
+        depositValueEl.textContent = value.toFixed(0);
+        const isValid = value >= minAmount && value <= maxAmount;
+        payButton.disabled = !isValid;
+        if (isValid) {
+            payButton.classList.add('active');
+        } else {
+            payButton.classList.remove('active');
+        }
     });
 
     payButton.addEventListener('click', async function(e) {
         e.preventDefault();
         const amount = parseFloat(amountInput.value);
-        const minAmount = accountCurrency === 'INR' ? 1 : 10;
         
         if (!amount || amount < minAmount) {
             alert(`Please enter an amount of at least ${minAmount} ${accountCurrency}`);

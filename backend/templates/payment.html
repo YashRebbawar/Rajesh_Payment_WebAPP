@@ -60,45 +60,72 @@
 
     <button type="button" class="back-button" onclick="window.history.back()">
         <span class="back-icon">←</span>
+        
     </button>
 
     <div class="header-section">
-        <h1 class="account-title">Deposit Funds</h1>
-        <p class="subtitle-text">Enter the amount you want to deposit to your account</p>
+        <h1 class="account-title">Deposit</h1>
+        
     </div>
 
     <div class="payment-form-container">
-        <div class="account-info-card">
-            <div class="info-row">
-                <span>Account:</span>
-                <span>{{ account.nickname }}</span>
+        <div class="left-section">
+            <div class="form-group">
+                <label class="form-label">UPI channel</label>
+                <div class="upi-channel-display">
+                    <svg class="upi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 10h18" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span>UPI QR</span>
+                </div>
             </div>
-            <div class="info-row">
-                <span>Type:</span>
-                <span>{{ account.account_type|replace('-', ' ')|title }}</span>
-            </div>
-            <div class="info-row">
-                <span>Currency:</span>
-                <span>{{ account.currency }}</span>
-            </div>
-        </div>
 
-        <div class="payment-card">
-            <div class="amount-section">
-                <label for="amount">Amount</label>
+            <div class="form-group">
+                <label class="form-label">To account</label>
+                <div class="account-select">
+                    <div class="account-info">
+                        <span class="account-type">MT5</span>
+                        <span class="account-number">{{ account.nickname }}</span>
+                    </div>
+                    <span class="account-balance">{{ account.balance|default(0) }} {{ account.currency }}</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Amount</label>
                 <div class="amount-input-wrapper">
-                    <input type="number" id="amount" placeholder="0.00" min="{% if account.currency == 'INR' %}1{% else %}10{% endif %}" step="0.01">
+                    <input type="number" id="amount" placeholder="0" min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}" step="1">
                     <span class="currency-label">{{ account.currency }}</span>
                 </div>
-                <div class="quick-amounts">
-                    <button class="quick-amount-btn" data-amount="50">50</button>
-                    <button class="quick-amount-btn" data-amount="100">100</button>
-                    <button class="quick-amount-btn" data-amount="500">500</button>
-                    <button class="quick-amount-btn" data-amount="1000">1000</button>
+                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 50,000{% else %}50,000 - 1,00,000{% endif %} {{ account.currency }}</div>
+            </div>
+
+            <div class="deposit-summary">
+                <span class="deposit-summary-label">To be deposited</span>
+                <span class="deposit-amount"><span id="deposit-value">0</span> {{ account.currency }}</span>
+            </div>
+
+            <button class="continue-button" id="pay-button">Continue</button>
+        </div>
+
+        <div class="right-section">
+            <div class="terms-section">
+                <h3 class="section-title">Terms</h3>
+                <div class="terms-item">
+                    <span class="terms-label">Average payment time</span>
+                    <span class="terms-value">Instant</span>
+                </div>
+                <div class="terms-item">
+                    <span class="terms-label">Fee</span>
+                    <span class="terms-value">0%</span>
                 </div>
             </div>
 
-            <button class="pay-button" id="pay-button">Pay Now</button>
+            <div class="faq-section">
+                <h3 class="section-title">FAQ</h3>
+                <a href="#" class="faq-link">How do I deposit with UPI QR?</a>
+            </div>
         </div>
     </div>
 </div>
@@ -123,7 +150,6 @@
         <p class="qr-instruction">Scan QR code and include the reference code in payment notes</p>
         
         <div class="screenshot-upload-section">
-            
             <input type="file" id="screenshot-input" accept="image/*" style="display: none;">
             <button class="upload-screenshot-btn" id="upload-screenshot-btn">
                 <span class="upload-icon">📎</span>
@@ -171,8 +197,8 @@
 const payButton = document.getElementById('pay-button');
 payButton.dataset.currency = '{{ account.currency }}';
 payButton.dataset.accountId = '{{ account._id }}';
+payButton.dataset.accountType = '{{ account.account_type }}';
 </script>
 <script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/payment.js') }}"></script>
 {% endblock %}
-
