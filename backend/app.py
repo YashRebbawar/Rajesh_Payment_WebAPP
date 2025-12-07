@@ -301,6 +301,19 @@ def payment(account_id):
     except:
         return redirect(url_for('my_accounts'))
 
+@app.route('/withdrawal/<account_id>')
+def withdrawal(account_id):
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('signin'))
+    try:
+        account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
+        if not account:
+            return redirect(url_for('my_accounts'))
+        return render_template('withdrawal.html', user=user, account=account)
+    except:
+        return redirect(url_for('my_accounts'))
+
 @app.route('/api/payment/initiate', methods=['POST'])
 def initiate_payment():
     user = get_current_user()
@@ -341,6 +354,64 @@ def initiate_payment():
     except Exception as e:
         logger.error(f"Payment initiation error: {e}")
         return jsonify({'success': False, 'message': 'Payment processing failed'})
+
+@app.route('/api/withdrawal/initiate', methods=['POST'])
+def initiate_withdrawal():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    try:
+        account = accounts_collection.find_one({
+            '_id': ObjectId(data['account_id']),
+            'user_id': user['_id']
+        })
+        
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        amount = float(data['amount'])
+        balance = account.get('balance', 0.0)
+        
+        if amount <= 0:
+            return jsonify({'success': False, 'message': 'Invalid amount'})
+        
+        if amount > balance:
+            return jsonify({'success': False, 'message': 'Insufficient balance'})
+        
+        # Create withdrawal record
+        withdrawal_doc = {
+            'user_id': user['_id'],
+            'account_id': ObjectId(data['account_id']),
+            'amount': amount,
+            'currency': data['currency'],
+            'upi_id': data.get('upi_id'),
+            'status': 'pending',
+            'created_at': get_current_utc_time()
+        }
+        result = payments_collection.insert_one(withdrawal_doc)
+        
+        # Create admin notification
+        notification_doc = {
+            'type': 'withdrawal_requested',
+            'withdrawal_id': result.inserted_id,
+            'user_id': user['_id'],
+            'user_email': user['email'],
+            'account_nickname': account['nickname'],
+            'amount': amount,
+            'currency': data['currency'],
+            'upi_id': data.get('upi_id'),
+            'status': 'pending_approval',
+            'created_at': get_current_utc_time()
+        }
+        notifications_collection.insert_one(notification_doc)
+        
+        logger.info(f"Withdrawal initiated for user {user['email']}: {amount} {data['currency']}")
+        return jsonify({'success': True, 'withdrawal_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Withdrawal initiation error: {e}")
+        return jsonify({'success': False, 'message': 'Withdrawal processing failed'})
 
 @app.route('/api/payment/status/<payment_id>', methods=['GET'])
 def payment_status(payment_id):

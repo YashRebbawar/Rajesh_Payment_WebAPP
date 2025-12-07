@@ -106,13 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.querySelectorAll('.withdraw-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Withdraw functionality coming soon!');
-        });
-    });
+
 
     const sortDropdown = document.querySelector('.sort-dropdown');
     if (sortDropdown) {

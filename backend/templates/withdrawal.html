@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Deposit - PrintFree{% endblock %}
+{% block title %}Withdrawal - PrintFree{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/withdrawal.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -57,26 +57,30 @@
 
     <button type="button" class="back-button" onclick="window.history.back()">
         <span class="back-icon">←</span>
-        
     </button>
 
     <div class="header-section">
-        <h1 class="account-title">Deposit</h1>
+        <h1 class="account-title">Withdrawal</h1>
         
     </div>
 
-    <div class="payment-form-container">
+    <div class="withdrawal-form-container">
         <div class="left-section">
             <div class="form-group">
-                <label class="form-label">UPI channel</label>
-                <div class="upi-channel-display">
-                    <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="upi-icon" style="width: 40px; height: auto;">
-                    <span>UPI QR</span>
+                <label class="form-label">Payment method</label>
+                <div class="payment-method-select">
+                    <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="upi-icon" style="width: 30px; height: auto;">
+                    <span>UPI</span>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">To account</label>
+                <label class="form-label">UPI ID</label>
+                <input type="text" id="upi-id" placeholder="example@upi" class="upi-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">From account</label>
                 <div class="account-select">
                     <div class="account-info">
                         <span class="account-type">MT5</span>
@@ -89,16 +93,16 @@
             <div class="form-group">
                 <label class="form-label">Amount</label>
                 <div class="amount-input-wrapper">
-                    <input type="number" id="amount" placeholder="0" min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}" step="1">
-                    <span class="currency-label">{{ account.currency }}</span>
+                    <input type="number" id="amount" placeholder="0.00" min="0" step="0.01">
+                    <span class="currency-label" id="amount-currency">{{ account.currency }}</span>
                 </div>
-                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 50,000{% else %}50,000 - 1,00,000{% endif %} {{ account.currency }}</div>
+                <div class="amount-range" id="amount-range">15.00 - 29.08 USD</div>
             </div>
 
-            <div class="deposit-summary">
-                <span class="deposit-summary-label">To be deposited</span>
+            <div class="withdrawal-summary">
+                <span class="withdrawal-summary-label">To be withdrawn</span>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="deposit-amount"><span id="deposit-value">0</span> {{ account.currency }}</span>
+                    <span class="withdrawal-amount"><span id="withdrawal-value">0</span> <span id="withdrawal-currency">{{ account.currency }}</span></span>
                     <div class="fee-info-icon" id="fee-info-icon">i
                         <div class="fee-tooltip" id="fee-tooltip">
                             <div class="tooltip-content">
@@ -107,7 +111,7 @@
                                     <span id="tooltip-amount">0</span>
                                 </div>
                                 <div class="tooltip-row">
-                                    <span>Fee (1.4%):</span>
+                                    <span>Fee (0%):</span>
                                     <span id="tooltip-fee">0</span>
                                 </div>
                                 <div class="tooltip-divider"></div>
@@ -121,7 +125,7 @@
                 </div>
             </div>
 
-            <button class="continue-button" id="pay-button">Continue</button>
+            <button class="continue-button" id="continue-button">Continue</button>
         </div>
 
         <div class="right-section">
@@ -133,66 +137,41 @@
                 </div>
                 <div class="terms-item">
                     <span class="terms-label">Fee</span>
-                    <span class="terms-value">1.4%</span>
+                    <span class="terms-value">0%</span>
                 </div>
             </div>
 
             <div class="faq-section">
                 <h3 class="section-title">FAQ</h3>
-                <a href="#" class="faq-link">How do I deposit with UPI QR?</a>
+                <a href="#" class="faq-link">How do I verify my account?</a>
+                <a href="#" class="faq-link">How do I verify my online banking account?</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Payment QR Modal -->
-<div id="qr-modal" class="qr-modal">
-    <div class="qr-modal-content">
-        <span class="qr-close">&times;</span>
-        <h2>Complete Payment</h2>
-        <div class="qr-amount-display">
-            <span class="qr-amount-label">Amount to Pay:</span>
-            <span class="qr-amount-value" id="qr-amount">0.00</span>
-            <span class="qr-currency" id="qr-currency">USD</span>
-        </div>
-        <div class="qr-code-container">
-            <img src="/static/images/payment-qr.jpg" alt="Payment QR Code" class="qr-code-image">
-        </div>
-        <div class="payment-reference">
-            <span class="ref-label">Payment Reference:</span>
-            <span class="ref-code" id="payment-ref">-</span>
-        </div>
-        <p class="qr-instruction">Scan QR code and include the reference code in payment notes</p>
-        
-        <div class="screenshot-upload-section">
-            <input type="file" id="screenshot-input" accept="image/*" style="display: none;">
-            <button class="upload-screenshot-btn" id="upload-screenshot-btn">
-                <span class="upload-icon">📎</span>
-                <span id="upload-text">Upload Payment Screenshot</span>
-            </button>
-            <div class="screenshot-filename" id="screenshot-filename" style="display: none;">
-                <span class="file-icon">📎</span>
-                <span class="filename-text" id="filename-text"></span>
-                <button class="remove-screenshot-btn" id="remove-screenshot-btn">✕</button>
+<!-- Confirmation Modal -->
+<div id="confirmation-modal" class="confirmation-modal">
+    <div class="confirmation-modal-content">
+        <span class="confirmation-close">&times;</span>
+        <h2>Confirm Withdrawal</h2>
+        <div class="confirmation-details">
+            <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value" id="confirm-amount">0.00</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Currency:</span>
+                <span class="detail-value" id="confirm-currency">INR</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Account:</span>
+                <span class="detail-value" id="confirm-account">{{ account.nickname }}</span>
             </div>
         </div>
-        
-        <button class="confirm-payment-btn" id="confirm-payment-btn" disabled>I have completed the payment</button>
-        <div class="payment-status" id="payment-status" style="display: none;">
-            <div class="status-spinner"></div>
-            <span>Waiting for payment...</span>
-        </div>
-    </div>
-</div>
-
-<!-- Discard Confirmation Modal -->
-<div id="discard-modal" class="discard-modal">
-    <div class="discard-modal-content">
-        <h3>Discard Payment?</h3>
-        <p>Are you sure you want to cancel this payment?</p>
-        <div class="discard-modal-buttons">
-            <button class="discard-cancel-btn" id="discard-cancel-btn">No, Continue</button>
-            <button class="discard-confirm-btn" id="discard-confirm-btn">Yes, Discard</button>
+        <div class="confirmation-actions">
+            <button class="cancel-btn" id="cancel-btn">Cancel</button>
+            <button class="confirm-btn" id="confirm-btn">Confirm Withdrawal</button>
         </div>
     </div>
 </div>
@@ -201,19 +180,19 @@
 <div id="success-modal" class="success-modal">
     <div class="success-modal-content">
         <div class="success-icon">✓</div>
-        <h2>We Got Your Request!</h2>
-        <p>We will set up your account in a while and let you know.</p>
-        <p class="success-note">You'll receive a notification once the admin approves your deposit.</p>
+        <h2>Withdrawal Request Submitted!</h2>
+        <p>Your withdrawal request has been submitted successfully.</p>
+        <p class="success-note">You'll receive a notification once the admin processes your withdrawal.</p>
         <button class="success-btn" onclick="window.location.href='/my-accounts'">Go to My Accounts</button>
     </div>
 </div>
 
 <script>
-const payButton = document.getElementById('pay-button');
-payButton.dataset.currency = '{{ account.currency }}';
-payButton.dataset.accountId = '{{ account._id }}';
-payButton.dataset.accountType = '{{ account.account_type }}';
+const continueButton = document.getElementById('continue-button');
+continueButton.dataset.currency = '{{ account.currency }}';
+continueButton.dataset.accountId = '{{ account._id }}';
+continueButton.dataset.accountBalance = '{{ account.balance|default(0) }}';
 </script>
 <script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
-<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+<script src="{{ url_for('static', filename='js/withdrawal.js') }}"></script>
 {% endblock %}

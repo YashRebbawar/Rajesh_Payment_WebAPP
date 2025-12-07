@@ -135,7 +135,7 @@
                 </div>
                 <div class="account-actions">
                     <button class="action-btn deposit-btn" data-account-id="{{ account._id }}">Deposit</button>
-                    <button class="action-btn withdraw-btn" data-account-id="{{ account._id }}">Withdraw</button>
+                    <button class="action-btn withdraw-btn" data-account-id="{{ account._id }}" onclick="window.location.href='/withdrawal/{{ account._id }}'">Withdraw</button>
                 </div>
             </div>
             <div class="account-name">{{ account.nickname }}</div>
