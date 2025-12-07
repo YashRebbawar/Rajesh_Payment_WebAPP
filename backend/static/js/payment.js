@@ -20,7 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     amountInput.addEventListener('input', function() {
         const value = parseFloat(this.value) || 0;
-        depositValueEl.textContent = value.toFixed(0);
+        const fee = value * 0.014;
+        const total = value + fee;
+        depositValueEl.textContent = total.toFixed(0);
+        
+        document.getElementById('tooltip-amount').textContent = value.toFixed(2);
+        document.getElementById('tooltip-fee').textContent = fee.toFixed(2);
+        document.getElementById('tooltip-total').textContent = total.toFixed(2);
+        
         const isValid = value >= minAmount && value <= maxAmount;
         payButton.disabled = !isValid;
         if (isValid) {
@@ -44,7 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showQRModal(amount, currency, accountId) {
         const modal = document.getElementById('qr-modal');
-        document.getElementById('qr-amount').textContent = amount.toFixed(2);
+        const fee = amount * 0.014;
+        const total = amount + fee;
+        document.getElementById('qr-amount').textContent = total.toFixed(2);
         document.getElementById('qr-currency').textContent = currency;
         modal.style.display = 'block';
         initializePaymentData(accountId, amount, currency);

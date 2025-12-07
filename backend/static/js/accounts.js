@@ -1,13 +1,26 @@
 function updateTime() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const timeEl = document.getElementById('current-time');
     if (timeEl) timeEl.textContent = timeStr;
 }
 updateTime();
-setInterval(updateTime, 60000);
+setInterval(updateTime, 1000);
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
+    const memberSinceEl = document.getElementById('member-since');
+    if (memberSinceEl) {
+        const userCreatedAt = document.querySelector('[data-user-created-at]')?.getAttribute('data-user-created-at');
+        if (userCreatedAt) {
+            memberSinceEl.textContent = formatMemberSince(userCreatedAt);
+        }
+    }
+
     const cards = document.querySelectorAll('.account-card');
     const actionSection = document.getElementById('action-section');
     const openButton = document.getElementById('open-button');

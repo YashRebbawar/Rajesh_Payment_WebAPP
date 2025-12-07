@@ -18,7 +18,7 @@
             {% if user %}
             <div class="user-profile-wrapper">
                 <button class="profile-icon-btn" id="profile-toggle">
-                    <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
+                    <div class="profile-icon">{{ user.email[0].upper() }}</div>
                 </button>
                 <div class="profile-dropdown" id="profile-dropdown">
                     <div class="profile-card-wrapper">
@@ -33,10 +33,10 @@
                             </div>
                             <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                                 <div class="profile-card-avatar">
-                                    {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                    {{ user.email[0].upper() }}
                                 </div>
                                 <div class="profile-card-name-block">
-                                    <h2>{{ user.name if user.name else user.email.split('@')[0] }}</h2>
+                                    <h2>{{ user.email.split('@')[0] }}</h2>
                                     <div class="profile-card-status-row">
                                         <span class="profile-status-dot"></span>
                                         <span>{{ user.email }}</span>
@@ -82,11 +82,11 @@
                 <div class="admin-user-header">
                     <div class="admin-user-info">
                         <div class="profile-icon">
-                            {{ (u.name[0] if u.name else u.email[0]).upper() }}
+                            {{ u.email[0].upper() }}
                         </div>
                         <div class="user-details">
                             <div class="user-name-row">
-                                <h3>{{ u.name if u.name else u.email.split('@')[0] }}</h3>
+                                <h3>{{ u.email.split('@')[0] }}</h3>
                                 {% if u.is_admin %}
                                 <span class="admin-badge">Admin</span>
                                 {% endif %}
@@ -190,10 +190,10 @@
                 <div class="pending-payment-card" data-user-email="{{ payment.user_email }}" data-currency="{{ payment.currency }}">
                     <div class="payment-header">
                         <div class="payment-user-info">
-                            <div class="user-avatar">{{ (payment.user_name[0] if payment.user_name else payment.user_email[0]).upper() }}</div>
+                            <div class="user-avatar">{{ payment.account_nickname[0].upper() }}</div>
                             <div>
-                                <div class="payment-username">{{ payment.user_name if payment.user_name else payment.user_email.split('@')[0] }}</div>
-                                <div class="payment-account">{{ payment.account_nickname }}</div>
+                                <div class="payment-username">{{ payment.account_nickname }}</div>
+                                <div class="payment-account">{{ payment.user_email }}</div>
                             </div>
                         </div>
                         <div class="payment-time" data-timestamp="{{ payment.created_at.isoformat() if payment.created_at else '' }}">

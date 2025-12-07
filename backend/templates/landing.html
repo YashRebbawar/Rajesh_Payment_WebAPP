@@ -21,20 +21,11 @@
                                 <span id="current-time"></span>
                             </div>
                         </div>
-                        <div class="profile-card-content">
+                        <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                             <div class="profile-card-avatar">
-                                {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                {{ user.email[0].upper() }}
                             </div>
                             <div class="profile-card-name-block">
-                                <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
-                                    <h2 id="profile-name-text">{{ user.name if user.name else user.email.split('@')[0] }}</h2>
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #000;" onclick="editName()"><i class="fa-solid fa-pencil"></i></button>
-                                </div>
-                                <div style="display: none; align-items: center; gap: 6px;" id="name-edit">
-                                    <input type="text" id="name-input" value="{{ user.name if user.name else user.email.split('@')[0] }}" style="font-size: 18px; font-weight: 700; border: 2px solid #ffed4e; border-radius: 8px; padding: 4px 8px; width: 180px;">
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #28a745;" onclick="saveName()">✓</button>
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545;" onclick="cancelEdit()">✕</button>
-                                </div>
                                 <div class="profile-card-status-row">
                                     <span class="profile-status-dot"></span>
                                     <span>{{ user.email }}</span>
@@ -52,8 +43,8 @@
                         </div>
                     </div>
                     <div class="profile-intensity-card">
-                        <span>Account Type:</span>
-                        <span>Standard</span>
+                        <span>Member Since:</span>
+                        <span id="member-since"></span>
                     </div>
                 </div>
             </div>

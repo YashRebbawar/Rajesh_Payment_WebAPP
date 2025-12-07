@@ -12,7 +12,7 @@
     <div class="auth-buttons">
         <div class="user-profile-wrapper">
             <button class="profile-icon-btn" id="profile-toggle">
-                <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
+                <div class="profile-icon">{{ user.email[0].upper() }}</div>
             </button>
             <div class="profile-dropdown" id="profile-dropdown">
                 <div class="profile-card-wrapper">
@@ -26,12 +26,9 @@
                         </div>
                         <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                             <div class="profile-card-avatar">
-                                {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                {{ user.email[0].upper() }}
                             </div>
                             <div class="profile-card-name-block">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <h2>{{ user.name if user.name else user.email.split('@')[0] }}</h2>
-                                </div>
                                 <div class="profile-card-status-row">
                                     <span class="profile-status-dot"></span>
                                     <span>{{ user.email }}</span>
@@ -103,7 +100,28 @@
 
             <div class="deposit-summary">
                 <span class="deposit-summary-label">To be deposited</span>
-                <span class="deposit-amount"><span id="deposit-value">0</span> {{ account.currency }}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="deposit-amount"><span id="deposit-value">0</span> {{ account.currency }}</span>
+                    <div class="fee-info-icon" id="fee-info-icon">i
+                        <div class="fee-tooltip" id="fee-tooltip">
+                            <div class="tooltip-content">
+                                <div class="tooltip-row">
+                                    <span>Amount:</span>
+                                    <span id="tooltip-amount">0</span>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Fee (1.4%):</span>
+                                    <span id="tooltip-fee">0</span>
+                                </div>
+                                <div class="tooltip-divider"></div>
+                                <div class="tooltip-row tooltip-total">
+                                    <span>Total:</span>
+                                    <span id="tooltip-total">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <button class="continue-button" id="pay-button">Continue</button>
@@ -118,7 +136,7 @@
                 </div>
                 <div class="terms-item">
                     <span class="terms-label">Fee</span>
-                    <span class="terms-value">0%</span>
+                    <span class="terms-value">1.4%</span>
                 </div>
             </div>
 

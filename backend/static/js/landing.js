@@ -1,11 +1,24 @@
 function updateTime() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const timeEl = document.getElementById('current-time');
     if (timeEl) timeEl.textContent = timeStr;
 }
 updateTime();
-setInterval(updateTime, 60000);
+setInterval(updateTime, 1000);
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+const memberSinceEl = document.getElementById('member-since');
+if (memberSinceEl) {
+    const userCreatedAt = document.querySelector('[data-user-created-at]')?.getAttribute('data-user-created-at');
+    if (userCreatedAt) {
+        memberSinceEl.textContent = formatMemberSince(userCreatedAt);
+    }
+}
 
 document.getElementById('profile-toggle')?.addEventListener('click', function() {
     const dropdown = document.getElementById('profile-dropdown');
@@ -65,42 +78,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-function editName() {
-    document.getElementById('name-display').style.display = 'none';
-    document.getElementById('name-edit').style.display = 'flex';
-    document.getElementById('name-input').focus();
-}
 
-function cancelEdit() {
-    document.getElementById('name-display').style.display = 'flex';
-    document.getElementById('name-edit').style.display = 'none';
-}
-
-async function saveName() {
-    const newName = document.getElementById('name-input').value.trim();
-    if (!newName) {
-        showStatus('Name cannot be empty', 'error');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/update-name', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: newName})
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('profile-name-text').textContent = newName;
-            document.querySelector('.profile-card-avatar').textContent = newName[0].toUpperCase();
-            document.querySelector('.profile-icon').textContent = newName[0].toUpperCase();
-            cancelEdit();
-            showStatus('✓ Name updated successfully!', 'success');
-        } else {
-            showStatus(data.message || 'Failed to update name', 'error');
-        }
-    } catch (error) {
-        showStatus('Error updating name', 'error');
-    }
-}
