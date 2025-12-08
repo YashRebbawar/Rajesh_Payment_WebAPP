@@ -220,14 +220,17 @@ async function loadNotifications() {
                     } else {
                         const isApproved = notif.status === 'completed';
                         const statusClass = isApproved ? 'approved' : 'rejected';
-                        const statusText = isApproved ? 'Approved' : 'Rejected';
+                        const paymentType = notif.payment_type || 'deposit';
+                        const typeLabel = paymentType === 'withdrawal' ? 'Withdrawal' : 'Deposit';
+                        const statusText = isApproved ? 'Successful' : 'Failed';
+                        const titleText = `${typeLabel} ${statusText}`;
                         const icon = isApproved ? '✓' : '✕';
                         
                         return `
                             <div class="notification-item ${statusClass}" data-id="${notif._id}">
                                 <div class="notification-icon">${icon}</div>
                                 <div class="notification-content">
-                                    <div class="notification-title">Account ${statusText}</div>
+                                    <div class="notification-title">${titleText}</div>
                                     <div class="notification-text">
                                         ${notif.account_nickname}: ${notif.amount} ${notif.currency}
                                     </div>

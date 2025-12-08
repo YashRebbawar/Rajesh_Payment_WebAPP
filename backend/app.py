@@ -697,9 +697,11 @@ def get_user_notifications():
     
     for payment in user_payments:
         account = accounts_collection.find_one({'_id': payment['account_id']})
+        payment_type = payment.get('type', 'deposit')
         notifications.append({
             '_id': str(payment['_id']),
             'type': 'account_status',
+            'payment_type': payment_type,
             'status': payment['status'],
             'account_nickname': account['nickname'] if account else 'Unknown',
             'amount': payment['amount'],
