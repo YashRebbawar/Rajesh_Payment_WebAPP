@@ -124,7 +124,7 @@ def my_accounts():
     if user.get('is_admin'):
         return redirect(url_for('admin_dashboard'))
     accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
-    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': 'completed'}).sort('created_at', -1))
+    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': {'$in': ['pending', 'completed']}}).sort('created_at', -1))
     return render_template('my-accounts.html', user=user, accounts=accounts, pending_payments=pending_payments)
 
 @app.route('/accounts')
@@ -331,10 +331,6 @@ def initiate_payment():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
-        currency = data['currency']
-        min_amount = 1 if currency == 'INR' else 10
-        if amount < min_amount:
-            return jsonify({'success': False, 'message': f'Minimum deposit is {min_amount} {currency}'})
         
         # Create payment record
         payment_doc = {
@@ -813,3 +809,29 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 # Updated get_user_notifications to include MT credentials
+
+@app.route('/api/withdrawal/status/<withdrawal_id>', methods=['GET'])
+def get_withdrawal_status(withdrawal_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        withdrawal = payments_collection.find_one({
+            '_id': ObjectId(withdrawal_id),
+            'user_id': user['_id'],
+            'upi_id': {'$exists': True}
+        })
+        
+        if not withdrawal:
+            return jsonify({'success': False, 'message': 'Withdrawal not found'})
+        
+        return jsonify({
+            'success': True,
+            'status': withdrawal['status'],
+            'amount': withdrawal['amount'],
+            'currency': withdrawal['currency']
+        })
+    except Exception as e:
+        logger.error(f"Withdrawal status error: {e}")
+        return jsonify({'success': False, 'message': 'Error checking status'})

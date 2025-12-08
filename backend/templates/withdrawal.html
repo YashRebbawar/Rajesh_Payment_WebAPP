@@ -96,7 +96,6 @@
                     <input type="number" id="amount" placeholder="0.00" min="0" step="0.01">
                     <span class="currency-label" id="amount-currency">{{ account.currency }}</span>
                 </div>
-                <div class="amount-range" id="amount-range">15.00 - 29.08 USD</div>
             </div>
 
             <div class="withdrawal-summary">
@@ -132,8 +131,8 @@
             <div class="terms-section">
                 <h3 class="section-title">Terms</h3>
                 <div class="terms-item">
-                    <span class="terms-label">Average payment time</span>
-                    <span class="terms-value">Instant</span>
+                    <span class="terms-label">Average withdraw time</span>
+                    <span class="terms-value">15 min</span>
                 </div>
                 <div class="terms-item">
                     <span class="terms-label">Fee</span>
@@ -141,11 +140,7 @@
                 </div>
             </div>
 
-            <div class="faq-section">
-                <h3 class="section-title">FAQ</h3>
-                <a href="#" class="faq-link">How do I verify my account?</a>
-                <a href="#" class="faq-link">How do I verify my online banking account?</a>
-            </div>
+            
         </div>
     </div>
 </div>
@@ -182,7 +177,8 @@
         <div class="success-icon">✓</div>
         <h2>Withdrawal Request Submitted!</h2>
         <p>Your withdrawal request has been submitted successfully.</p>
-        <p class="success-note">You'll receive a notification once the admin processes your withdrawal.</p>
+        <p class="success-note">Status: <strong>Processing</strong></p>
+        <p class="success-note">You will be notified once the admin approves your withdrawal.</p>
         <button class="success-btn" onclick="window.location.href='/my-accounts'">Go to My Accounts</button>
     </div>
 </div>
@@ -192,7 +188,48 @@ const continueButton = document.getElementById('continue-button');
 continueButton.dataset.currency = '{{ account.currency }}';
 continueButton.dataset.accountId = '{{ account._id }}';
 continueButton.dataset.accountBalance = '{{ account.balance|default(0) }}';
+
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const timeEl = document.getElementById('current-time');
+    if (timeEl) timeEl.textContent = timeStr;
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const profileToggle = document.getElementById('profile-toggle');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    
+    if (profileToggle && profileDropdown) {
+        profileToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            profileDropdown.classList.toggle('active');
+        });
+    }
+
+    const memberSinceEl = document.getElementById('member-since');
+    if (memberSinceEl) {
+        const userCreatedAt = document.querySelector('[data-user-created-at]')?.getAttribute('data-user-created-at');
+        if (userCreatedAt) {
+            memberSinceEl.textContent = formatMemberSince(userCreatedAt);
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const profileWrapper = document.querySelector('.user-profile-wrapper');
+        if (profileWrapper && !profileWrapper.contains(e.target)) {
+            profileDropdown?.classList.remove('active');
+        }
+    });
+});
 </script>
-<script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/withdrawal.js') }}"></script>
 {% endblock %}

@@ -101,9 +101,9 @@
         <div class="pending-item">
             <div class="pending-item-info">
                 <span class="pending-amount">{{ payment.amount }} {{ payment.currency }}</span>
-                <span class="pending-ref">Ref: {{ payment.reference or 'N/A' }}</span>
+                <span class="pending-ref">{% if payment.get('upi_id') %}Withdrawal - {{ payment.upi_id }}{% else %}Deposit - {{ payment.reference or 'N/A' }}{% endif %}</span>
             </div>
-            <span class="pending-status">Awaiting Approval</span>
+            <span class="pending-status">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
         </div>
         {% endfor %}
     </div>
