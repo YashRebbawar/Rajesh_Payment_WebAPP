@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const type = passwordInput.type === 'password' ? 'text' : 'password';
         passwordInput.type = type;
-        this.textContent = type === 'password' ? '👁' : '👁🗨';
+        this.textContent = type === 'password' ? '👁' : '👁';
     });
 
     passwordInput.addEventListener('input', function() {

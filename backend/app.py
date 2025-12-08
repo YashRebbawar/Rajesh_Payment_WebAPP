@@ -124,7 +124,7 @@ def my_accounts():
     if user.get('is_admin'):
         return redirect(url_for('admin_dashboard'))
     accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
-    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': {'$in': ['pending', 'completed']}}).sort('created_at', -1))
+    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': 'pending'}).sort('created_at', -1))
     return render_template('my-accounts.html', user=user, accounts=accounts, pending_payments=pending_payments)
 
 @app.route('/accounts')
@@ -339,6 +339,7 @@ def initiate_payment():
             'amount': amount,
             'currency': data['currency'],
             'reference': data.get('reference', ''),
+            'type': 'deposit',
             'status': 'pending',
             'created_at': get_current_utc_time(),
             'screenshot': None
@@ -383,6 +384,7 @@ def initiate_withdrawal():
             'amount': amount,
             'currency': data['currency'],
             'upi_id': data.get('upi_id'),
+            'type': 'withdrawal',
             'status': 'pending',
             'created_at': get_current_utc_time()
         }
@@ -451,13 +453,12 @@ def payment_webhook():
             return jsonify({'success': False, 'message': 'Payment not found'}), 404
         
         if status == 'success':
-            # Update payment status
+            # Keep payment status as 'pending' until admin approves it
             payments_collection.update_one(
                 {'_id': ObjectId(payment_id)},
                 {'$set': {
-                    'status': 'completed',
                     'transaction_id': transaction_id,
-                    'completed_at': get_current_utc_time()
+                    'submitted_at': get_current_utc_time()
                 }}
             )
             
@@ -542,10 +543,10 @@ def simulate_payment(payment_id):
         if not payment:
             return jsonify({'success': False, 'message': 'Payment not found'})
         
-        # Update payment status
+        # Keep payment status as 'pending' until admin approves it
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'completed', 'completed_at': get_current_utc_time()}}
+            {'$set': {'submitted_at': get_current_utc_time()}}
         )
         
         # Create admin notification
@@ -583,7 +584,10 @@ def get_admin_notifications():
     notifications = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
     for notif in notifications:
         notif['_id'] = str(notif['_id'])
-        notif['payment_id'] = str(notif['payment_id'])
+        if 'payment_id' in notif:
+            notif['payment_id'] = str(notif['payment_id'])
+        if 'withdrawal_id' in notif:
+            notif['withdrawal_id'] = str(notif['withdrawal_id'])
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
@@ -605,9 +609,9 @@ def reject_payment(payment_id):
             {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time(), 'rejected_by': user['_id']}}
         )
         
-        # Update notification
+        # Update notification - handle both payment_id and withdrawal_id
         notifications_collection.update_one(
-            {'payment_id': ObjectId(payment_id)},
+            {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
             {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time()}}
         )
         
@@ -631,22 +635,27 @@ def approve_payment(payment_id):
         # Update account balance
         account = accounts_collection.find_one({'_id': payment['account_id']})
         current_balance = account.get('balance', 0.0)
-        new_balance = current_balance + payment['amount']
+        
+        # For deposits, add to balance; for withdrawals, deduct from balance
+        if payment.get('type') == 'withdrawal':
+            new_balance = current_balance - payment['amount']
+        else:
+            new_balance = current_balance + payment['amount']
         
         accounts_collection.update_one(
             {'_id': payment['account_id']},
             {'$set': {'balance': new_balance}}
         )
         
-        # Update payment status
+        # Update payment status to completed when admin approves
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'approved', 'approved_at': get_current_utc_time(), 'approved_by': user['_id']}}
+            {'$set': {'status': 'completed', 'approved_at': get_current_utc_time(), 'approved_by': user['_id']}}
         )
         
-        # Update notification
+        # Update notification - handle both payment_id and withdrawal_id
         notifications_collection.update_one(
-            {'payment_id': ObjectId(payment_id)},
+            {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
             {'$set': {'status': 'approved', 'approved_at': get_current_utc_time()}}
         )
         
@@ -682,21 +691,21 @@ def get_user_notifications():
     
     # Get payment notifications
     user_payments = list(payments_collection.find({
-        'user_id': user['_id']
+        'user_id': user['_id'],
+        'status': {'$in': ['completed', 'rejected']}
     }).sort('created_at', -1).limit(10))
     
     for payment in user_payments:
-        if payment['status'] in ['approved', 'rejected']:
-            account = accounts_collection.find_one({'_id': payment['account_id']})
-            notifications.append({
-                '_id': str(payment['_id']),
-                'type': 'account_status',
-                'status': payment['status'],
-                'account_nickname': account['nickname'] if account else 'Unknown',
-                'amount': payment['amount'],
-                'currency': payment['currency'],
-                'created_at': payment.get('approved_at' if payment['status'] == 'approved' else 'rejected_at', payment['created_at']).isoformat()
-            })
+        account = accounts_collection.find_one({'_id': payment['account_id']})
+        notifications.append({
+            '_id': str(payment['_id']),
+            'type': 'account_status',
+            'status': payment['status'],
+            'account_nickname': account['nickname'] if account else 'Unknown',
+            'amount': payment['amount'],
+            'currency': payment['currency'],
+            'created_at': payment.get('approved_at' if payment['status'] == 'completed' else 'rejected_at', payment['created_at']).isoformat()
+        })
     
     notifications.sort(key=lambda x: x['created_at'], reverse=True)
     return jsonify({'success': True, 'notifications': notifications[:10], 'count': len(notifications[:10])})

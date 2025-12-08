@@ -218,7 +218,7 @@ async function loadNotifications() {
                             </div>
                         `;
                     } else {
-                        const isApproved = notif.status === 'approved';
+                        const isApproved = notif.status === 'completed';
                         const statusClass = isApproved ? 'approved' : 'rejected';
                         const statusText = isApproved ? 'Approved' : 'Rejected';
                         const icon = isApproved ? '✓' : '✕';

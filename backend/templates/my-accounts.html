@@ -2,6 +2,11 @@
 
 {% block title %}My accounts - PrintFree{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-cards.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-dropdown.css') }}">
+{% endblock %}
+
 {% block content %}
 <header class="main-header">
     <div class="header-content">
@@ -85,9 +90,26 @@
         <h1>My accounts</h1>
         <div class="header-actions">
             {% if pending_payments %}
-            <button class="pending-btn" id="pending-toggle">
-                ⏳ Pending ({{ pending_payments|length }})
-            </button>
+            <div class="pending-dropdown-wrapper">
+                <button class="pending-btn" id="pending-toggle">
+                    ⏳ Pending ({{ pending_payments|length }})
+                </button>
+                <div class="pending-status-dropdown" id="pending-status-dropdown">
+                    {% for payment in pending_payments %}
+                    {% set is_withdrawal = payment.get('upi_id') %}
+                    <div class="status-item {% if is_withdrawal %}withdrawal-item{% else %}deposit-item{% endif %}">
+                        <div class="status-item-content">
+                            <div class="status-item-header">
+                                <span class="status-type">{% if is_withdrawal %}↗ Withdrawal{% else %}↙ Deposit{% endif %}</span>
+                                <span class="status-time">{{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</span>
+                            </div>
+                            <span class="status-amount">{{ payment.amount }} {{ payment.currency }}</span>
+                        </div>
+                        <span class="status-badge">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
             {% endif %}
             <button class="open-account-btn" onclick="window.location.href='/accounts'">
                 <span>+</span> Open account
@@ -97,15 +119,46 @@
 
     {% if pending_payments %}
     <div class="pending-details" id="pending-details">
-        {% for payment in pending_payments %}
-        <div class="pending-item">
-            <div class="pending-item-info">
-                <span class="pending-amount">{{ payment.amount }} {{ payment.currency }}</span>
-                <span class="pending-ref">{% if payment.get('upi_id') %}Withdrawal - {{ payment.upi_id }}{% else %}Deposit - {{ payment.reference or 'N/A' }}{% endif %}</span>
+        <div class="pending-grid">
+            {% for payment in pending_payments %}
+            {% set is_withdrawal = payment.get('upi_id') %}
+            <div class="pending-card {% if is_withdrawal %}withdrawal-card{% else %}deposit-card{% endif %}">
+                <div class="pending-card-header">
+                    <div class="pending-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
+                        {% if is_withdrawal %}
+                            <span class="badge-icon">↗</span>
+                            <span>Withdrawal</span>
+                        {% else %}
+                            <span class="badge-icon">↙</span>
+                            <span>Deposit</span>
+                        {% endif %}
+                    </div>
+                    <span class="pending-status-badge">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
+                </div>
+                <div class="pending-card-amount">
+                    <span class="amount-value">{{ payment.amount }}</span>
+                    <span class="amount-currency">{{ payment.currency }}</span>
+                </div>
+                <div class="pending-card-details">
+                    {% if is_withdrawal %}
+                        <div class="detail-item">
+                            <span class="detail-label">UPI ID</span>
+                            <span class="detail-value">{{ payment.upi_id }}</span>
+                        </div>
+                    {% else %}
+                        <div class="detail-item">
+                            <span class="detail-label">Reference</span>
+                            <span class="detail-value">{{ payment.reference or 'N/A' }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="detail-label">Submitted</span>
+                        <span class="detail-value">{{ payment.created_at.strftime('%d %b %Y') if payment.created_at else 'N/A' }}</span>
+                    </div>
+                </div>
             </div>
-            <span class="pending-status">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
@@ -208,4 +261,5 @@
 </footer>
 
 <script src="{{ url_for('static', filename='js/my-accounts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pending-dropdown.js') }}"></script>
 {% endblock %}
