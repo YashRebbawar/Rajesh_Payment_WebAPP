@@ -220,6 +220,12 @@
                             <span class="ref-value">{{ payment.reference }}</span>
                         </div>
                         {% endif %}
+                        {% if payment.upi_id %}
+                        <div class="payment-upi">
+                            <span class="upi-label">UPI ID:</span>
+                            <span class="upi-value">{{ payment.upi_id }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                     
                     <div class="payment-actions">

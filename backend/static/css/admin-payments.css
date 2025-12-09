@@ -55,6 +55,31 @@
     align-items: center;
 }
 
+.payment-upi {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border-radius: 6px;
+    border-left: 3px solid #2563eb;
+}
+
+.upi-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.upi-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a8a;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
 @media (max-width: 768px) {
     .payment-header {
         flex-direction: column;
@@ -65,5 +90,14 @@
     .payment-type-badge {
         font-size: 11px;
         padding: 5px 10px;
+    }
+
+    .payment-upi {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .upi-value {
+        font-size: 12px;
     }
 }
