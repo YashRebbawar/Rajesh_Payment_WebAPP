@@ -5,6 +5,7 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pending-cards.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pending-dropdown.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -255,6 +256,26 @@
     {% endif %}
 </div>
 
+<!-- User Chat Modal -->
+<div id="user-chat-modal" class="chat-modal">
+    <div class="chat-modal-content">
+        <div class="chat-header">
+            <h3>Support Chat</h3>
+            <button class="chat-close" onclick="closeUserChatModal()">&times;</button>
+        </div>
+        <div id="user-chat-messages" class="chat-messages"></div>
+        <div class="chat-input-area">
+            <textarea id="user-chat-input" class="chat-input" placeholder="Type your message..." rows="1"></textarea>
+            <button class="user-chat-send-btn chat-send-btn" onclick="sendUserChatMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 <footer class="footer-links">
     <a href="#">Client Agreement</a>
     <a href="#">General Business Terms</a>
@@ -262,4 +283,9 @@
 
 <script src="{{ url_for('static', filename='js/my-accounts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pending-dropdown.js') }}"></script>
+<script src="{{ url_for('static', filename='js/user-chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/support-widget.js') }}"></script>
+<script>
+    document.body.dataset.userId = '{{ user._id }}';
+</script>
 {% endblock %}

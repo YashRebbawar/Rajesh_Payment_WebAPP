@@ -23,7 +23,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+if not app.config['SECRET_KEY']:
+    raise ValueError('SECRET_KEY environment variable is required')
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -63,10 +65,11 @@ users_collection = db.users
 accounts_collection = db.trading_accounts
 payments_collection = db.payments
 notifications_collection = db.notifications
+chats_collection = db.chats
 
 # Google OAuth Config
-app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID', '')
-app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET', '')
+app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
 
 oauth = OAuth(app)
 
@@ -89,13 +92,16 @@ users_collection.create_index('email', unique=True)
 users_collection.create_index('google_id', unique=True, sparse=True)
 accounts_collection.create_index('user_id')
 accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
+chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
+chats_collection.create_index('created_at')
 
 def get_current_user():
     """Helper function to get current user from session"""
     if 'user_id' in session:
         try:
             return users_collection.find_one({'_id': ObjectId(session['user_id'])})
-        except:
+        except (ValueError, Exception) as e:
+            logger.error(f"Error retrieving user from session: {e}")
             session.pop('user_id', None)
     return None
 
@@ -298,7 +304,8 @@ def payment(account_id):
         if not account:
             return redirect(url_for('my_accounts'))
         return render_template('payment.html', user=user, account=account)
-    except:
+    except (ValueError, Exception) as e:
+        logger.error(f"Payment page error: {e}")
         return redirect(url_for('my_accounts'))
 
 @app.route('/withdrawal/<account_id>')
@@ -311,7 +318,8 @@ def withdrawal(account_id):
         if not account:
             return redirect(url_for('my_accounts'))
         return render_template('withdrawal.html', user=user, account=account)
-    except:
+    except (ValueError, Exception) as e:
+        logger.error(f"Withdrawal page error: {e}")
         return redirect(url_for('my_accounts'))
 
 @app.route('/api/payment/initiate', methods=['POST'])
@@ -793,32 +801,7 @@ def delete_user(user_id):
     except Exception as e:
         logger.error(f"Error deleting user: {e}")
         return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/test-payment')
-def test_payment():
-    """Test page for simulating QR payments"""
-    return render_template('test-payment.html')
-
-@app.route('/payment-flow-demo')
-def payment_flow_demo():
-    """Visual demo of payment flow"""
-    return render_template('payment-flow-demo.html')
-
-@app.route('/logout')
-def logout():
-    if 'user_id' in session:
-        try:
-            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
-            if user:
-                logger.info(f"User logged out: {user['email']}")
-        except:
-            pass
-    session.pop('user_id', None)
-    return redirect(url_for('landing_page', status='loggedout'))
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+    
 # Updated get_user_notifications to include MT credentials
 
 @app.route('/api/withdrawal/status/<withdrawal_id>', methods=['GET'])
@@ -846,3 +829,339 @@ def get_withdrawal_status(withdrawal_id):
     except Exception as e:
         logger.error(f"Withdrawal status error: {e}")
         return jsonify({'success': False, 'message': 'Error checking status'})
+
+
+@app.route('/test-payment')
+def test_payment():
+    """Test page for simulating QR payments"""
+    return render_template('test-payment.html')
+
+@app.route('/payment-flow-demo')
+def payment_flow_demo():
+    """Visual demo of payment flow"""
+    return render_template('payment-flow-demo.html')
+
+@app.route('/logout')
+def logout():
+    if 'user_id' in session:
+        try:
+            user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
+            if user:
+                logger.info(f"User logged out: {user['email']}")
+        except (ValueError, Exception) as e:
+            logger.error(f"Error during logout: {e}")
+    session.pop('user_id', None)
+    return redirect(url_for('landing_page', status='loggedout'))
+
+@app.route('/api/chat/send', methods=['POST'])
+def send_chat_message():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    other_user_id = data.get('user_id')
+    
+    if not message or not other_user_id:
+        return jsonify({'success': False, 'message': 'Invalid message or user'})
+    
+    try:
+        chat_doc = {
+            'user_id': ObjectId(other_user_id),
+            'admin_id': user['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from {user['email']} to user {other_user_id}")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/messages/<user_id>', methods=['GET'])
+def get_chat_messages(user_id):
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': ObjectId(user_id), 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': ObjectId(user_id)}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'user_id': ObjectId(user_id), 'admin_id': admin['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-send', methods=['POST'])
+def user_send_chat_message():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'success': False, 'message': 'Message cannot be empty'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': False, 'message': 'No admin available'})
+        
+        chat_doc = {
+            'user_id': user['_id'],
+            'admin_id': admin['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from user {user['email']} to admin")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"User chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-messages', methods=['GET'])
+def get_user_chat_messages():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': True, 'messages': []})
+        
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': user['_id'], 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': user['_id']}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'sender_id': admin['_id'], 'user_id': user['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get user messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/admin-users', methods=['GET'])
+def get_admin_chat_users():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        chat_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id']}},
+            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
+            {'$sort': {'last_message_time': -1}}
+        ])
+        
+        users_list = []
+        for chat_user in chat_users:
+            user = users_collection.find_one({'_id': chat_user['_id']})
+            if user:
+                users_list.append({
+                    'user_id': str(user['_id']),
+                    'email': user['email'],
+                    'name': user.get('name', user['email'].split('@')[0]),
+                    'unread_count': chat_user['unread_count']
+                })
+        
+        return jsonify({'success': True, 'users': users_list})
+    except Exception as e:
+        logger.error(f"Get admin chat users error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+# Chat API Endpoints
+@app.route('/api/chat/send', methods=['POST'])
+def send_chat_message():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    other_user_id = data.get('user_id')
+    
+    if not message or not other_user_id:
+        return jsonify({'success': False, 'message': 'Invalid message or user'})
+    
+    try:
+        chat_doc = {
+            'user_id': ObjectId(other_user_id),
+            'admin_id': user['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from {user['email']} to user {other_user_id}")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/messages/<user_id>', methods=['GET'])
+def get_chat_messages(user_id):
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': ObjectId(user_id), 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': ObjectId(user_id)}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'user_id': ObjectId(user_id), 'admin_id': admin['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-send', methods=['POST'])
+def user_send_chat_message():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'success': False, 'message': 'Message cannot be empty'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': False, 'message': 'No admin available'})
+        
+        chat_doc = {
+            'user_id': user['_id'],
+            'admin_id': admin['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from user {user['email']} to admin")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"User chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-messages', methods=['GET'])
+def get_user_chat_messages():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': True, 'messages': []})
+        
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': user['_id'], 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': user['_id']}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'sender_id': admin['_id'], 'user_id': user['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get user messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/admin-users', methods=['GET'])
+def get_admin_chat_users():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        chat_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id']}},
+            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
+            {'$sort': {'last_message_time': -1}}
+        ])
+        
+        users_list = []
+        for chat_user in chat_users:
+            user = users_collection.find_one({'_id': chat_user['_id']})
+            if user:
+                users_list.append({
+                    'user_id': str(user['_id']),
+                    'email': user['email'],
+                    'name': user.get('name', user['email'].split('@')[0]),
+                    'unread_count': chat_user['unread_count']
+                })
+        
+        return jsonify({'success': True, 'users': users_list})
+    except Exception as e:
+        logger.error(f"Get admin chat users error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
