@@ -5,7 +5,7 @@
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-payments.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat-enhanced.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -123,11 +123,8 @@
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                     </svg>
                                 </button>
-                                <button class="chat-button" onclick="openChatModal('{{ u._id }}', '{{ u.email.split('@')[0] }}')" title="Chat with user">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                    </svg>
-                                    Chat
+                                <button class="chat-icon-btn" type="button" onclick="openChatModal('{{ u._id }}', '{{ u.email.split('@')[0] }}')" title="Chat with user">
+                                    <img src="{{ url_for('static', filename='images/support-icon.png') }}" alt="Chat">
                                 </button>
                             </div>
                         </div>
