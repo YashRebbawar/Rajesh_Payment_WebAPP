@@ -1007,161 +1007,24 @@ def get_admin_chat_users():
         logger.error(f"Get admin chat users error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
-
-# Chat API Endpoints
-@app.route('/api/chat/send', methods=['POST'])
-def send_chat_message():
-    user = get_current_user()
-    if not user or not user.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'})
-    
-    data = request.json
-    message = data.get('message', '').strip()
-    other_user_id = data.get('user_id')
-    
-    if not message or not other_user_id:
-        return jsonify({'success': False, 'message': 'Invalid message or user'})
-    
-    try:
-        chat_doc = {
-            'user_id': ObjectId(other_user_id),
-            'admin_id': user['_id'],
-            'sender_id': user['_id'],
-            'message': message,
-            'created_at': get_current_utc_time(),
-            'read': False
-        }
-        result = chats_collection.insert_one(chat_doc)
-        logger.info(f"Chat message sent from {user['email']} to user {other_user_id}")
-        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
-    except Exception as e:
-        logger.error(f"Chat send error: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/api/chat/messages/<user_id>', methods=['GET'])
-def get_chat_messages(user_id):
+@app.route('/api/chat/unread-count', methods=['GET'])
+def get_unread_count():
     admin = get_current_user()
     if not admin or not admin.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'})
     
     try:
-        messages = list(chats_collection.find({
-            '$or': [
-                {'user_id': ObjectId(user_id), 'admin_id': admin['_id']},
-                {'user_id': admin['_id'], 'admin_id': ObjectId(user_id)}
-            ]
-        }).sort('created_at', 1))
-        
-        chats_collection.update_many(
-            {'user_id': ObjectId(user_id), 'admin_id': admin['_id'], 'read': False},
-            {'$set': {'read': True}}
-        )
-        
-        for msg in messages:
-            msg['_id'] = str(msg['_id'])
-            msg['sender_id'] = str(msg['sender_id'])
-            msg['user_id'] = str(msg['user_id'])
-            msg['admin_id'] = str(msg['admin_id'])
-        
-        return jsonify({'success': True, 'messages': messages})
-    except Exception as e:
-        logger.error(f"Get messages error: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/api/chat/user-send', methods=['POST'])
-def user_send_chat_message():
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'message': 'Not authenticated'})
-    
-    data = request.json
-    message = data.get('message', '').strip()
-    
-    if not message:
-        return jsonify({'success': False, 'message': 'Message cannot be empty'})
-    
-    try:
-        admin = users_collection.find_one({'is_admin': True})
-        if not admin:
-            return jsonify({'success': False, 'message': 'No admin available'})
-        
-        chat_doc = {
-            'user_id': user['_id'],
-            'admin_id': admin['_id'],
-            'sender_id': user['_id'],
-            'message': message,
-            'created_at': get_current_utc_time(),
-            'read': False
-        }
-        result = chats_collection.insert_one(chat_doc)
-        logger.info(f"Chat message sent from user {user['email']} to admin")
-        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
-    except Exception as e:
-        logger.error(f"User chat send error: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/api/chat/user-messages', methods=['GET'])
-def get_user_chat_messages():
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'message': 'Not authenticated'})
-    
-    try:
-        admin = users_collection.find_one({'is_admin': True})
-        if not admin:
-            return jsonify({'success': True, 'messages': []})
-        
-        messages = list(chats_collection.find({
-            '$or': [
-                {'user_id': user['_id'], 'admin_id': admin['_id']},
-                {'user_id': admin['_id'], 'admin_id': user['_id']}
-            ]
-        }).sort('created_at', 1))
-        
-        chats_collection.update_many(
-            {'sender_id': admin['_id'], 'user_id': user['_id'], 'read': False},
-            {'$set': {'read': True}}
-        )
-        
-        for msg in messages:
-            msg['_id'] = str(msg['_id'])
-            msg['sender_id'] = str(msg['sender_id'])
-            msg['user_id'] = str(msg['user_id'])
-            msg['admin_id'] = str(msg['admin_id'])
-        
-        return jsonify({'success': True, 'messages': messages})
-    except Exception as e:
-        logger.error(f"Get user messages error: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/api/chat/admin-users', methods=['GET'])
-def get_admin_chat_users():
-    admin = get_current_user()
-    if not admin or not admin.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'})
-    
-    try:
-        chat_users = chats_collection.aggregate([
-            {'$match': {'admin_id': admin['_id']}},
-            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
-            {'$sort': {'last_message_time': -1}}
+        unread_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id'], 'read': False}},
+            {'$group': {'_id': '$user_id'}}
         ])
         
-        users_list = []
-        for chat_user in chat_users:
-            user = users_collection.find_one({'_id': chat_user['_id']})
-            if user:
-                users_list.append({
-                    'user_id': str(user['_id']),
-                    'email': user['email'],
-                    'name': user.get('name', user['email'].split('@')[0]),
-                    'unread_count': chat_user['unread_count']
-                })
-        
-        return jsonify({'success': True, 'users': users_list})
+        unread_user_ids = [str(doc['_id']) for doc in unread_users]
+        return jsonify({'success': True, 'unread_users': unread_user_ids})
     except Exception as e:
-        logger.error(f"Get admin chat users error: {e}")
+        logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
+    
+if __name__ == '__main__':
+    app.run(debug=True)

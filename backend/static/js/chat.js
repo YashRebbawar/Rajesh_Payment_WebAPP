@@ -1,5 +1,6 @@
 let currentChatUserId = null;
 let currentUserId = null;
+let unreadMessages = {};
 
 function openChatModal(userId, userName) {
     console.log('Opening chat for user:', userId, userName);
@@ -16,6 +17,8 @@ function openChatModal(userId, userName) {
     }
     modal.classList.add('active');
     console.log('Modal active class added, classList:', modal.classList);
+    unreadMessages[userId] = 0;
+    removeChatBadge(userId);
     loadChatMessages();
 }
 
@@ -143,6 +146,51 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function showChatBadge(userId) {
+    const buttons = document.querySelectorAll('.chat-icon-btn');
+    buttons.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(userId)) {
+            let badge = btn.querySelector('.chat-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'chat-badge';
+                badge.textContent = '1';
+                btn.style.position = 'relative';
+                btn.appendChild(badge);
+            } else {
+                badge.textContent = (parseInt(badge.textContent) + 1);
+            }
+        }
+    });
+}
+
+function removeChatBadge(userId) {
+    const buttons = document.querySelectorAll('.chat-icon-btn');
+    buttons.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes(userId)) {
+            const badge = btn.querySelector('.chat-badge');
+            if (badge) badge.remove();
+        }
+    });
+}
+
+function pollNewMessages() {
+    if (!currentChatUserId) {
+        fetch('/api/chat/unread-count')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.unread_users) {
+                    data.unread_users.forEach(userId => {
+                        showChatBadge(userId);
+                    });
+                }
+            })
+            .catch(err => console.error('Error polling messages:', err));
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('chat-modal');
     
@@ -165,10 +213,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        const modalContent = modal.querySelector('.chat-modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 closeChatModal();
             }
         });
+        
+        setInterval(pollNewMessages, 5000);
     }
 });

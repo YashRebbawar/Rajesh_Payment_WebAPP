@@ -158,8 +158,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        const modalContent = modal.querySelector('.chat-modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
         modal.addEventListener('click', function(e) {
-            e.stopPropagation();
+            if (e.target === modal) {
+                closeUserChatModal();
+            }
         });
     }
 });
