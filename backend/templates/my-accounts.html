@@ -2,6 +2,12 @@
 
 {% block title %}My accounts - PrintFree{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-cards.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-dropdown.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
+
 {% block content %}
 <header class="main-header">
     <div class="header-content">
@@ -10,12 +16,29 @@
             <span>PrintFree</span>
         </a>
         <nav class="header-nav">
-            <button class="nav-toggle" id="nav-toggle">☰</button>
             
             {% if user %}
+            <div class="notification-bell-wrapper">
+                <button class="bell-icon-btn" id="bell-toggle">
+                    <svg class="bell-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+                </button>
+                <div class="notification-dropdown" id="notification-dropdown">
+                    <div class="notification-header">
+                        <span>Notifications</span>
+                        <button class="clear-all-btn" id="clear-all-btn" style="display: none;">Clear all</button>
+                    </div>
+                    <div class="notification-list" id="notification-list">
+                        <div class="notification-empty">No notifications</div>
+                    </div>
+                </div>
+            </div>
             <div class="user-profile-wrapper">
                 <button class="profile-icon-btn" id="profile-toggle">
-                    <div class="profile-icon">{{ (user.name[0] if user.name else user.email[0]).upper() }}</div>
+                    <div class="profile-icon">{{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}</div>
                 </button>
                 <div class="profile-dropdown" id="profile-dropdown">
                     <div class="profile-card-wrapper">
@@ -27,19 +50,13 @@
                                     <span id="current-time"></span>
                                 </div>
                             </div>
-                            <div class="profile-card-content">
+                            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                                 <div class="profile-card-avatar">
-                                    {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                    {{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}
                                 </div>
                                 <div class="profile-card-name-block">
                                     <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
-                                        <h2 id="profile-name-text">{{ user.name if user.name else user.email.split('@')[0] }}</h2>
-                                        <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #000;" onclick="editName()"><i class="fa-solid fa-pencil"></i></button>
-                                    </div>
-                                    <div style="display: none; align-items: center; gap: 6px;" id="name-edit">
-                                        <input type="text" id="name-input" value="{{ user.name if user.name else user.email.split('@')[0] }}" style="font-size: 18px; font-weight: 700; border: 2px solid #ffed4e; border-radius: 8px; padding: 4px 8px; width: 180px;">
-                                        <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #28a745;" onclick="saveName()">✓</button>
-                                        <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545;" onclick="cancelEdit()">✕</button>
+                                        <h2 id="profile-name-text">{{ accounts[0].nickname if accounts else user.email.split('@')[0] }}</h2>
                                     </div>
                                     <div class="profile-card-status-row">
                                         <span class="profile-status-dot"></span>
@@ -58,8 +75,8 @@
                             </div>
                         </div>
                         <div class="profile-intensity-card">
-                            <span>Account Type:</span>
-                            <span>Standard</span>
+                            <span>Member Since:</span>
+                            <span id="member-since"></span>
                         </div>
                     </div>
                 </div>
@@ -72,11 +89,81 @@
 <div class="my-accounts-container">
     <div class="my-accounts-header">
         <h1>My accounts</h1>
-        <button class="open-account-btn" onclick="window.location.href='/accounts'">
-            <span>+</span> Open account
-        </button>
+        <div class="header-actions">
+            {% if pending_payments %}
+            <div class="pending-dropdown-wrapper">
+                <button class="pending-btn" id="pending-toggle">
+                    ⏳ Pending ({{ pending_payments|length }})
+                </button>
+                <div class="pending-status-dropdown" id="pending-status-dropdown">
+                    {% for payment in pending_payments %}
+                    {% set is_withdrawal = payment.get('upi_id') %}
+                    <div class="status-item {% if is_withdrawal %}withdrawal-item{% else %}deposit-item{% endif %}">
+                        <div class="status-item-content">
+                            <div class="status-item-header">
+                                <span class="status-type">{% if is_withdrawal %}↗ Withdrawal{% else %}↙ Deposit{% endif %}</span>
+                                <span class="status-time">{{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</span>
+                            </div>
+                            <span class="status-amount">{{ payment.amount }} {{ payment.currency }}</span>
+                        </div>
+                        <span class="status-badge">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <button class="open-account-btn" onclick="window.location.href='/accounts'">
+                <span>+</span> Open account
+            </button>
+        </div>
     </div>
 
+    {% if pending_payments %}
+    <div class="pending-details" id="pending-details">
+        <div class="pending-grid">
+            {% for payment in pending_payments %}
+            {% set is_withdrawal = payment.get('upi_id') %}
+            <div class="pending-card {% if is_withdrawal %}withdrawal-card{% else %}deposit-card{% endif %}">
+                <div class="pending-card-header">
+                    <div class="pending-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
+                        {% if is_withdrawal %}
+                            <span class="badge-icon">↗</span>
+                            <span>Withdrawal</span>
+                        {% else %}
+                            <span class="badge-icon">↙</span>
+                            <span>Deposit</span>
+                        {% endif %}
+                    </div>
+                    <span class="pending-status-badge">{% if payment.status == 'pending' %}Processing{% else %}{{ payment.status|title }}{% endif %}</span>
+                </div>
+                <div class="pending-card-amount">
+                    <span class="amount-value">{{ payment.amount }}</span>
+                    <span class="amount-currency">{{ payment.currency }}</span>
+                </div>
+                <div class="pending-card-details">
+                    {% if is_withdrawal %}
+                        <div class="detail-item">
+                            <span class="detail-label">UPI ID</span>
+                            <span class="detail-value">{{ payment.upi_id }}</span>
+                        </div>
+                    {% else %}
+                        <div class="detail-item">
+                            <span class="detail-label">Reference</span>
+                            <span class="detail-value">{{ payment.reference or 'N/A' }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="detail-label">Submitted</span>
+                        <span class="detail-value">{{ payment.created_at.strftime('%d %b %Y') if payment.created_at else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if accounts %}
     <div class="filter-section">
         <select class="sort-dropdown">
             <option>Newest</option>
@@ -90,7 +177,7 @@
         </div>
     </div>
 
-    {% if accounts %}
+
     <div class="accounts-list">
         {% for account in accounts %}
         <div class="account-card">
@@ -99,9 +186,13 @@
                     <span class="badge">Real</span>
                     <span class="badge">{{ account.platform }}</span>
                     <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
-                    <span class="badge">{{ account.nickname }}</span>
+                </div>
+                <div class="account-actions">
+                    <button class="action-btn deposit-btn" data-account-id="{{ account._id }}">Deposit</button>
+                    <button class="action-btn withdraw-btn" data-account-id="{{ account._id }}" onclick="window.location.href='/withdrawal/{{ account._id }}'">Withdraw</button>
                 </div>
             </div>
+            <div class="account-name">{{ account.nickname }}</div>
             <div class="account-balance">
                 <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
                 <div class="balance-currency">{{ account.currency }}</div>
@@ -133,19 +224,25 @@
                 </div>
             </div>
             <div class="account-footer">
+                {% if account.mt_login and account.mt_server %}
                 <div class="footer-info">
                     <span>Server</span>
-                    <span>Exness-{{ account.platform }}Real{{ loop.index }}</span>
+                    <span>{{ account.mt_server }}</span>
                 </div>
                 <div class="footer-info">
                     <span>{{ account.platform }} login</span>
-                    <span>{{ account._id }}</span>
+                    <span>{{ account.mt_login }}</span>
                 </div>
+                {% else %}
+                <div class="mt-pending-status">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Awaiting MT credentials from admin</span>
+                </div>
+                {% endif %}
                 <button class="change-password-btn">Change trading password</button>
-            </div>
-            <div class="account-actions">
-                <button class="action-btn deposit-btn" data-account-id="{{ account._id }}">Deposit</button>
-                <button class="action-btn withdraw-btn" data-account-id="{{ account._id }}">Withdraw</button>
             </div>
         </div>
         {% endfor %}
@@ -159,105 +256,36 @@
     {% endif %}
 </div>
 
+<!-- User Chat Modal -->
+<div id="user-chat-modal" class="chat-modal">
+    <div class="chat-modal-content">
+        <div class="chat-header">
+            <h3>Support Chat</h3>
+            <button class="chat-close" onclick="closeUserChatModal()">&times;</button>
+        </div>
+        <div id="user-chat-messages" class="chat-messages"></div>
+        <div class="chat-input-area">
+            <textarea id="user-chat-input" class="chat-input" placeholder="Type your message..." rows="1"></textarea>
+            <button class="user-chat-send-btn chat-send-btn" onclick="sendUserChatMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 <footer class="footer-links">
     <a href="#">Client Agreement</a>
     <a href="#">General Business Terms</a>
 </footer>
 
+<script src="{{ url_for('static', filename='js/my-accounts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pending-dropdown.js') }}"></script>
+<script src="{{ url_for('static', filename='js/user-chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/support-widget.js') }}"></script>
 <script>
-function updateTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    const timeEl = document.getElementById('current-time');
-    if (timeEl) timeEl.textContent = timeStr;
-}
-updateTime();
-setInterval(updateTime, 60000);
-
-document.addEventListener('DOMContentLoaded', function() {
-    const navToggle = document.getElementById('nav-toggle');
-    const navMenu = document.getElementById('nav-menu');
-    
-    if (navToggle) {
-        navToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-        });
-    }
-
-    const profileToggle = document.getElementById('profile-toggle');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    
-    if (profileToggle) {
-        profileToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('active');
-        });
-    }
-
-    document.addEventListener('click', function(e) {
-        const wrapper = document.querySelector('.user-profile-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) {
-            profileDropdown?.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    document.querySelectorAll('.deposit-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const accountId = this.getAttribute('data-account-id');
-            window.location.href = '/payment/' + accountId;
-        });
-    });
-
-    document.querySelectorAll('.withdraw-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            alert('Withdraw functionality coming soon!');
-        });
-    });
-});
-
-function editName() {
-    document.getElementById('name-display').style.display = 'none';
-    document.getElementById('name-edit').style.display = 'flex';
-    document.getElementById('name-input').focus();
-}
-
-function cancelEdit() {
-    document.getElementById('name-display').style.display = 'flex';
-    document.getElementById('name-edit').style.display = 'none';
-}
-
-async function saveName() {
-    const newName = document.getElementById('name-input').value.trim();
-    if (!newName) return;
-    
-    try {
-        const response = await fetch('/api/update-name', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: newName})
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('profile-name-text').textContent = newName;
-            document.querySelector('.profile-card-avatar').textContent = newName[0].toUpperCase();
-            document.querySelector('.profile-icon').textContent = newName[0].toUpperCase();
-            cancelEdit();
-        }
-    } catch (error) {
-        console.error('Error updating name:', error);
-    }
-}
+    document.body.dataset.userId = '{{ user._id }}';
 </script>
 {% endblock %}

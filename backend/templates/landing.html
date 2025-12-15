@@ -21,20 +21,11 @@
                                 <span id="current-time"></span>
                             </div>
                         </div>
-                        <div class="profile-card-content">
+                        <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
                             <div class="profile-card-avatar">
-                                {{ (user.name[0] if user.name else user.email[0]).upper() }}
+                                {{ user.email[0].upper() }}
                             </div>
                             <div class="profile-card-name-block">
-                                <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
-                                    <h2 id="profile-name-text">{{ user.name if user.name else user.email.split('@')[0] }}</h2>
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #000;" onclick="editName()"><i class="fa-solid fa-pencil"></i></button>
-                                </div>
-                                <div style="display: none; align-items: center; gap: 6px;" id="name-edit">
-                                    <input type="text" id="name-input" value="{{ user.name if user.name else user.email.split('@')[0] }}" style="font-size: 18px; font-weight: 700; border: 2px solid #ffed4e; border-radius: 8px; padding: 4px 8px; width: 180px;">
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #28a745;" onclick="saveName()">✓</button>
-                                    <button style="background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545;" onclick="cancelEdit()">✕</button>
-                                </div>
                                 <div class="profile-card-status-row">
                                     <span class="profile-status-dot"></span>
                                     <span>{{ user.email }}</span>
@@ -52,8 +43,8 @@
                         </div>
                     </div>
                     <div class="profile-intensity-card">
-                        <span>Account Type:</span>
-                        <span>Standard</span>
+                        <span>Member Since:</span>
+                        <span id="member-since"></span>
                     </div>
                 </div>
             </div>
@@ -153,112 +144,5 @@
     </div>
 </div>
 
-<script>
-function updateTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    const timeEl = document.getElementById('current-time');
-    if (timeEl) timeEl.textContent = timeStr;
-}
-updateTime();
-setInterval(updateTime, 60000);
-
-document.getElementById('profile-toggle')?.addEventListener('click', function() {
-    const dropdown = document.getElementById('profile-dropdown');
-    dropdown.classList.toggle('active');
-});
-
-document.addEventListener('click', function(e) {
-    const wrapper = document.querySelector('.user-profile-wrapper');
-    if (wrapper && !wrapper.contains(e.target)) {
-        document.getElementById('profile-dropdown')?.classList.remove('active');
-    }
-});
-
-function showStatus(message, type = 'success') {
-    const statusEl = document.getElementById('status-message');
-    statusEl.textContent = message;
-    statusEl.className = `status-message ${type}`;
-    statusEl.style.display = 'block';
-    setTimeout(() => {
-        statusEl.style.display = 'none';
-    }, 4000);
-}
-
-const params = new URLSearchParams(window.location.search);
-if (params.get('status') === 'registered') {
-    showStatus('✓ Registration successful! Welcome!', 'success');
-    window.history.replaceState({}, document.title, window.location.pathname);
-} else if (params.get('status') === 'loggedin') {
-    showStatus('✓ Logged in successfully!', 'success');
-    window.history.replaceState({}, document.title, window.location.pathname);
-} else if (params.get('status') === 'loggedout') {
-    showStatus('✓ You have been logged out successfully!', 'success');
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-const watchDemoBtn = document.getElementById('watch-demo-btn');
-const demoModal = document.getElementById('demo-modal');
-const demoBackdrop = document.getElementById('demo-backdrop');
-const demoClose = document.getElementById('demo-close');
-
-function openDemo() {
-    demoModal?.classList.add('active');
-    document.body.classList.add('no-scroll');
-}
-function closeDemo() {
-    demoModal?.classList.remove('active');
-    document.body.classList.remove('no-scroll');
-}
-
-watchDemoBtn?.addEventListener('click', openDemo);
-demoBackdrop?.addEventListener('click', closeDemo);
-demoClose?.addEventListener('click', closeDemo);
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && demoModal?.classList.contains('active')) {
-        closeDemo();
-    }
-});
-
-function editName() {
-    document.getElementById('name-display').style.display = 'none';
-    document.getElementById('name-edit').style.display = 'flex';
-    document.getElementById('name-input').focus();
-}
-
-function cancelEdit() {
-    document.getElementById('name-display').style.display = 'flex';
-    document.getElementById('name-edit').style.display = 'none';
-}
-
-async function saveName() {
-    const newName = document.getElementById('name-input').value.trim();
-    if (!newName) {
-        showStatus('Name cannot be empty', 'error');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/update-name', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: newName})
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('profile-name-text').textContent = newName;
-            document.querySelector('.profile-card-avatar').textContent = newName[0].toUpperCase();
-            document.querySelector('.profile-icon').textContent = newName[0].toUpperCase();
-            cancelEdit();
-            showStatus('✓ Name updated successfully!', 'success');
-        } else {
-            showStatus(data.message || 'Failed to update name', 'error');
-        }
-    } catch (error) {
-        showStatus('Error updating name', 'error');
-    }
-}
-</script>
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 {% endblock %}
