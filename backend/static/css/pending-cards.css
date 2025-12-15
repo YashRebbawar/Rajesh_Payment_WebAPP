@@ -1,0 +1,186 @@
+.pending-details {
+    display: none;
+    margin-bottom: 24px;
+}
+
+.pending-details.active {
+    display: block;
+}
+
+.pending-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.pending-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.pending-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.withdrawal-card {
+    border-left: 6px solid #2563eb;
+}
+
+.withdrawal-card::before {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.deposit-card {
+    border-left: 6px solid #51cf66;
+}
+
+.deposit-card::before {
+    background: linear-gradient(90deg, #51cf66, #69db7c);
+}
+
+.pending-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.pending-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.pending-type-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.withdrawal-badge {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.deposit-badge {
+    background: #e6f9ed;
+    color: #2b8a3e;
+}
+
+.badge-icon {
+    font-size: 16px;
+}
+
+.pending-status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #ffed4e;
+    color: #000;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.pending-card-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.amount-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: -0.5px;
+}
+
+.amount-currency {
+    font-size: 16px;
+    color: #666;
+    font-weight: 600;
+}
+
+.pending-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 13px;
+    color: #000;
+    font-weight: 700;
+    word-break: break-word;
+    text-align: right;
+    max-width: 60%;
+}
+
+@media (max-width: 768px) {
+    .pending-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .pending-card {
+        padding: 20px;
+    }
+
+    .amount-value {
+        font-size: 28px;
+    }
+
+    .pending-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pending-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pending-card {
+        padding: 16px;
+    }
+
+    .amount-value {
+        font-size: 24px;
+    }
+
+    .detail-value {
+        max-width: 50%;
+    }
+}

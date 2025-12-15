@@ -1,0 +1,726 @@
+/* Withdrawal Form Container */
+.withdrawal-form-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 100px;
+    align-items: start;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 1024px) {
+    .withdrawal-form-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin: 0;
+        padding: 0 20px;
+    }
+}
+
+/* Back Button */
+.back-button {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    margin-bottom: 30px;
+    margin-left: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a1a1a;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+.back-button:hover {
+    color: #666;
+}
+
+.back-icon {
+    font-size: 24px;
+}
+
+/* Header Section */
+.header-section {
+    margin-bottom: 40px;
+    padding: 0;
+}
+
+.account-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 8px 0;
+    text-align: left !important;
+}
+
+.see-all-link {
+    font-size: 14px;
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.see-all-link:hover {
+    color: #0052a3;
+    text-decoration: underline;
+}
+
+/* Left Section - Main Form */
+.left-section {
+    background: transparent;
+    border-radius: 0;
+    padding: 0 60px 0 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Right Section - Terms & FAQ */
+.right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 28px;
+}
+
+.form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #000;
+    letter-spacing: 0;
+}
+
+/* Payment Method Select */
+.payment-method-select {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method-select:hover {
+    background: #f0f1f3;
+    border-color: #c0c0c0;
+}
+
+.upi-input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    color: #000;
+}
+
+.upi-input:focus {
+    border-color: #0066cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,102,204,0.08);
+}
+
+.method-icon {
+    font-size: 20px;
+}
+
+.dropdown-arrow {
+    margin-left: auto;
+    font-size: 12px;
+    color: #999;
+}
+
+/* Currency Select */
+.currency-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.currency-select:hover {
+    background: #f0f1f3;
+    border-color: #c0c0c0;
+}
+
+/* Account Selection */
+.account-select {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.account-select:hover {
+    background: #f0f1f3;
+    border-color: #c0c0c0;
+}
+
+.account-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.account-type {
+    font-weight: 700;
+    font-size: 13px;
+    color: #000;
+    background: #e8e8e8;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.account-number {
+    font-size: 15px;
+    color: #000;
+    font-weight: 400;
+}
+
+.account-balance {
+    font-weight: 600;
+    font-size: 15px;
+    color: #000;
+}
+
+/* Amount Input */
+.amount-input-wrapper {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.amount-input-wrapper input {
+    width: 100%;
+    padding: 16px 80px 16px 18px;
+    font-size: 28px;
+    font-weight: 400;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    color: #000;
+}
+
+.amount-input-wrapper input:focus {
+    border-color: #0066cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,102,204,0.08);
+}
+
+.currency-label {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    font-weight: 500;
+    color: #999;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.amount-range {
+    font-size: 13px;
+    color: #4a90e2;
+    margin-bottom: 0;
+    font-weight: 400;
+}
+
+/* Withdrawal Summary */
+.withdrawal-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    margin: 32px 0;
+    border-top: none;
+    border-bottom: none;
+    background: transparent;
+}
+
+.fee-info-icon {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    background: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: bold;
+    cursor: help;
+    flex-shrink: 0;
+    margin-bottom: 2vh;
+}
+
+.fee-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    min-width: 200px;
+}
+
+.fee-info-icon:hover .fee-tooltip {
+    display: block;
+}
+
+.tooltip-content {
+    font-size: 13px;
+    color: #333;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.tooltip-row:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 8px 0;
+}
+
+.tooltip-total {
+    font-weight: 600;
+    color: #000;
+}
+
+.withdrawal-summary-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+}
+
+.withdrawal-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000;
+}
+
+/* Continue Button */
+.continue-button {
+    width: 100%;
+    padding: 16px;
+    background: #d3d3d3;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: not-allowed;
+    color: #a0a0a0;
+    transition: all 0.2s ease;
+}
+
+.continue-button.active {
+    background: #ffed4e;
+    cursor: pointer;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(255,237,78,0.3);
+}
+
+.continue-button.active:hover {
+    background: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255,237,78,0.4);
+}
+
+.continue-button:active {
+    transform: translateY(0);
+}
+
+/* Terms and FAQ Sections */
+.terms-section,
+.faq-section {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 32px;
+}
+
+.faq-section {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    color: #000;
+}
+
+.terms-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.terms-item:last-child {
+    margin-bottom: 0;
+}
+
+.terms-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+}
+
+.terms-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+}
+
+.faq-link {
+    display: block;
+    font-size: 14px;
+    color: #4a90e2;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    margin-bottom: 10px;
+}
+
+.faq-link:last-child {
+    margin-bottom: 0;
+}
+
+.faq-link:hover {
+    color: #357abd;
+    text-decoration: underline;
+}
+
+/* Confirmation Modal */
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s;
+}
+
+.confirmation-modal-content {
+    background: white;
+    margin: 15% auto;
+    padding: 36px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 440px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.confirmation-close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.confirmation-close:hover {
+    color: #000;
+    background: #e8e8e8;
+    transform: rotate(90deg);
+}
+
+.confirmation-modal-content h2 {
+    margin: 0 0 24px 0;
+    color: #1a1a1a;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.confirmation-details {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 28px;
+    text-align: left;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    color: #666;
+    font-weight: 400;
+}
+
+.detail-value {
+    color: #000;
+    font-weight: 600;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.cancel-btn, .confirm-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cancel-btn {
+    background: #f5f5f5;
+    color: #1a1a1a;
+}
+
+.cancel-btn:hover {
+    background: #e8e8e8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.confirm-btn {
+    background: #ffed4e;
+    color: #000;
+    box-shadow: 0 4px 12px rgba(255,237,78,0.3);
+}
+
+.confirm-btn:hover {
+    background: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,237,78,0.4);
+}
+
+/* Success Modal */
+.success-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s;
+}
+
+.success-modal-content {
+    background: white;
+    margin: 10% auto;
+    padding: 48px 40px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 480px;
+    text-align: center;
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.success-icon {
+    width: 90px;
+    height: 90px;
+    background: #4caf50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    margin: 0 auto 24px;
+    animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+}
+
+.success-modal-content h2 {
+    color: #1a1a1a;
+    margin-bottom: 16px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.success-modal-content p {
+    color: #666;
+    margin-bottom: 12px;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+.success-note {
+    font-size: 14px;
+    color: #999;
+}
+
+.success-btn {
+    margin-top: 32px;
+    padding: 16px 36px;
+    background: #ffed4e;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(255,237,78,0.3);
+}
+
+.success-btn:hover {
+    background: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,237,78,0.4);
+}
+
+.success-btn:active {
+    transform: translateY(0);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { 
+        transform: scale(0.8); 
+        opacity: 0; 
+    }
+    to { 
+        transform: scale(1); 
+        opacity: 1; 
+    }
+}
+
+@keyframes bounceIn {
+    0% { 
+        transform: scale(0); 
+        opacity: 0;
+    }
+    50% { 
+        transform: scale(1.15); 
+    }
+    100% { 
+        transform: scale(1); 
+        opacity: 1;
+    }
+}
+
+@media (max-width: 1024px) {
+    .left-section {
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .account-title {
+        font-size: 28px;
+    }
+
+    .amount-input-wrapper input {
+        font-size: 20px;
+        padding: 12px 70px 12px 14px;
+    }
+
+    .continue-button {
+        padding: 14px;
+        font-size: 14px;
+    }
+
+    .confirmation-modal-content {
+        width: 95%;
+        padding: 28px 20px;
+    }
+
+    .success-modal-content {
+        width: 95%;
+        padding: 36px 24px;
+        margin: 8% auto;
+    }
+}

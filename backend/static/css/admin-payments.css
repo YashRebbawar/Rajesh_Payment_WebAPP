@@ -1,0 +1,103 @@
+.pending-payment-card {
+    position: relative;
+    border-left: 5px solid #e0e0e0;
+}
+
+.payment-type-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    border-radius: 2px 0 0 2px;
+}
+
+.withdrawal-payment {
+    border-left-color: #2563eb;
+}
+
+.withdrawal-payment .payment-type-indicator {
+    background: linear-gradient(180deg, #2563eb, #3b82f6);
+}
+
+.deposit-payment {
+    border-left-color: #51cf66;
+}
+
+.deposit-payment .payment-type-indicator {
+    background: linear-gradient(180deg, #51cf66, #69db7c);
+}
+
+.payment-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.withdrawal-badge {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.deposit-badge {
+    background: #e6f9ed;
+    color: #2b8a3e;
+}
+
+.payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-upi {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border-radius: 6px;
+    border-left: 3px solid #2563eb;
+}
+
+.upi-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.upi-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a8a;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .payment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .payment-type-badge {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+
+    .payment-upi {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .upi-value {
+        font-size: 12px;
+    }
+}

@@ -72,39 +72,37 @@
 
 
 .btn-signin {
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1a1a1a;
-  border: 1px solid rgba(26, 26, 26, 0.1);
-  border-radius: 50px;
-  font-weight: 500;
+  padding: 11px 24px;
+  background: #fff;
+  color: #000;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
 .btn-signin:hover {
-  background: rgba(255, 237, 78, 0.1);
-  border-color: #ffed4e;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 237, 78, 0.2);
+  border-color: #000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .btn-register {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  padding: 11px 24px;
+  background: #ffed4e;
   color: #000;
   border: none;
-  border-radius: 50px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
 .btn-register:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 237, 78, 0.4);
+  background: #ffd700;
+  box-shadow: 0 4px 12px rgba(255,237,78,0.4);
 }
 
 .hero-section {
@@ -197,11 +195,12 @@
 }
 
 .brand-name {
-  font-size: 3rem;
-  font-weight: 800;
+  font-size: 48px;
+  font-weight: 700;
   margin: 0;
-  color: #1a1a1a;
+  color: #000;
   line-height: 1;
+  letter-spacing: -1.5px;
 }
 
 .brand-tagline {
@@ -242,11 +241,12 @@
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 56px;
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 1.5rem;
-  color: #1a1a1a;
+  color: #000;
+  letter-spacing: -2px;
   animation: slideInUp 0.8s ease;
 }
 
@@ -293,16 +293,16 @@
 }
 
 .btn-primary {
-  padding: 1.25rem 2.5rem;
-  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  padding: 16px 40px;
+  background: #ffed4e;
   color: #000;
   border: none;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1.125rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 32px rgba(255, 237, 78, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255,237,78,0.3);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -322,8 +322,8 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(255, 237, 78, 0.4);
+  background: #ffd700;
+  box-shadow: 0 8px 24px rgba(255,237,78,0.4);
 }
 
 .btn-primary:hover::before {
@@ -331,28 +331,23 @@
 }
 
 .btn-secondary {
-  padding: 1.25rem 2.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1a1a1a;
-  border: 2px solid rgba(26, 26, 26, 0.1);
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1.125rem;
+  padding: 16px 40px;
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-  border-color: #ffed4e;
-  background: rgba(255, 237, 78, 0.15);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(255, 237, 78, 0.3);
-  color: #ffd500;
+  background: #000;
+  color: #fff;
 }
 
 .hero-visual {

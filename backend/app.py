@@ -1,12 +1,19 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from authlib.integrations.flask_client import OAuth
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from urllib.parse import quote_plus
 import os
 import logging
-from datetime import datetime
+import base64
+from datetime import datetime, timezone, timedelta
+
+def get_current_utc_time():
+    """Helper to get current Indian Standard Time"""
+    ist = timezone(timedelta(hours=5, minutes=30))
+    return datetime.now(ist)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,11 +23,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+if not app.config['SECRET_KEY']:
+    raise ValueError('SECRET_KEY environment variable is required')
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
@@ -53,10 +63,13 @@ except Exception as e:
 db = client.printfree
 users_collection = db.users
 accounts_collection = db.trading_accounts
+payments_collection = db.payments
+notifications_collection = db.notifications
+chats_collection = db.chats
 
 # Google OAuth Config
-app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID', '')
-app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET', '')
+app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
+app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
 
 oauth = OAuth(app)
 
@@ -79,13 +92,16 @@ users_collection.create_index('email', unique=True)
 users_collection.create_index('google_id', unique=True, sparse=True)
 accounts_collection.create_index('user_id')
 accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
+chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
+chats_collection.create_index('created_at')
 
 def get_current_user():
     """Helper function to get current user from session"""
     if 'user_id' in session:
         try:
             return users_collection.find_one({'_id': ObjectId(session['user_id'])})
-        except:
+        except (ValueError, Exception) as e:
+            logger.error(f"Error retrieving user from session: {e}")
             session.pop('user_id', None)
     return None
 
@@ -114,7 +130,8 @@ def my_accounts():
     if user.get('is_admin'):
         return redirect(url_for('admin_dashboard'))
     accounts = list(accounts_collection.find({'user_id': user['_id']}).sort('created_at', -1))
-    return render_template('my-accounts.html', user=user, accounts=accounts)
+    pending_payments = list(payments_collection.find({'user_id': user['_id'], 'status': 'pending'}).sort('created_at', -1))
+    return render_template('my-accounts.html', user=user, accounts=accounts, pending_payments=pending_payments)
 
 @app.route('/accounts')
 def accounts():
@@ -147,7 +164,7 @@ def api_register():
         'country': data.get('country'),
         'partner_code': data.get('partner_code'),
         'google_id': None,
-        'created_at': datetime.utcnow()
+        'created_at': get_current_utc_time()
     }
     result = users_collection.insert_one(user_doc)
     
@@ -220,7 +237,7 @@ def google_callback():
                     'password': None,
                     'country': None,
                     'partner_code': None,
-                    'created_at': datetime.utcnow()
+                    'created_at': get_current_utc_time()
                 }
                 result = users_collection.insert_one(user_doc)
                 user = users_collection.find_one({'_id': result.inserted_id})
@@ -271,7 +288,7 @@ def account_setup_api():
         'leverage': data['leverage'],
         'platform': data['platform'],
         'trading_password': data['password'],
-        'created_at': datetime.utcnow()
+        'created_at': get_current_utc_time()
     }
     accounts_collection.insert_one(account_doc)
     logger.info(f"Account created for user {user['email']}: {data['nickname']}")
@@ -287,11 +304,26 @@ def payment(account_id):
         if not account:
             return redirect(url_for('my_accounts'))
         return render_template('payment.html', user=user, account=account)
-    except:
+    except (ValueError, Exception) as e:
+        logger.error(f"Payment page error: {e}")
         return redirect(url_for('my_accounts'))
 
-@app.route('/api/deposit', methods=['POST'])
-def api_deposit():
+@app.route('/withdrawal/<account_id>')
+def withdrawal(account_id):
+    user = get_current_user()
+    if not user:
+        return redirect(url_for('signin'))
+    try:
+        account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
+        if not account:
+            return redirect(url_for('my_accounts'))
+        return render_template('withdrawal.html', user=user, account=account)
+    except (ValueError, Exception) as e:
+        logger.error(f"Withdrawal page error: {e}")
+        return redirect(url_for('my_accounts'))
+
+@app.route('/api/payment/initiate', methods=['POST'])
+def initiate_payment():
     user = get_current_user()
     if not user:
         return jsonify({'success': False, 'message': 'Not authenticated'})
@@ -307,22 +339,386 @@ def api_deposit():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
-        if amount < 10:
-            return jsonify({'success': False, 'message': 'Minimum deposit is 10'})
         
+        # Create payment record
+        payment_doc = {
+            'user_id': user['_id'],
+            'account_id': ObjectId(data['account_id']),
+            'amount': amount,
+            'currency': data['currency'],
+            'reference': data.get('reference', ''),
+            'type': 'deposit',
+            'status': 'pending',
+            'created_at': get_current_utc_time(),
+            'screenshot': None
+        }
+        result = payments_collection.insert_one(payment_doc)
+        
+        logger.info(f"Payment initiated for user {user['email']}: {amount} {data['currency']}")
+        return jsonify({'success': True, 'payment_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Payment initiation error: {e}")
+        return jsonify({'success': False, 'message': 'Payment processing failed'})
+
+@app.route('/api/withdrawal/initiate', methods=['POST'])
+def initiate_withdrawal():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    try:
+        account = accounts_collection.find_one({
+            '_id': ObjectId(data['account_id']),
+            'user_id': user['_id']
+        })
+        
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        amount = float(data['amount'])
+        balance = account.get('balance', 0.0)
+        
+        if amount <= 0:
+            return jsonify({'success': False, 'message': 'Invalid amount'})
+        
+        if amount > balance:
+            return jsonify({'success': False, 'message': 'Insufficient balance'})
+        
+        # Create withdrawal record
+        withdrawal_doc = {
+            'user_id': user['_id'],
+            'account_id': ObjectId(data['account_id']),
+            'amount': amount,
+            'currency': data['currency'],
+            'upi_id': data.get('upi_id'),
+            'type': 'withdrawal',
+            'status': 'pending',
+            'created_at': get_current_utc_time()
+        }
+        result = payments_collection.insert_one(withdrawal_doc)
+        
+        # Create admin notification
+        notification_doc = {
+            'type': 'withdrawal_requested',
+            'withdrawal_id': result.inserted_id,
+            'user_id': user['_id'],
+            'user_email': user['email'],
+            'account_nickname': account['nickname'],
+            'amount': amount,
+            'currency': data['currency'],
+            'upi_id': data.get('upi_id'),
+            'status': 'pending_approval',
+            'created_at': get_current_utc_time()
+        }
+        notifications_collection.insert_one(notification_doc)
+        
+        logger.info(f"Withdrawal initiated for user {user['email']}: {amount} {data['currency']}")
+        return jsonify({'success': True, 'withdrawal_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Withdrawal initiation error: {e}")
+        return jsonify({'success': False, 'message': 'Withdrawal processing failed'})
+
+@app.route('/api/payment/status/<payment_id>', methods=['GET'])
+def payment_status(payment_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        payment = payments_collection.find_one({
+            '_id': ObjectId(payment_id),
+            'user_id': user['_id']
+        })
+        
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        return jsonify({'success': True, 'status': payment['status']})
+    except Exception as e:
+        logger.error(f"Payment status error: {e}")
+        return jsonify({'success': False, 'message': 'Error checking status'})
+
+@app.route('/api/payment/webhook', methods=['POST'])
+def payment_webhook():
+    """Webhook endpoint for payment gateway to notify payment completion"""
+    try:
+        data = request.json
+        # Verify webhook signature if your payment gateway provides one
+        # webhook_secret = os.getenv('PAYMENT_WEBHOOK_SECRET')
+        # if not verify_webhook_signature(request, webhook_secret):
+        #     return jsonify({'success': False, 'message': 'Invalid signature'}), 401
+        
+        payment_id = data.get('payment_id')
+        transaction_id = data.get('transaction_id')
+        status = data.get('status')
+        
+        if not payment_id:
+            return jsonify({'success': False, 'message': 'Missing payment_id'}), 400
+        
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'}), 404
+        
+        if status == 'success':
+            # Keep payment status as 'pending' until admin approves it
+            payments_collection.update_one(
+                {'_id': ObjectId(payment_id)},
+                {'$set': {
+                    'transaction_id': transaction_id,
+                    'submitted_at': get_current_utc_time()
+                }}
+            )
+            
+            # Create admin notification
+            user = users_collection.find_one({'_id': payment['user_id']})
+            account = accounts_collection.find_one({'_id': payment['account_id']})
+            
+            notification_doc = {
+                'type': 'payment_received',
+                'payment_id': ObjectId(payment_id),
+                'user_id': payment['user_id'],
+                'user_email': user['email'],
+                'account_nickname': account['nickname'],
+                'amount': payment['amount'],
+                'currency': payment['currency'],
+                'status': 'pending_approval',
+                'created_at': get_current_utc_time()
+            }
+            notifications_collection.insert_one(notification_doc)
+            
+            logger.info(f"Payment webhook received - Payment completed: {payment_id}")
+            return jsonify({'success': True}), 200
+        else:
+            # Handle failed payment
+            payments_collection.update_one(
+                {'_id': ObjectId(payment_id)},
+                {'$set': {'status': 'failed', 'failed_at': get_current_utc_time()}}
+            )
+            logger.warning(f"Payment webhook received - Payment failed: {payment_id}")
+            return jsonify({'success': True}), 200
+            
+    except Exception as e:
+        logger.error(f"Payment webhook error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/payment/upload-screenshot/<payment_id>', methods=['POST'])
+def upload_screenshot(payment_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        payment = payments_collection.find_one({
+            '_id': ObjectId(payment_id),
+            'user_id': user['_id']
+        })
+        
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        if 'screenshot' not in request.files:
+            return jsonify({'success': False, 'message': 'No file uploaded'})
+        
+        file = request.files['screenshot']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected'})
+        
+        # Read and encode file as base64
+        file_data = file.read()
+        if len(file_data) > 5 * 1024 * 1024:  # 5MB limit
+            return jsonify({'success': False, 'message': 'File too large (max 5MB)'})
+        
+        screenshot_base64 = base64.b64encode(file_data).decode('utf-8')
+        
+        # Update payment with screenshot
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'screenshot': screenshot_base64}}
+        )
+        
+        logger.info(f"Screenshot uploaded for payment {payment_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Screenshot upload error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/payment/simulate/<payment_id>', methods=['POST'])
+def simulate_payment(payment_id):
+    """Simulate QR payment completion - In production, this would be triggered by payment gateway webhook"""
+    try:
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        # Keep payment status as 'pending' until admin approves it
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'submitted_at': get_current_utc_time()}}
+        )
+        
+        # Create admin notification
+        user = users_collection.find_one({'_id': payment['user_id']})
+        account = accounts_collection.find_one({'_id': payment['account_id']})
+        
+        notification_doc = {
+            'type': 'payment_received',
+            'payment_id': ObjectId(payment_id),
+            'user_id': payment['user_id'],
+            'user_email': user['email'],
+            'user_name': user.get('name'),
+            'account_nickname': account['nickname'],
+            'amount': payment['amount'],
+            'currency': payment['currency'],
+            'reference': payment.get('reference', ''),
+            'screenshot': payment.get('screenshot'),
+            'status': 'pending_approval',
+            'created_at': get_current_utc_time()
+        }
+        notifications_collection.insert_one(notification_doc)
+        
+        logger.info(f"Payment completed and admin notified: {payment_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Payment simulation error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/admin/notifications', methods=['GET'])
+def get_admin_notifications():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    notifications = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
+    for notif in notifications:
+        notif['_id'] = str(notif['_id'])
+        if 'payment_id' in notif:
+            notif['payment_id'] = str(notif['payment_id'])
+        if 'withdrawal_id' in notif:
+            notif['withdrawal_id'] = str(notif['withdrawal_id'])
+        notif['user_id'] = str(notif['user_id'])
+    
+    return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/reject-payment/<payment_id>', methods=['POST'])
+def reject_payment(payment_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        # Update payment status
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time(), 'rejected_by': user['_id']}}
+        )
+        
+        # Update notification - handle both payment_id and withdrawal_id
+        notifications_collection.update_one(
+            {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time()}}
+        )
+        
+        logger.info(f"Admin {user['email']} rejected payment {payment_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Payment rejection error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/admin/approve-payment/<payment_id>', methods=['POST'])
+def approve_payment(payment_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
+        if not payment:
+            return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        # Update account balance
+        account = accounts_collection.find_one({'_id': payment['account_id']})
         current_balance = account.get('balance', 0.0)
-        new_balance = current_balance + amount
+        
+        # For deposits, add to balance; for withdrawals, deduct from balance
+        if payment.get('type') == 'withdrawal':
+            new_balance = current_balance - payment['amount']
+        else:
+            new_balance = current_balance + payment['amount']
         
         accounts_collection.update_one(
-            {'_id': ObjectId(data['account_id'])},
+            {'_id': payment['account_id']},
             {'$set': {'balance': new_balance}}
         )
         
-        logger.info(f"Deposit successful for user {user['email']}: {amount} {data['currency']}")
+        # Update payment status to completed when admin approves
+        payments_collection.update_one(
+            {'_id': ObjectId(payment_id)},
+            {'$set': {'status': 'completed', 'approved_at': get_current_utc_time(), 'approved_by': user['_id']}}
+        )
+        
+        # Update notification - handle both payment_id and withdrawal_id
+        notifications_collection.update_one(
+            {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
+            {'$set': {'status': 'approved', 'approved_at': get_current_utc_time()}}
+        )
+        
+        logger.info(f"Admin {user['email']} approved payment {payment_id}")
         return jsonify({'success': True})
     except Exception as e:
-        logger.error(f"Deposit error: {e}")
-        return jsonify({'success': False, 'message': 'Payment processing failed'})
+        logger.error(f"Payment approval error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/user/notifications', methods=['GET'])
+def get_user_notifications():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    notifications = []
+    
+    # Get MT credential update notifications
+    mt_notifications = list(notifications_collection.find({
+        'user_id': user['_id'],
+        'type': 'mt_credentials_updated'
+    }).sort('created_at', -1).limit(10))
+    
+    for notif in mt_notifications:
+        notifications.append({
+            '_id': str(notif['_id']),
+            'type': 'mt_credentials_updated',
+            'account_nickname': notif['account_nickname'],
+            'mt_login': notif['mt_login'],
+            'mt_server': notif['mt_server'],
+            'created_at': notif['created_at'].isoformat()
+        })
+    
+    # Get payment notifications
+    user_payments = list(payments_collection.find({
+        'user_id': user['_id'],
+        'status': {'$in': ['completed', 'rejected']}
+    }).sort('created_at', -1).limit(10))
+    
+    for payment in user_payments:
+        account = accounts_collection.find_one({'_id': payment['account_id']})
+        payment_type = payment.get('type', 'deposit')
+        notifications.append({
+            '_id': str(payment['_id']),
+            'type': 'account_status',
+            'payment_type': payment_type,
+            'status': payment['status'],
+            'account_nickname': account['nickname'] if account else 'Unknown',
+            'amount': payment['amount'],
+            'currency': payment['currency'],
+            'created_at': payment.get('approved_at' if payment['status'] == 'completed' else 'rejected_at', payment['created_at']).isoformat()
+        })
+    
+    notifications.sort(key=lambda x: x['created_at'], reverse=True)
+    return jsonify({'success': True, 'notifications': notifications[:10], 'count': len(notifications[:10])})
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -332,6 +728,14 @@ def admin_dashboard():
     
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
+    pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
+    
+    # Enrich pending payments with current user data
+    for payment in pending_payments:
+        payment_user = users_collection.find_one({'_id': payment['user_id']})
+        if payment_user:
+            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+            payment['user_email'] = payment_user['email']
     
     user_accounts_map = {}
     for account in all_accounts:
@@ -340,7 +744,48 @@ def admin_dashboard():
             user_accounts_map[user_id] = []
         user_accounts_map[user_id].append(account)
     
-    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map)
+    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+
+@app.route('/api/admin/update-account-mt/<account_id>', methods=['POST'])
+def update_account_mt(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        data = request.json
+        account = accounts_collection.find_one({'_id': ObjectId(account_id)})
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        accounts_collection.update_one(
+            {'_id': ObjectId(account_id)},
+            {'$set': {
+                'mt_login': data.get('mt_login'),
+                'mt_server': data.get('mt_server'),
+                'mt_updated_at': get_current_utc_time(),
+                'mt_updated_by': user['_id']
+            }}
+        )
+        
+        # Create notification for user
+        notification_doc = {
+            'type': 'mt_credentials_updated',
+            'user_id': account['user_id'],
+            'account_id': ObjectId(account_id),
+            'account_nickname': account['nickname'],
+            'mt_login': data.get('mt_login'),
+            'mt_server': data.get('mt_server'),
+            'status': 'unread',
+            'created_at': get_current_utc_time()
+        }
+        notifications_collection.insert_one(notification_doc)
+        
+        logger.info(f"Admin {user['email']} updated MT details for account {account_id}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error updating account MT: {e}")
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/admin/delete-user/<user_id>', methods=['DELETE'])
 def delete_user(user_id):
@@ -356,6 +801,45 @@ def delete_user(user_id):
     except Exception as e:
         logger.error(f"Error deleting user: {e}")
         return jsonify({'success': False, 'message': str(e)})
+    
+# Updated get_user_notifications to include MT credentials
+
+@app.route('/api/withdrawal/status/<withdrawal_id>', methods=['GET'])
+def get_withdrawal_status(withdrawal_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        withdrawal = payments_collection.find_one({
+            '_id': ObjectId(withdrawal_id),
+            'user_id': user['_id'],
+            'upi_id': {'$exists': True}
+        })
+        
+        if not withdrawal:
+            return jsonify({'success': False, 'message': 'Withdrawal not found'})
+        
+        return jsonify({
+            'success': True,
+            'status': withdrawal['status'],
+            'amount': withdrawal['amount'],
+            'currency': withdrawal['currency']
+        })
+    except Exception as e:
+        logger.error(f"Withdrawal status error: {e}")
+        return jsonify({'success': False, 'message': 'Error checking status'})
+
+
+@app.route('/test-payment')
+def test_payment():
+    """Test page for simulating QR payments"""
+    return render_template('test-payment.html')
+
+@app.route('/payment-flow-demo')
+def payment_flow_demo():
+    """Visual demo of payment flow"""
+    return render_template('payment-flow-demo.html')
 
 @app.route('/logout')
 def logout():
@@ -364,10 +848,184 @@ def logout():
             user = users_collection.find_one({'_id': ObjectId(session['user_id'])})
             if user:
                 logger.info(f"User logged out: {user['email']}")
-        except:
-            pass
+        except (ValueError, Exception) as e:
+            logger.error(f"Error during logout: {e}")
     session.pop('user_id', None)
     return redirect(url_for('landing_page', status='loggedout'))
 
+@app.route('/api/chat/send', methods=['POST'])
+def send_chat_message():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    other_user_id = data.get('user_id')
+    
+    if not message or not other_user_id:
+        return jsonify({'success': False, 'message': 'Invalid message or user'})
+    
+    try:
+        chat_doc = {
+            'user_id': ObjectId(other_user_id),
+            'admin_id': user['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from {user['email']} to user {other_user_id}")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"Chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/messages/<user_id>', methods=['GET'])
+def get_chat_messages(user_id):
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': ObjectId(user_id), 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': ObjectId(user_id)}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'user_id': ObjectId(user_id), 'admin_id': admin['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-send', methods=['POST'])
+def user_send_chat_message():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    data = request.json
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'success': False, 'message': 'Message cannot be empty'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': False, 'message': 'No admin available'})
+        
+        chat_doc = {
+            'user_id': user['_id'],
+            'admin_id': admin['_id'],
+            'sender_id': user['_id'],
+            'message': message,
+            'created_at': get_current_utc_time(),
+            'read': False
+        }
+        result = chats_collection.insert_one(chat_doc)
+        logger.info(f"Chat message sent from user {user['email']} to admin")
+        return jsonify({'success': True, 'message_id': str(result.inserted_id)})
+    except Exception as e:
+        logger.error(f"User chat send error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/user-messages', methods=['GET'])
+def get_user_chat_messages():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        admin = users_collection.find_one({'is_admin': True})
+        if not admin:
+            return jsonify({'success': True, 'messages': []})
+        
+        messages = list(chats_collection.find({
+            '$or': [
+                {'user_id': user['_id'], 'admin_id': admin['_id']},
+                {'user_id': admin['_id'], 'admin_id': user['_id']}
+            ]
+        }).sort('created_at', 1))
+        
+        chats_collection.update_many(
+            {'sender_id': admin['_id'], 'user_id': user['_id'], 'read': False},
+            {'$set': {'read': True}}
+        )
+        
+        for msg in messages:
+            msg['_id'] = str(msg['_id'])
+            msg['sender_id'] = str(msg['sender_id'])
+            msg['user_id'] = str(msg['user_id'])
+            msg['admin_id'] = str(msg['admin_id'])
+        
+        return jsonify({'success': True, 'messages': messages})
+    except Exception as e:
+        logger.error(f"Get user messages error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/chat/admin-users', methods=['GET'])
+def get_admin_chat_users():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        chat_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id']}},
+            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
+            {'$sort': {'last_message_time': -1}}
+        ])
+        
+        users_list = []
+        for chat_user in chat_users:
+            user = users_collection.find_one({'_id': chat_user['_id']})
+            if user:
+                users_list.append({
+                    'user_id': str(user['_id']),
+                    'email': user['email'],
+                    'name': user.get('name', user['email'].split('@')[0]),
+                    'unread_count': chat_user['unread_count']
+                })
+        
+        return jsonify({'success': True, 'users': users_list})
+    except Exception as e:
+        logger.error(f"Get admin chat users error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/chat/unread-count', methods=['GET'])
+def get_unread_count():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        unread_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id'], 'read': False}},
+            {'$group': {'_id': '$user_id'}}
+        ])
+        
+        unread_user_ids = [str(doc['_id']) for doc in unread_users]
+        return jsonify({'success': True, 'unread_users': unread_user_ids})
+    except Exception as e:
+        logger.error(f"Get unread count error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+    
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
