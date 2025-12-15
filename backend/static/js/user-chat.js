@@ -39,14 +39,30 @@ function displayUserMessages(messages) {
     
     if (!Array.isArray(messages)) {
         console.error('Invalid messages format');
-        messagesContainer.innerHTML = '<div class="chat-empty">Error loading messages</div>';
+        messagesContainer.innerHTML = `
+        <div class="chat-empty">
+            <div class="welcome-content">
+                <div class="welcome-emoji">⚠️</div>
+                <h3>Oops!</h3>
+                <p>Error loading messages. Please try again.</p>
+            </div>
+        </div>
+    `;
         return;
     }
     
     messagesContainer.innerHTML = '';
     
     if (messages.length === 0) {
-        messagesContainer.innerHTML = '<div class="chat-empty">No messages yet. Send a message to start!</div>';
+        messagesContainer.innerHTML = `
+            <div class="chat-empty">
+                <div class="welcome-content">
+                    <div class="welcome-emoji">🙋</div>
+                    <h3>Hello! 👋</h3>
+                    <p>Send us a message and we'll get back to you shortly</p>
+                </div>
+            </div>
+        `;
         return;
     }
     

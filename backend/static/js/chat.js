@@ -61,7 +61,15 @@ function displayMessages(messages) {
     messagesContainer.innerHTML = '';
     
     if (messages.length === 0) {
-        messagesContainer.innerHTML = '<div class="chat-empty">No messages yet. Start the conversation!</div>';
+        messagesContainer.innerHTML = `
+            <div class="chat-empty">
+                <div class="welcome-content">
+                    <div class="welcome-emoji">👋</div>
+                    <h3>Welcome to Chat!</h3>
+                    <p>Start a conversation and let's connect</p>
+                </div>
+            </div>
+        `;
         return;
     }
     

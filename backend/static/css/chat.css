@@ -270,6 +270,38 @@
     font-size: 14px;
 }
 
+.welcome-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-emoji {
+    font-size: 48px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.welcome-content h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.welcome-content p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
 /* Support Widget */
 .support-widget {
     position: fixed;
