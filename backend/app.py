@@ -51,14 +51,13 @@ try:
                 username, password = creds.split(':', 1)
                 MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
     
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True)
-    client.server_info()  # Test connection
-    logger.info("MongoDB connected successfully")
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True, retryWrites=False)
+    logger.info("MongoDB client initialized")
 except Exception as e:
-    logger.error(f"MongoDB connection failed: {e}")
+    logger.error(f"MongoDB client initialization failed: {e}")
     logger.error("Please check your MONGO_URI in .env file")
     logger.error("Make sure username, password, and cluster address are correct")
-    raise Exception(f"Failed to connect to MongoDB: {e}")
+    raise Exception(f"Failed to initialize MongoDB client: {e}")
 
 db = client.printfree
 users_collection = db.users
