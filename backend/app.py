@@ -51,7 +51,7 @@ try:
                 username, password = creds.split(':', 1)
                 MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
     
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True, retryWrites=False)
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True, retryWrites=False, ssl=False)
     logger.info("MongoDB client initialized")
 except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
@@ -86,13 +86,16 @@ else:
     logger.warning("Google OAuth not configured - GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing")
     google = None
 
-# Create indexes for MongoDB
-users_collection.create_index('email', unique=True)
-users_collection.create_index('google_id', unique=True, sparse=True)
-accounts_collection.create_index('user_id')
-accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
-chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
-chats_collection.create_index('created_at')
+try:
+    users_collection.create_index('email', unique=True)
+    users_collection.create_index('google_id', unique=True, sparse=True)
+    accounts_collection.create_index('user_id')
+    accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
+    chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
+    chats_collection.create_index('created_at')
+    logger.info("Database indexes created successfully")
+except Exception as e:
+    logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
 
 def get_current_user():
     """Helper function to get current user from session"""
@@ -1024,7 +1027,12 @@ def get_unread_count():
     except Exception as e:
         logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
-    
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Render"""
+    return jsonify({'status': 'ok'}), 200
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
