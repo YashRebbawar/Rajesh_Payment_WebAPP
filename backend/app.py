@@ -51,7 +51,7 @@ try:
                 username, password = creds.split(':', 1)
                 MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
     
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCertificates=True, retryWrites=False, ssl=False)
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000, tlsAllowInvalidCertificates=True, retryWrites=False)
     logger.info("MongoDB client initialized")
 except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
@@ -843,7 +843,7 @@ def payment_flow_demo():
     """Visual demo of payment flow"""
     return render_template('payment-flow-demo.html')
 
-@app.route('/logout')
+
 def logout():
     if 'user_id' in session:
         try:
