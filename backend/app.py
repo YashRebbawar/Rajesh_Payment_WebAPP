@@ -195,7 +195,8 @@ def google_login():
     if not google:
         logger.warning("Google OAuth attempt without configuration")
         return jsonify({'error': 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file'}), 400
-    redirect_uri = 'http://localhost:5000/auth/google/callback'
+    render_url = os.getenv('RENDER_URL', 'https://printfree.onrender.com/')
+    redirect_uri = f'{render_url}/auth/google/callback'
     logger.info(f"Initiating Google OAuth flow, redirect_uri: {redirect_uri}")
     logger.info(f"Client ID: {app.config['GOOGLE_CLIENT_ID'][:20] if app.config['GOOGLE_CLIENT_ID'] else 'NOT SET'}...")
     logger.info(f"Client Secret: {'SET' if app.config['GOOGLE_CLIENT_SECRET'] else 'NOT SET'}")
