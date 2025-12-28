@@ -352,13 +352,18 @@ def initiate_payment():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
+        currency = data['currency']
+        
+        # For USD accounts, force currency to INR
+        if account['currency'] == 'USD':
+            currency = 'INR'
         
         # Create payment record
         payment_doc = {
             'user_id': user['_id'],
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
-            'currency': data['currency'],
+            'currency': currency,
             'reference': data.get('reference', ''),
             'type': 'deposit',
             'status': 'pending',
@@ -367,7 +372,7 @@ def initiate_payment():
         }
         result = payments_collection.insert_one(payment_doc)
         
-        logger.info(f"Payment initiated for user {user['email']}: {amount} {data['currency']}")
+        logger.info(f"Payment initiated for user {user['email']}: {amount} {currency}")
         return jsonify({'success': True, 'payment_id': str(result.inserted_id)})
     except Exception as e:
         logger.error(f"Payment initiation error: {e}")
@@ -653,20 +658,20 @@ def approve_payment(payment_id):
         if not payment:
             return jsonify({'success': False, 'message': 'Payment not found'})
         
-        # Update account balance
         account = accounts_collection.find_one({'_id': payment['account_id']})
-        current_balance = account.get('balance', 0.0)
         
-        # For deposits, add to balance; for withdrawals, deduct from balance
-        if payment.get('type') == 'withdrawal':
-            new_balance = current_balance - payment['amount']
-        else:
-            new_balance = current_balance + payment['amount']
-        
-        accounts_collection.update_one(
-            {'_id': payment['account_id']},
-            {'$set': {'balance': new_balance}}
-        )
+        # For USD accounts (deposits in INR), don't auto-update balance
+        if account['currency'] != 'USD' or payment.get('type') == 'withdrawal':
+            current_balance = account.get('balance', 0.0)
+            if payment.get('type') == 'withdrawal':
+                new_balance = current_balance - payment['amount']
+            else:
+                new_balance = current_balance + payment['amount']
+            
+            accounts_collection.update_one(
+                {'_id': payment['account_id']},
+                {'$set': {'balance': new_balance}}
+            )
         
         # Update payment status to completed when admin approves
         payments_collection.update_one(
@@ -743,12 +748,22 @@ def admin_dashboard():
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
     pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
     
-    # Enrich pending payments with current user data
+    # Enrich pending payments with current user data and account_id
     for payment in pending_payments:
         payment_user = users_collection.find_one({'_id': payment['user_id']})
         if payment_user:
             payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
             payment['user_email'] = payment_user['email']
+        
+        # Get account_id from payment record
+        if 'payment_id' in payment:
+            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
+            if payment_record:
+                payment['account_id'] = str(payment_record['account_id'])
+        elif 'withdrawal_id' in payment:
+            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
+            if payment_record:
+                payment['account_id'] = str(payment_record['account_id'])
     
     user_accounts_map = {}
     for account in all_accounts:
@@ -1038,6 +1053,30 @@ def get_unread_count():
         return jsonify({'success': True, 'unread_users': unread_user_ids})
     except Exception as e:
         logger.error(f"Get unread count error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/admin/update-account-balance/<account_id>', methods=['POST'])
+def update_account_balance(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        data = request.json
+        account = accounts_collection.find_one({'_id': ObjectId(account_id)})
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        new_balance = float(data.get('balance', 0))
+        accounts_collection.update_one(
+            {'_id': ObjectId(account_id)},
+            {'$set': {'balance': new_balance}}
+        )
+        
+        logger.info(f"Admin {user['email']} updated balance for account {account_id} to {new_balance}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error updating account balance: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/health')

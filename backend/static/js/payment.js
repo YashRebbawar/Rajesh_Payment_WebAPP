@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const accountCurrency = payButton.dataset.currency;
     const accountId = payButton.dataset.accountId;
     const accountType = payButton.dataset.accountType;
+    
+    // For USD accounts, use INR for deposit
+    const depositCurrency = accountCurrency === 'USD' ? 'INR' : accountCurrency;
 
     const minAmount = accountType === 'standard' ? 1000 : 50000;
     const maxAmount = accountType === 'standard' ? 50000 : 100000;
@@ -42,11 +45,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const amount = parseFloat(amountInput.value);
         
         if (!amount || amount < minAmount) {
-            alert(`Please enter an amount of at least ${minAmount} ${accountCurrency}`);
+            alert(`Please enter an amount of at least ${minAmount} ${depositCurrency}`);
             return;
         }
 
-        showQRModal(amount, accountCurrency, accountId);
+        showQRModal(amount, depositCurrency, accountId);
     });
 
     function showQRModal(amount, currency, accountId) {
@@ -115,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     account_id: pendingPaymentData.accountId,
                     amount: pendingPaymentData.amount,
-                    currency: pendingPaymentData.currency,
+                    currency: depositCurrency,
                     reference: pendingPaymentData.reference
                 })
             });

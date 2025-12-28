@@ -183,7 +183,6 @@
             <input type="text" id="payment-search" placeholder="Search by user email..." class="payment-search-input">
             <select id="currency-filter" class="currency-filter">
                 <option value="all">All Currencies</option>
-                <option value="USD">USD</option>
                 <option value="INR">INR</option>
                 
             </select>
@@ -193,7 +192,7 @@
             <div class="pending-payments-list">
                 {% for payment in pending_payments %}
                 {% set is_withdrawal = payment.get('upi_id') %}
-                <div class="pending-payment-card {% if is_withdrawal %}withdrawal-payment{% else %}deposit-payment{% endif %}" data-user-email="{{ payment.user_email }}" data-currency="{{ payment.currency }}">
+                <div class="pending-payment-card {% if is_withdrawal %}withdrawal-payment{% else %}deposit-payment{% endif %}" data-user-email="{{ payment.user_email }}" data-currency="{{ payment.currency }}" data-account-id="{{ payment.get('account_id', '') }}">
                     <div class="payment-header">
                         <div class="payment-user-info">
                             <div class="user-avatar">{{ payment.account_nickname[0].upper() }}</div>
@@ -240,6 +239,15 @@
                                 <circle cx="12" cy="12" r="3"></circle>
                             </svg>
                             Screenshot
+                        </button>
+                        {% endif %}
+                        {% if not is_withdrawal and payment.currency == 'INR' %}
+                        <button class="edit-balance-btn" onclick="openBalanceModal('{{ payment.payment_id or payment.withdrawal_id }}')" title="Edit account balance">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edit Balance
                         </button>
                         {% endif %}
                         <button class="reject-btn" onclick="rejectPayment('{{ payment.payment_id or payment.withdrawal_id }}')">
@@ -321,6 +329,26 @@
                 </svg>
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Balance Edit Modal -->
+<div id="balance-modal" class="edit-modal">
+    <div class="edit-modal-content">
+        <div class="edit-modal-header">
+            <h3>Edit Account Balance</h3>
+            <button class="edit-modal-close" onclick="closeBalanceModal()">&times;</button>
+        </div>
+        <form id="balance-form" onsubmit="submitBalanceForm(event)">
+            <div class="form-group">
+                <label for="balance-input">New Balance</label>
+                <input type="number" id="balance-input" name="balance" required placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="edit-modal-actions">
+                <button type="button" class="edit-cancel-btn" onclick="closeBalanceModal()">Cancel</button>
+                <button type="submit" class="edit-save-btn">Update Balance</button>
+            </div>
+        </form>
     </div>
 </div>
 

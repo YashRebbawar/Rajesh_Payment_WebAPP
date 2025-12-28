@@ -90,15 +90,15 @@
                 <label class="form-label">Amount</label>
                 <div class="amount-input-wrapper">
                     <input type="number" id="amount" placeholder="0" min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}" step="1">
-                    <span class="currency-label">{{ account.currency }}</span>
+                    <span class="currency-label">{% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</span>
                 </div>
-                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 50,000{% else %}50,000 - 1,00,000{% endif %} {{ account.currency }}</div>
+                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 50,000{% else %}50,000 - 1,00,000{% endif %} {% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</div>
             </div>
 
             <div class="deposit-summary">
                 <span class="deposit-summary-label">To be deposited</span>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="deposit-amount"><span id="deposit-value">0</span> {{ account.currency }}</span>
+                    <span class="deposit-amount"><span id="deposit-value">0</span> {% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</span>
                     <div class="fee-info-icon" id="fee-info-icon">i
                         <div class="fee-tooltip" id="fee-tooltip">
                             <div class="tooltip-content">
@@ -137,10 +137,6 @@
                 </div>
             </div>
 
-            <div class="faq-section">
-                <h3 class="section-title">FAQ</h3>
-                <a href="#" class="faq-link">How do I deposit with UPI QR?</a>
-            </div>
         </div>
     </div>
 </div>

@@ -33,6 +33,74 @@ function closeEditModal() {
     currentEditAccountId = null;
 }
 
+let currentBalancePaymentId = null;
+let currentBalanceAccountId = null;
+
+function openBalanceModal(paymentId) {
+    currentBalancePaymentId = paymentId;
+    const paymentCard = document.querySelector(`[data-payment-id="${paymentId}"]`);
+    if (!paymentCard) {
+        const card = Array.from(document.querySelectorAll('.pending-payment-card')).find(c => 
+            c.querySelector('.approve-btn')?.onclick?.toString().includes(paymentId)
+        );
+        if (card) {
+            const accountId = card.dataset.accountId;
+            currentBalanceAccountId = accountId;
+        }
+    }
+    document.getElementById('balance-input').value = '';
+    document.getElementById('balance-modal').style.display = 'flex';
+}
+
+function closeBalanceModal() {
+    document.getElementById('balance-modal').style.display = 'none';
+    currentBalancePaymentId = null;
+    currentBalanceAccountId = null;
+}
+
+async function submitBalanceForm(event) {
+    event.preventDefault();
+    if (!currentBalancePaymentId) return;
+    
+    const balance = parseFloat(document.getElementById('balance-input').value);
+    
+    try {
+        const paymentCard = Array.from(document.querySelectorAll('.pending-payment-card')).find(card => {
+            const approveBtn = card.querySelector('.approve-btn');
+            return approveBtn && approveBtn.getAttribute('onclick').includes(currentBalancePaymentId);
+        });
+        
+        if (!paymentCard) {
+            showErrorMessage('Payment card not found');
+            return;
+        }
+        
+        const accountId = paymentCard.dataset.accountId;
+        if (!accountId) {
+            showErrorMessage('Account ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/api/admin/update-account-balance/${accountId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ balance: balance })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccessMessage('Account balance updated successfully!');
+            closeBalanceModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showErrorMessage('Error: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error updating balance:', error);
+        showErrorMessage('Failed to update balance');
+    }
+}
+
 async function submitEditForm(event) {
     event.preventDefault();
     if (!currentEditAccountId) return;
