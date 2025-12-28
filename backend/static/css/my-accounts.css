@@ -862,6 +862,20 @@ body {
 .balance-currency {
     font-size: 14px;
     color: #666;
+    display: inline;
+}
+
+.balance-asterisk {
+    font-size: 14px;
+    color: #666;
+    cursor: help;
+    margin-left: 2px;
+}
+
+.balance-note {
+    font-size: 12px;
+    color: #999;
+    margin-left: 4px;
 }
 
 .account-details {

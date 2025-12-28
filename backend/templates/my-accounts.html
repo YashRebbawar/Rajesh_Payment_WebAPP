@@ -195,7 +195,7 @@
             <div class="account-name">{{ account.nickname }}</div>
             <div class="account-balance">
                 <div class="balance-amount">{{ account.balance|default(0.00, true)|round(2) }}</div>
-                <div class="balance-currency">{{ account.currency }}</div>
+                <div class="balance-currency">{{ account.currency }}<span class="balance-asterisk" title="Balance Disclaimer">*</span> <span class="balance-note">Balance shown is for reference. Check your MT5 real account for actual balance.</span></div>
             </div>
             <div class="account-details">
                 <div class="detail-row">
