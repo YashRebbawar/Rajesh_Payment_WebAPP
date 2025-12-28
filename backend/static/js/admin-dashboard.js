@@ -171,6 +171,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // User card toggle
+    document.querySelectorAll('.admin-user-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-btn') || e.target.closest('.edit-account-btn') || e.target.closest('.chat-icon-btn')) {
+                return;
+            }
+            const accountsSection = this.querySelector('.admin-accounts-section');
+            if (accountsSection) {
+                accountsSection.style.display = accountsSection.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+    });
+
     // Payment filtering
     const searchInput = document.getElementById('payment-search');
     const currencyFilter = document.getElementById('currency-filter');
