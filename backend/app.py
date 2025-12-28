@@ -88,7 +88,11 @@ else:
 
 try:
     users_collection.create_index('email', unique=True)
-    users_collection.create_index('google_id', unique=True, sparse=True)
+    try:
+        users_collection.drop_index('google_id_1')
+    except:
+        pass
+    users_collection.create_index('google_id', sparse=True)
     accounts_collection.create_index('user_id')
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
@@ -165,7 +169,6 @@ def api_register():
         'password': generate_password_hash(data['password']),
         'country': data.get('country'),
         'partner_code': data.get('partner_code'),
-        'google_id': None,
         'created_at': get_current_utc_time()
     }
     result = users_collection.insert_one(user_doc)
@@ -236,7 +239,6 @@ def google_callback():
                 user_doc = {
                     'email': user_info['email'],
                     'google_id': user_info['sub'],
-                    'password': None,
                     'country': None,
                     'partner_code': None,
                     'created_at': get_current_utc_time()
@@ -844,6 +846,7 @@ def payment_flow_demo():
     return render_template('payment-flow-demo.html')
 
 
+@app.route('/logout')
 def logout():
     if 'user_id' in session:
         try:
