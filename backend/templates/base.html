@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PrintFree - Trading Account Services{% endblock %}</title>
+    <link rel="icon" type="image/png" sizes="40x40" href="{{ url_for('static', filename='images/Printfree_logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/Printfree_logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
@@ -12,6 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/account-setup.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-card.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/my-accounts.css') }}">
+
     {% block head %}{% endblock %}
 </head>
 <body>

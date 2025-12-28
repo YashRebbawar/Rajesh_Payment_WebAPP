@@ -9,7 +9,7 @@
             <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo" class="logo-image-small">
             <span class="logo-text">PrintFree</span>
         </a>
-        <button class="globe-btn">🌐</button>
+        
     </div>
     
     <div class="auth-box">
@@ -51,18 +51,11 @@
                     <div class="requirement" data-rule="special">○ At least one special character</div>
                 </div>
             </div>
-            
-            <div class="form-group collapsible">
-                <button type="button" class="collapse-btn">Partner code (optional) ▼</button>
-                <div class="collapse-content">
-                    <input type="text" name="partner_code" placeholder="Enter partner code">
-                </div>
-            </div>
-            
+             
             <div class="form-group checkbox-group">
                 <label class="checkbox-label">
                     <input type="checkbox" name="us_citizen" required>
-                    <span>I declare and confirm that I am not a citizen or resident of the US for tax purposes.</span>
+                    <span>By registering, I declare that I have carefully read, understood and accepted the entire text of the Company's <a href="#" id="legal-docs-link" class="legal-link">Legal Documents</a>. I further understand that I will receive newsletters, company news, and product updates.</span>
                 </label>
             </div>
             
@@ -78,5 +71,214 @@
     </div>
 </div>
 
+<!-- Terms & Conditions Modal -->
+<div id="terms-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Terms & Conditions</h2>
+            <button class="modal-close" id="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>General Trading Disclaimer</h3>
+            <ul>
+                <li>All trading activities are performed solely by the <strong>Client</strong> using their individual trading account.</li>
+                <li>The <strong>Company</strong> does not place, manage, modify, or control any trades on behalf of the Client.</li>
+            </ul>
+
+            <h4>Client Responsibilities</h4>
+            <p>The Client is solely responsible for:</p>
+            <ul>
+                <li>All trading decisions</li>
+                <li>All positions opened or closed</li>
+                <li>Any profits or losses incurred</li>
+            </ul>
+
+            <h4>Company Liability</h4>
+            <p>The Company shall not be held liable for any trading losses, damages, or negative account balances resulting from:</p>
+            <ul>
+                <li>Market volatility</li>
+                <li>Client trading decisions</li>
+                <li>Leverage usage</li>
+                <li>Technical issues beyond the Company's control</li>
+            </ul>
+
+            <h4>Confidentiality & Security</h4>
+            <p>The Client is responsible for maintaining the confidentiality and security of their:</p>
+            <ul>
+                <li>Login ID</li>
+                <li>Password</li>
+                <li>Trading credentials</li>
+            </ul>
+            <p>Any activity performed using the Client's credentials shall be deemed authorized by the Client.</p>
+            <p>The Company shall not be responsible for losses arising from:</p>
+            <ul>
+                <li>Unauthorized access caused by the Client's negligence</li>
+                <li>Sharing of account credentials with third parties</li>
+                <li>Use of unsecured devices or networks</li>
+            </ul>
+
+            <h4>Risk Acknowledgement</h4>
+            <ul>
+                <li>Trading involves significant risk and may result in the loss of all invested capital.</li>
+                <li>The Client confirms that they fully understand these risks and accept full responsibility for their trading outcomes.</li>
+                <li>By using the Company's platform and services, the Client expressly waives any right to claim compensation, damages, or legal action against the Company for losses incurred through trading activities.</li>
+            </ul>
+
+            <hr>
+
+            <h3>1. Introduction</h3>
+            <p>These Terms and Conditions ("Terms") govern the use of the website, platform, and services provided by <strong>Printfree</strong>, incorporated in <strong>Dubai</strong>.</p>
+            <p>By accessing, registering, or using our website or services, you confirm that:</p>
+            <ul>
+                <li>You have read, understood, and agreed to these Terms</li>
+                <li>You are legally permitted to access our services under the laws of your country of residence</li>
+            </ul>
+            <p>If you do not agree, you must not use our services.</p>
+
+            <h3>2. Eligibility</h3>
+            <p>You confirm that:</p>
+            <ul>
+                <li>You are at least 18 years old</li>
+                <li>You have full legal capacity to enter into binding agreements</li>
+                <li>You are not a resident of any jurisdiction where such services are restricted or prohibited</li>
+            </ul>
+            <p>It is your sole responsibility to ensure compliance with local laws.</p>
+
+            <h3>3. Nature of Services</h3>
+            <p>The Company provides:</p>
+            <ul>
+                <li>Access to trading platforms and related technology</li>
+                <li>Market execution infrastructure</li>
+                <li>Trading tools and account access</li>
+                <li>Educational and informational content (where applicable)</li>
+            </ul>
+            <p><strong>Note:</strong> The Company does not provide investment advice, portfolio management, or guaranteed returns.</p>
+
+            <h3>4. No Investment Advice</h3>
+            <p>All information provided:</p>
+            <ul>
+                <li>Is for informational purposes only</li>
+                <li>Does not constitute financial, legal, or investment advice</li>
+            </ul>
+            <p>You acknowledge that:</p>
+            <ul>
+                <li>Trading involves substantial risk</li>
+                <li>Past performance does not guarantee future results</li>
+                <li>You are solely responsible for all trading decisions</li>
+            </ul>
+
+            <h3>5. Risk Disclosure</h3>
+            <p>Trading leveraged products such as Forex, CFDs, commodities, indices, and digital assets involves a high level of risk and may not be suitable for all investors.</p>
+            <ul>
+                <li>You may lose part or all of your invested capital.</li>
+                <li>By using our services, you acknowledge that:
+                    <ul>
+                        <li>You fully understand the risks involved</li>
+                        <li>You accept all potential losses</li>
+                        <li>You trade at your own discretion and responsibility</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>6. Client Responsibility</h3>
+            <p>You are solely responsible for:</p>
+            <ul>
+                <li>Maintaining the confidentiality of your login credentials</li>
+                <li>All activity performed through your account</li>
+                <li>Ensuring accuracy of personal information</li>
+            </ul>
+            <p>The Company is not responsible for losses resulting from unauthorized access caused by your negligence.</p>
+
+            <h3>7. Deposits & Withdrawals</h3>
+            <ul>
+                <li>All deposits and withdrawals are subject to internal verification procedures.</li>
+                <li>Transactions may be delayed due to compliance, security, or technical reasons.</li>
+            </ul>
+            <p>The Company reserves the right to:</p>
+            <ul>
+                <li>Request additional verification documents</li>
+                <li>Suspend transactions if suspicious activity is detected</li>
+            </ul>
+
+            <h3>8. Prohibited Activities</h3>
+            <p>You agree <strong>NOT</strong> to:</p>
+            <ul>
+                <li>Use the platform for illegal purposes</li>
+                <li>Engage in market manipulation or abuse</li>
+                <li>Use automated systems without authorization</li>
+                <li>Attempt to exploit technical errors</li>
+            </ul>
+            <p><strong>Violation may result in account suspension or termination.</strong></p>
+
+            <h3>9. Jurisdiction & Restricted Regions</h3>
+            <ul>
+                <li>The Company does not actively market or solicit clients in jurisdictions where such services are restricted.</li>
+                <li>Users access the platform on their own initiative.</li>
+                <li>The Company shall not be liable for any breach of local regulations by the user.</li>
+            </ul>
+
+            <h3>10. Limitation of Liability</h3>
+            <p>To the maximum extent permitted by law:</p>
+            <ul>
+                <li>The Company shall not be liable for indirect, incidental, or consequential damages.</li>
+                <li>The Company is not responsible for losses caused by market volatility, technical failures, or third-party services.</li>
+                <li>Use of the platform is entirely at your own risk.</li>
+            </ul>
+
+            <h3>11. Force Majeure</h3>
+            <p>The Company shall not be liable for failure or delay due to events beyond its reasonable control, including but not limited to:</p>
+            <ul>
+                <li>Natural disasters</li>
+                <li>Internet failures</li>
+                <li>Regulatory actions</li>
+                <li>Acts of government</li>
+            </ul>
+
+            <h3>12. Account Suspension & Termination</h3>
+            <p>The Company may suspend or terminate accounts:</p>
+            <ul>
+                <li>Without prior notice</li>
+                <li>If these Terms are violated</li>
+                <li>For compliance or regulatory reasons</li>
+            </ul>
+
+            <h3>13. Amendments</h3>
+            <ul>
+                <li>The Company reserves the right to amend these Terms at any time.</li>
+                <li>Continued use of the platform constitutes acceptance of updated Terms.</li>
+            </ul>
+
+            <h3>14. Governing Law & Jurisdiction</h3>
+            <ul>
+                <li>These Terms shall be governed by and construed in accordance with the laws of the <strong>United Arab Emirates</strong>.</li>
+                <li>Any disputes shall be subject to the exclusive jurisdiction of the courts of the UAE.</li>
+            </ul>
+
+            <h3>15. Indemnification</h3>
+            <p>You agree to indemnify and hold harmless the Company from any claims, losses, damages, or legal expenses arising from:</p>
+            <ul>
+                <li>Your misuse of the platform</li>
+                <li>Violation of laws</li>
+                <li>Breach of these Terms</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+<script>
+    document.getElementById('legal-docs-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('terms-modal').style.display = 'block';
+    });
+    document.getElementById('close-modal').addEventListener('click', function() {
+        document.getElementById('terms-modal').style.display = 'none';
+    });
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('terms-modal');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}
