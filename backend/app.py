@@ -195,10 +195,18 @@ def google_login():
     if not google:
         logger.warning("Google OAuth attempt without configuration")
         return jsonify({'error': 'Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env file'}), 400
-    redirect_uri = url_for('google_callback', _external=True)
+    redirect_uri = 'http://localhost:5000/auth/google/callback'
     logger.info(f"Initiating Google OAuth flow, redirect_uri: {redirect_uri}")
-    logger.info(f"Client ID: {app.config['GOOGLE_CLIENT_ID'][:20]}...")
-    return google.authorize_redirect(redirect_uri)
+    logger.info(f"Client ID: {app.config['GOOGLE_CLIENT_ID'][:20] if app.config['GOOGLE_CLIENT_ID'] else 'NOT SET'}...")
+    logger.info(f"Client Secret: {'SET' if app.config['GOOGLE_CLIENT_SECRET'] else 'NOT SET'}")
+    try:
+        return google.authorize_redirect(redirect_uri)
+    except Exception as e:
+        logger.error(f"Google authorize_redirect failed: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return redirect(url_for('signin'))
 
 @app.route('/auth/google/callback')
 def google_callback():
