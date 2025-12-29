@@ -303,7 +303,24 @@ def account_setup_api():
         'trading_password': data['password'],
         'created_at': get_current_utc_time()
     }
-    accounts_collection.insert_one(account_doc)
+    result = accounts_collection.insert_one(account_doc)
+    
+    # Create admin notification for new account
+    notification_doc = {
+        'type': 'new_account_opened',
+        'user_id': user['_id'],
+        'user_email': user['email'],
+        'user_name': user.get('name', user['email'].split('@')[0]),
+        'account_id': result.inserted_id,
+        'account_nickname': data['nickname'],
+        'account_type': data['account_type'],
+        'currency': data['currency'],
+        'platform': data['platform'],
+        'status': 'unread',
+        'created_at': get_current_utc_time()
+    }
+    notifications_collection.insert_one(notification_doc)
+    
     logger.info(f"Account created for user {user['email']}: {data['nickname']}")
     return jsonify({'success': True, 'redirect': '/my-accounts'})
 
@@ -618,6 +635,37 @@ def get_admin_notifications():
     
     return jsonify({'success': True, 'notifications': notifications})
 
+@app.route('/api/admin/new-account-notifications', methods=['GET'])
+def get_new_account_notifications():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    notifications = list(notifications_collection.find({'type': 'new_account_opened', 'status': 'unread'}).sort('created_at', -1))
+    for notif in notifications:
+        notif['_id'] = str(notif['_id'])
+        notif['user_id'] = str(notif['user_id'])
+        notif['account_id'] = str(notif['account_id'])
+    
+    return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/mark-account-notification-read/<notification_id>', methods=['POST'])
+def mark_account_notification_read(notification_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        notifications_collection.update_one(
+            {'_id': ObjectId(notification_id)},
+            {'$set': {'status': 'read', 'read_at': get_current_utc_time()}}
+        )
+        logger.info(f"Admin {user['email']} marked notification {notification_id} as read")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error marking notification as read: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/admin/reject-payment/<payment_id>', methods=['POST'])
 def reject_payment(payment_id):
     user = get_current_user()
@@ -794,6 +842,12 @@ def update_account_mt(account_id):
                 'mt_updated_at': get_current_utc_time(),
                 'mt_updated_by': user['_id']
             }}
+        )
+        
+        # Mark new account notification as read
+        notifications_collection.update_one(
+            {'type': 'new_account_opened', 'account_id': ObjectId(account_id), 'status': 'unread'},
+            {'$set': {'status': 'read', 'read_at': get_current_utc_time()}}
         )
         
         # Create notification for user

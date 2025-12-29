@@ -115,6 +115,7 @@
                                 <span class="badge">{{ account.platform }}</span>
                                 <span class="badge">{{ account.account_type|replace('-', ' ')|title }}</span>
                                 <span class="badge">{{ account.nickname }}</span>
+                                <span class="new-account-badge-small" data-account-id="{{ account._id }}" style="display: none;">New</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
                                 <button class="edit-account-btn" data-account-id="{{ account._id }}" data-mt-login="{{ account.mt_login or '' }}" data-mt-server="{{ account.mt_server or '' }}" title="Edit MT Details">
@@ -357,5 +358,26 @@
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script>
     currentUserId = '{{ user._id }}';
+    
+    async function loadNewAccountNotifications() {
+        try {
+            const response = await fetch('/api/admin/new-account-notifications');
+            const data = await response.json();
+            
+            if (data.success && data.notifications.length > 0) {
+                data.notifications.forEach(notif => {
+                    const accountBadge = document.querySelector(`[data-account-id="${notif.account_id}"].new-account-badge-small`);
+                    if (accountBadge) {
+                        accountBadge.style.display = 'inline-block';
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading new account notifications:', error);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadNewAccountNotifications);
+    setInterval(loadNewAccountNotifications, 5000);
 </script>
 {% endblock %}
