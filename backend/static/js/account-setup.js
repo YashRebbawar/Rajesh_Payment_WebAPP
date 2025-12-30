@@ -71,7 +71,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 window.location.href = data.redirect;
             } else {
-                alert(data.message || 'Failed to create account');
+                const errorMsg = data.message || 'Failed to create account';
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 16px 24px; border-radius: 8px; z-index: 9999; font-weight: 600; max-width: 400px;';
+                toast.textContent = errorMsg;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
             }
         })
         .catch(error => {

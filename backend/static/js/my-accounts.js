@@ -212,7 +212,6 @@ async function loadNotifications() {
                                     <div class="notification-text">
                                         Your MT credentials for ${notif.account_nickname} are ready! Check your account details.
                                     </div>
-                                    <div class="notification-time">${formatTime(notif.created_at)}</div>
                                 </div>
                                 <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
                             </div>
@@ -234,7 +233,6 @@ async function loadNotifications() {
                                     <div class="notification-text">
                                         ${notif.account_nickname}: ${notif.amount} ${notif.currency}
                                     </div>
-                                    <div class="notification-time">${formatTime(notif.created_at)}</div>
                                 </div>
                                 <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
                             </div>

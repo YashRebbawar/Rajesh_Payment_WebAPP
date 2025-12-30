@@ -11,15 +11,18 @@ document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', function() {
         const input = document.getElementById(this.dataset.target);
         input.type = input.type === 'password' ? 'text' : 'password';
-        this.textContent = input.type === 'password' ? '👁' : '👁🗨';
+        this.textContent = input.type === 'password' ? '👁' : '👁';
     });
 });
 
-document.querySelector('.collapse-btn').addEventListener('click', function() {
-    const content = this.nextElementSibling;
-    content.style.display = content.style.display === 'block' ? 'none' : 'block';
-    this.textContent = content.style.display === 'block' ? 'Partner code (optional) ▲' : 'Partner code (optional) ▼';
-});
+const collapseBtn = document.querySelector('.collapse-btn');
+if (collapseBtn) {
+    collapseBtn.addEventListener('click', function() {
+        const content = this.nextElementSibling;
+        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        this.textContent = content.style.display === 'block' ? 'Partner code (optional) ▲' : 'Partner code (optional) ▼';
+    });
+}
 
 const passwordInput = document.getElementById('register-password');
 passwordInput.addEventListener('input', function() {
@@ -28,23 +31,37 @@ passwordInput.addEventListener('input', function() {
         length: value.length >= 8 && value.length <= 15,
         case: /[a-z]/.test(value) && /[A-Z]/.test(value),
         number: /\d/.test(value),
-        special: /[!@#$%^&*(),.?":{}|<>]/.test(value)
+        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)
     };
     
     Object.keys(requirements).forEach(rule => {
         const elem = document.querySelector(`[data-rule="${rule}"]`);
         if (requirements[rule]) {
-            elem.style.color = '#00ff88';
-            elem.textContent = elem.textContent.replace('○', '●');
+            elem.style.color = '#28a745';
+            elem.innerHTML = elem.innerHTML.replace(/○|✓/, '✓');
         } else {
             elem.style.color = '#6c757d';
-            elem.textContent = elem.textContent.replace('●', '○');
+            elem.innerHTML = elem.innerHTML.replace(/✓|○/, '○');
         }
     });
 });
 
 document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    const password = document.getElementById('register-password').value;
+    const requirements = {
+        length: password.length >= 8 && password.length <= 15,
+        case: /[a-z]/.test(password) && /[A-Z]/.test(password),
+        number: /\d/.test(password),
+        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    };
+    
+    if (!Object.values(requirements).every(v => v)) {
+        alert('Password does not meet all requirements');
+        return;
+    }
+    
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
     
@@ -56,11 +73,16 @@ document.getElementById('register-form').addEventListener('submit', async functi
         });
         const result = await response.json();
         if (result.success) {
-            window.location.href = result.redirect || '/signin';
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 16px 24px; border-radius: 8px; z-index: 9999; font-weight: 600;';
+            toast.textContent = 'Registration successful! Redirecting to sign in...';
+            document.body.appendChild(toast);
+            setTimeout(() => window.location.href = result.redirect || '/signin', 1500);
         } else {
             alert(result.message);
         }
     } catch (error) {
+        console.error('Registration error:', error);
         alert('Registration failed. Please try again.');
     }
 });

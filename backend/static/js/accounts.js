@@ -27,6 +27,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const backButton = document.getElementById('back-button');
     let selectedCard = null;
 
+    async function checkAccountLimit() {
+        try {
+            const response = await fetch('/api/account-count');
+            const data = await response.json();
+            if (data.success && data.count >= data.limit) {
+                openButton.disabled = true;
+                openButton.textContent = 'Account Limit Reached (3/3)';
+                openButton.style.opacity = '0.5';
+                openButton.style.cursor = 'not-allowed';
+                const note = document.querySelector('.action-note');
+                if (note) {
+                    note.textContent = 'You have reached the maximum limit of 3 accounts.';
+                    note.style.color = '#dc3545';
+                }
+            }
+        } catch (error) {
+            console.error('Error checking account limit:', error);
+        }
+    }
+    
+    checkAccountLimit();
+
     cards.forEach(card => {
         card.addEventListener('click', function() {
             cards.forEach(c => c.classList.remove('selected'));
@@ -40,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     openButton.addEventListener('click', function() {
-        if (selectedCard) {
+        if (selectedCard && !openButton.disabled) {
             const accountId = selectedCard.dataset.id;
             window.location.href = `/account-setup/${accountId}`;
         }

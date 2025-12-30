@@ -1,22 +1,5 @@
-function formatPaymentTime(isoString) {
-    if (!isoString) return 'N/A';
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-    });
-}
-
 function updatePaymentTimes() {
-    document.querySelectorAll('.payment-time[data-timestamp]').forEach(el => {
-        const timestamp = el.getAttribute('data-timestamp');
-        if (timestamp) {
-            el.textContent = formatPaymentTime(timestamp);
-        }
-    });
+    // Time display removed from notifications
 }
 
 let currentEditAccountId = null;
