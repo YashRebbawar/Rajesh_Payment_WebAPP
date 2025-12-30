@@ -649,6 +649,31 @@ def get_new_account_notifications():
     
     return jsonify({'success': True, 'notifications': notifications})
 
+@app.route('/api/admin/new-user-notifications', methods=['GET'])
+def get_new_user_notifications():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    # Get users with unread MT credential updates
+    notifications = list(notifications_collection.find({
+        'type': 'new_account_opened',
+        'status': 'unread'
+    }).sort('created_at', -1))
+    
+    # Group by user_id to get unique users with new accounts
+    user_ids = set()
+    result = []
+    for notif in notifications:
+        user_id = str(notif['user_id'])
+        if user_id not in user_ids:
+            user_ids.add(user_id)
+            result.append({
+                'user_id': user_id,
+                'account_id': str(notif['account_id'])
+            })
+    
+    return jsonify({'success': True, 'notifications': result})
 @app.route('/api/admin/mark-account-notification-read/<notification_id>', methods=['POST'])
 def mark_account_notification_read(notification_id):
     user = get_current_user()

@@ -117,6 +117,17 @@ async function submitEditForm(event) {
         const data = await response.json();
         
         if (data.success) {
+            // Hide the new badge for this user after MT update
+            const accountCard = document.querySelector(`[data-account-id="${currentEditAccountId}"]`);
+            if (accountCard) {
+                const userCard = accountCard.closest('.admin-user-card');
+                if (userCard) {
+                    const userBadge = userCard.querySelector('.new-user-badge');
+                    if (userBadge) {
+                        userBadge.style.display = 'none';
+                    }
+                }
+            }
             showSuccessMessage('MT details updated successfully!');
             closeEditModal();
             setTimeout(() => location.reload(), 1500);
@@ -126,6 +137,24 @@ async function submitEditForm(event) {
     } catch (error) {
         console.error('Error updating MT details:', error);
         showErrorMessage('Failed to update MT details');
+    }
+}
+
+async function loadNewUserNotifications() {
+    try {
+        const response = await fetch('/api/admin/new-user-notifications');
+        const data = await response.json();
+        
+        if (data.success && data.notifications.length > 0) {
+            data.notifications.forEach(notif => {
+                const userBadge = document.querySelector(`[data-user-id="${notif.user_id}"].new-user-badge`);
+                if (userBadge) {
+                    userBadge.style.display = 'inline-block';
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading new user notifications:', error);
     }
 }
 
@@ -220,6 +249,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Load new user notifications
+    loadNewUserNotifications();
 });
 
 async function deleteUser(userId) {
