@@ -103,6 +103,14 @@
   box-shadow: 0 4px 12px rgba(255,237,78,0.4);
 }
 
+.hamburger-btn {
+  display: none;
+}
+
+.mobile-menu {
+  display: none;
+}
+
 .hero-section {
   min-height: 100vh;
   display: grid;
@@ -424,127 +432,143 @@
 }
 
 .demo-modal.active {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .demo-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
 }
 
 .demo-content {
   position: relative;
-  max-width: 800px;
-  margin: 4rem auto;
-  background: #070707;
-  border-radius: 24px;
+  max-width: 900px;
+  width: 90%;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 237, 78, 0.3);
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+  grid-template-columns: 1.8fr 1fr;
+  border: 1px solid rgba(255, 237, 78, 0.15);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .demo-close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.8rem;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
   border: none;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(255, 237, 78, 0.1);
   color: #e5e7eb;
   cursor: pointer;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.demo-close:hover {
+  background: rgba(255, 237, 78, 0.2);
+  transform: rotate(90deg);
 }
 
 .demo-video {
-  background: radial-gradient(circle at top left, #111111, #020202);
-  padding: 1.8rem 1.6rem 1.6rem;
+  background: radial-gradient(circle at top left, #0f172a, #020617);
+  padding: 2rem;
   position: relative;
-}
-
-.demo-video-placeholder {
-  border-radius: 18px;
-  border: 1px solid rgba(156, 163, 175, 0.35);
-  background: linear-gradient(135deg, #020617 0%, #111827 45%, #111827 100%);
-  height: 260px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.demo-video-placeholder::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background: radial-gradient(circle at 0 0, rgba(255, 237, 78, 0.3), transparent 60%);
-  opacity: 0.4;
-}
-
-.demo-play-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 237, 78, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #ffed4e;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  min-height: 350px;
 }
 
-.demo-video-placeholder p {
-  margin: 0.65rem 0 0.1rem;
-  font-size: 0.95rem;
-  color: #e5e7eb;
-  font-weight: 500;
-}
-
-.demo-video-placeholder span {
-  font-size: 0.78rem;
-  color: #9ca3af;
+.demo-video video {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  display: block;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .demo-copy {
-  padding: 1.8rem 1.8rem 1.8rem 1.4rem;
-  background: radial-gradient(circle at top left, #111827 0%, #020617 55%, #020617 100%);
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(2, 6, 23, 0.9) 100%);
   color: #e5e7eb;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.2rem;
+  justify-content: space-between;
 }
 
 .demo-copy h3 {
   margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #f9fafb;
+  background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .demo-copy p {
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.6;
-  color: #9ca3af;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #cbd5e1;
 }
 
 .btn-primary-compact {
-  padding: 0.8rem 1.8rem;
+  padding: 1rem 2rem;
   font-size: 0.95rem;
-  box-shadow: 0 6px 18px rgba(255, 237, 78, 0.35);
+  box-shadow: 0 8px 20px rgba(255, 237, 78, 0.3);
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .demo-content {
+    grid-template-columns: 1fr;
+    max-width: 95%;
+  }
+  
+  .demo-video {
+    min-height: 280px;
+    padding: 1.5rem;
+  }
+  
+  .demo-copy {
+    padding: 2rem 1.5rem;
+  }
+  
+  .demo-copy h3 {
+    font-size: 1.25rem;
+  }
+  
+  .demo-copy p {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -583,8 +607,87 @@
   }
   
   .btn-signin, .btn-register {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    display: none;
+  }
+  
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+  
+  .hamburger-btn span {
+    width: 25px;
+    height: 3px;
+    background: #000;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .hamburger-btn.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+  }
+  
+  .hamburger-btn.active span:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .hamburger-btn.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+  }
+  
+  .mobile-menu {
+    position: absolute;
+    top: 60px;
+    right: 1rem;
+    background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+    border: 1px solid rgba(255, 237, 78, 0.3);
+    border-radius: 12px;
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    z-index: 999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.3s ease;
+    min-width: 180px;
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .mobile-menu.active {
+    display: flex;
+  }
+  
+  .mobile-menu .btn-signin,
+  .mobile-menu .btn-register {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-menu .btn-signin:hover {
+    background: #f0f0f0;
+  }
+  
+  .mobile-menu .btn-register:hover {
+    background: #ffd700;
   }
   
   .profile-card {

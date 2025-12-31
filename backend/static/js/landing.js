@@ -78,4 +78,19 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+const hamburgerBtn = document.getElementById('hamburger-btn');
+const mobileMenu = document.getElementById('mobile-menu');
 
+if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', () => {
+        hamburgerBtn.classList.toggle('active');
+        mobileMenu?.classList.toggle('active');
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (hamburgerBtn && mobileMenu && !hamburgerBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+        hamburgerBtn.classList.remove('active');
+        mobileMenu.classList.remove('active');
+    }
+});

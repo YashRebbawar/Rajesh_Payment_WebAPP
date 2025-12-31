@@ -52,6 +52,15 @@
         {% else %}
         <button class="btn-signin" onclick="window.location.href='/signin'">Sign In</button>
         <button class="btn-register" onclick="window.location.href='/register'">Register</button>
+        <button class="hamburger-btn" id="hamburger-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="mobile-menu" id="mobile-menu">
+            <button class="btn-signin" onclick="window.location.href='/signin'">Sign In</button>
+            <button class="btn-register" onclick="window.location.href='/register'">Register</button>
+        </div>
         {% endif %}
     </div>
 
@@ -141,19 +150,18 @@
         <div class="demo-content">
             <button class="demo-close" id="demo-close">&times;</button>
             <div class="demo-video">
-                <div class="demo-video-placeholder">
-                    <div class="demo-play-icon">▶</div>
-                    <p>PrintFree Platform Walkthrough (2:15)</p>
-                    <span>Embed your actual video or Loom link here.</span>
-                </div>
+                <video width="100%" height="auto" controls controlsList="nodownload">
+                    <source src="{{ url_for('static', filename='videos/Website_Demo.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
             <div class="demo-copy">
                 <h3>See PrintFree in action</h3>
                 <p>
-                    Watch how traders manage positions, place orders in milliseconds and track risk across multiple assets – all from one clean dashboard.
+                    Watch how to open and set up your PrintFree trading account in minutes. See the complete walkthrough of account creation, verification, and dashboard overview.
                 </p>
                 <button class="btn-primary btn-primary-compact" onclick="window.location.href='/register'">
-                    Start in Under 60 Seconds
+                    Setup your first account
                 </button>
             </div>
         </div>
