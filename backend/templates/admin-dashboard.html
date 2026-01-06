@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-payments.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quick-migrate-mobile.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -16,8 +17,10 @@
             <span>PrintFree</span>
         </a>
         <nav class="header-nav">
-            
             {% if user %}
+            <button class="quick-migrate-header-btn" onclick="quickMigrateToLatestAccount()" title="Migrate to latest new account">
+                <span>⚡</span>
+            </button>
             <div class="user-profile-wrapper">
                 <button class="profile-icon-btn" id="profile-toggle">
                     <div class="profile-icon">{{ user.email[0].upper() }}</div>
@@ -28,7 +31,6 @@
                             <div class="profile-card-header">
                                 <div class="profile-card-header-left">
                                     Admin Account
-                                    
                                 </div>
                             </div>
                             <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
@@ -59,12 +61,36 @@
             </div>
             {% endif %}
         </nav>
+        <button class="hamburger-menu" id="hamburger-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="mobile-menu" id="mobile-menu">
+            {% if user %}
+            <div class="mobile-profile-section">
+                <div class="mobile-profile-icon">{{ user.email[0].upper() }}</div>
+                <div class="mobile-profile-info">
+                    <h3>{{ user.email.split('@')[0] }}</h3>
+                    <p>{{ user.email }}</p>
+                </div>
+                <button class="mobile-logout-btn" onclick="window.location.href='/logout'">
+                    <span>Log out</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </header>
 
+<div class="mobile-tabs">
+    <button class="mobile-tab-btn active" data-tab="users">Users</button>
+    <button class="mobile-tab-btn" data-tab="payments">Payments {% if pending_payments %}<span class="tab-badge">{{ pending_payments|length }}</span>{% endif %}</button>
+</div>
+
 <div class="admin-dashboard-wrapper">
     <!-- Left Section: All Users & Accounts -->
-    <div class="admin-users-section">
+    <div class="admin-users-section" id="users-tab">
         <div class="section-header">
             <h2>All Users & Accounts</h2>
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -174,7 +200,7 @@
     </div>
 
     <!-- Right Section: Pending Payments -->
-    <div class="pending-payments-wrapper">
+    <div class="pending-payments-wrapper" id="payments-tab">
         <div class="section-header">
             <h2>Pending Payments</h2>
             {% if pending_payments %}
@@ -361,6 +387,41 @@
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script>
     currentUserId = '{{ user._id }}';
+    
+    const hamburgerToggle = document.getElementById('hamburger-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    hamburgerToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+        hamburgerToggle.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.hamburger-menu') && !e.target.closest('.mobile-menu')) {
+            mobileMenu.classList.remove('active');
+            hamburgerToggle.classList.remove('active');
+        }
+    });
+    
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('users-tab').style.display = tab === 'users' ? 'flex' : 'none';
+            document.getElementById('payments-tab').style.display = tab === 'payments' ? 'flex' : 'none';
+        });
+    });
+    
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            document.getElementById('users-tab').style.display = 'flex';
+            document.getElementById('payments-tab').style.display = 'flex';
+            document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-tab="users"]').classList.add('active');
+        }
+    });
     
     async function loadNewAccountNotifications() {
         try {
