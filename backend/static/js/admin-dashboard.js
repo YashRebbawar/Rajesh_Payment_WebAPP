@@ -377,6 +377,30 @@ function showErrorMessage(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+async function quickMigrateToLatestAccount() {
+    try {
+        const response = await fetch('/api/admin/latest-new-account');
+        const data = await response.json();
+        
+        if (data.success && data.account) {
+            const accountId = data.account._id;
+            const accountCard = document.querySelector(`[data-account-id="${accountId}"]`);
+            
+            if (accountCard) {
+                accountCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                accountCard.classList.add('highlight-account');
+                setTimeout(() => accountCard.classList.remove('highlight-account'), 3000);
+            }
+            showSuccessMessage('Migrated to latest account: ' + data.account.nickname);
+        } else {
+            showErrorMessage('No new accounts found');
+        }
+    } catch (error) {
+        console.error('Error migrating to latest account:', error);
+        showErrorMessage('Failed to migrate to latest account');
+    }
+}
+
 setInterval(async () => {
     try {
         const response = await fetch('/api/admin/notifications');

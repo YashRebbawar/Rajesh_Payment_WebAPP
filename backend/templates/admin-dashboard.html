@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-payments.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/quick-migrate-mobile.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -17,6 +18,9 @@
         </a>
         <nav class="header-nav">
             {% if user %}
+            <button class="quick-migrate-header-btn" onclick="quickMigrateToLatestAccount()" title="Migrate to latest new account">
+                <span>⚡</span>
+            </button>
             <div class="user-profile-wrapper">
                 <button class="profile-icon-btn" id="profile-toggle">
                     <div class="profile-icon">{{ user.email[0].upper() }}</div>

@@ -1,0 +1,50 @@
+.quick-migrate-header-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: linear-gradient(135deg, var(--exness-gold), #FFC107);
+    color: var(--exness-dark);
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(255, 237, 78, 0.3);
+}
+
+.quick-migrate-header-btn:hover {
+    background: linear-gradient(135deg, #ffd700, #FFB300);
+    box-shadow: 0 4px 16px rgba(255, 237, 78, 0.5);
+    transform: scale(1.1) rotate(10deg);
+}
+
+.quick-migrate-header-btn:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .header-nav {
+        display: flex !important;
+        gap: 0;
+        position: absolute;
+        right: 60px;
+        margin: 0;
+    }
+    
+    .user-profile-wrapper {
+        display: none !important;
+    }
+    
+    .quick-migrate-header-btn {
+        display: flex !important;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .mobile-quick-migrate-btn {
+        display: none !important;
+    }
+}

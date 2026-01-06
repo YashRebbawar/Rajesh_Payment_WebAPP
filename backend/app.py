@@ -1147,6 +1147,40 @@ def get_unread_count():
         logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/api/admin/latest-new-account', methods=['GET'])
+def get_latest_new_account():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        notification = notifications_collection.find_one(
+            {'type': 'new_account_opened', 'status': 'unread'},
+            sort=[('created_at', -1)]
+        )
+        
+        if not notification:
+            return jsonify({'success': False, 'message': 'No new accounts found'})
+        
+        account = accounts_collection.find_one({'_id': notification['account_id']})
+        if not account:
+            return jsonify({'success': False, 'message': 'Account not found'})
+        
+        return jsonify({
+            'success': True,
+            'account': {
+                '_id': str(account['_id']),
+                'nickname': account['nickname'],
+                'platform': account['platform'],
+                'account_type': account['account_type'],
+                'currency': account['currency'],
+                'created_at': account['created_at'].isoformat()
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting latest new account: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/admin/update-account-balance/<account_id>', methods=['POST'])
 def update_account_balance(account_id):
     user = get_current_user()
