@@ -3,9 +3,11 @@ function updatePaymentTimes() {
 }
 
 let currentUnifiedEditAccountId = null;
+let currentUnifiedEditAccountName = null;
 
-function openUnifiedEditModal(accountId, mtLogin, mtServer, password, leverage, balance) {
+function openUnifiedEditModal(accountId, mtLogin, mtServer, password, leverage, balance, nickname) {
     currentUnifiedEditAccountId = accountId;
+    currentUnifiedEditAccountName = nickname || 'Account';
     document.getElementById('unified-mt-login').value = mtLogin;
     document.getElementById('unified-mt-server').value = mtServer;
     document.getElementById('unified-password').value = password;
@@ -17,6 +19,7 @@ function openUnifiedEditModal(accountId, mtLogin, mtServer, password, leverage, 
 function closeUnifiedEditModal() {
     document.getElementById('unified-edit-modal').style.display = 'none';
     currentUnifiedEditAccountId = null;
+    currentUnifiedEditAccountName = null;
 }
 
 async function submitUnifiedEditForm(event) {
@@ -36,6 +39,12 @@ async function submitUnifiedEditForm(event) {
         showErrorMessage('Please fill in all fields');
         return;
     }
+    
+    const saveBtn = document.getElementById('unified-save-btn');
+    const cancelBtn = document.getElementById('unified-cancel-btn');
+    saveBtn.disabled = true;
+    cancelBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
     
     try {
         const updateMtResponse = await fetch(`/api/admin/update-account-mt/${currentUnifiedEditAccountId}`, {
@@ -60,15 +69,21 @@ async function submitUnifiedEditForm(event) {
         const balanceData = await updateBalanceResponse.json();
         
         if (mtData.success && detailsData.success && balanceData.success) {
-            showSuccessMessage('Account updated successfully!');
             closeUnifiedEditModal();
-            setTimeout(() => location.reload(), 1500);
+            showSuccessMessage(`${currentUnifiedEditAccountName || 'Account'} updated successfully!`);
+            setTimeout(() => location.reload(), 2000);
         } else {
             showErrorMessage('Error: ' + (mtData.message || detailsData.message || balanceData.message));
+            saveBtn.disabled = false;
+            cancelBtn.disabled = false;
+            saveBtn.textContent = 'Save All Changes';
         }
     } catch (error) {
         console.error('Error updating account:', error);
         showErrorMessage('Failed to update account: ' + error.message);
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        saveBtn.textContent = 'Save All Changes';
     }
 }
 
@@ -149,9 +164,9 @@ async function submitBalanceForm(event) {
         const data = await response.json();
         
         if (data.success) {
-            showSuccessMessage('Account balance updated successfully!');
             closeBalanceModal();
-            setTimeout(() => location.reload(), 1500);
+            showSuccessMessage('Account balance updated successfully!');
+            setTimeout(() => location.reload(), 2000);
         } else {
             showErrorMessage('Error: ' + data.message);
         }
@@ -393,6 +408,7 @@ function showSuccessMessage(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-message toast-success';
     toast.textContent = message;
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#4caf50;color:white;padding:16px 24px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-weight:500;font-size:14px;animation:slideIn 0.3s ease-out;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
@@ -401,31 +417,27 @@ function showErrorMessage(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-message toast-error';
     toast.textContent = message;
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;background:#f44336;color:white;padding:16px 24px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-weight:500;font-size:14px;animation:slideIn 0.3s ease-out;';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
 }
 
 async function quickMigrateToLatestAccount() {
     try {
-        const response = await fetch('/api/admin/latest-new-account');
+        const response = await fetch('/api/admin/latest-message');
         const data = await response.json();
         
-        if (data.success && data.account) {
-            const accountId = data.account._id;
-            const accountCard = document.querySelector(`[data-account-id="${accountId}"]`);
-            
-            if (accountCard) {
-                accountCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                accountCard.classList.add('highlight-account');
-                setTimeout(() => accountCard.classList.remove('highlight-account'), 3000);
-            }
-            showSuccessMessage('Migrated to latest account: ' + data.account.nickname);
+        if (data.success && data.user) {
+            const userId = data.user._id;
+            const userName = data.user.name;
+            openChatModal(userId, userName);
+            showSuccessMessage('Opened chat with: ' + userName);
         } else {
-            showErrorMessage('No new accounts found');
+            showErrorMessage('No messages found');
         }
     } catch (error) {
-        console.error('Error migrating to latest account:', error);
-        showErrorMessage('Failed to migrate to latest account');
+        console.error('Error migrating to latest message:', error);
+        showErrorMessage('Failed to migrate to latest message');
     }
 }
 
