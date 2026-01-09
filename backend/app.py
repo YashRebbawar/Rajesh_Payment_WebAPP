@@ -1147,38 +1147,41 @@ def get_unread_count():
         logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/api/admin/latest-new-account', methods=['GET'])
-def get_latest_new_account():
+@app.route('/api/admin/latest-message', methods=['GET'])
+def get_latest_message():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'})
     
     try:
-        notification = notifications_collection.find_one(
-            {'type': 'new_account_opened', 'status': 'unread'},
+        latest_message = chats_collection.find_one(
+            {'admin_id': user['_id']},
             sort=[('created_at', -1)]
         )
         
-        if not notification:
-            return jsonify({'success': False, 'message': 'No new accounts found'})
+        if not latest_message:
+            return jsonify({'success': False, 'message': 'No messages found'})
         
-        account = accounts_collection.find_one({'_id': notification['account_id']})
-        if not account:
-            return jsonify({'success': False, 'message': 'Account not found'})
+        user_id = latest_message['user_id']
+        user_doc = users_collection.find_one({'_id': user_id})
+        
+        if not user_doc:
+            return jsonify({'success': False, 'message': 'User not found'})
         
         return jsonify({
             'success': True,
-            'account': {
-                '_id': str(account['_id']),
-                'nickname': account['nickname'],
-                'platform': account['platform'],
-                'account_type': account['account_type'],
-                'currency': account['currency'],
-                'created_at': account['created_at'].isoformat()
+            'user': {
+                '_id': str(user_id),
+                'email': user_doc['email'],
+                'name': user_doc.get('name', user_doc['email'].split('@')[0])
+            },
+            'message': {
+                'content': latest_message['message'],
+                'created_at': latest_message['created_at'].isoformat()
             }
         })
     except Exception as e:
-        logger.error(f"Error getting latest new account: {e}")
+        logger.error(f"Error getting latest message: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/admin/update-account-balance/<account_id>', methods=['POST'])
@@ -1204,7 +1207,49 @@ def update_account_balance(account_id):
     except Exception as e:
         logger.error(f"Error updating account balance: {e}")
         return jsonify({'success': False, 'message': str(e)})
-
+    
+@app.route('/api/admin/update-account-details/<account_id>', methods=['POST'])
+def update_account_details(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        try:
+            obj_id = ObjectId(account_id)
+        except Exception as e:
+            logger.error(f"Invalid account_id format: {account_id} - {e}")
+            return jsonify({'success': False, 'message': 'Invalid account ID format'}), 400
+        
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        account = accounts_collection.find_one({'_id': obj_id})
+        if not account:
+            logger.warning(f"Account not found: {account_id}")
+            return jsonify({'success': False, 'message': 'Account not found'}), 404
+        
+        update_data = {}
+        if 'password' in data:
+            update_data['trading_password'] = data['password']
+        if 'leverage' in data:
+            update_data['leverage'] = data['leverage']
+        
+        if update_data:
+            result = accounts_collection.update_one(
+                {'_id': obj_id},
+                {'$set': update_data}
+            )
+            logger.info(f"Admin {user['email']} updated account {account_id} details. Modified: {result.modified_count}")
+        else:
+            logger.warning(f"No update data provided for account {account_id}")
+        
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        logger.error(f"Error updating account details: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
@@ -1213,3 +1258,6 @@ def health_check():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
+
