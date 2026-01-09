@@ -1481,3 +1481,71 @@
         display: none;
     }
 }
+
+
+/* Edit Balance Button on Account Card */
+.edit-balance-btn-account {
+    background: transparent;
+    border: 1px solid var(--exness-border);
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--exness-dark);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+    margin-left: auto;
+}
+
+.edit-balance-btn-account:hover {
+    background: var(--exness-gold);
+    border-color: var(--exness-gold);
+}
+
+.edit-balance-btn {
+    background: transparent;
+    border: 1px solid var(--exness-border);
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--exness-dark);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.edit-balance-btn:hover {
+    background: var(--exness-gold);
+    border-color: var(--exness-gold);
+}
+
+
+/* Edit Details Button */
+.edit-details-btn {
+    background: transparent;
+    border: 1px solid var(--exness-border);
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--exness-dark);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+}
+
+.edit-details-btn:hover {
+    background: var(--exness-gold);
+    border-color: var(--exness-gold);
+}

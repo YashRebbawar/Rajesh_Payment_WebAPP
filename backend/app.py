@@ -1204,7 +1204,49 @@ def update_account_balance(account_id):
     except Exception as e:
         logger.error(f"Error updating account balance: {e}")
         return jsonify({'success': False, 'message': str(e)})
-
+    
+@app.route('/api/admin/update-account-details/<account_id>', methods=['POST'])
+def update_account_details(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        try:
+            obj_id = ObjectId(account_id)
+        except Exception as e:
+            logger.error(f"Invalid account_id format: {account_id} - {e}")
+            return jsonify({'success': False, 'message': 'Invalid account ID format'}), 400
+        
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        account = accounts_collection.find_one({'_id': obj_id})
+        if not account:
+            logger.warning(f"Account not found: {account_id}")
+            return jsonify({'success': False, 'message': 'Account not found'}), 404
+        
+        update_data = {}
+        if 'password' in data:
+            update_data['trading_password'] = data['password']
+        if 'leverage' in data:
+            update_data['leverage'] = data['leverage']
+        
+        if update_data:
+            result = accounts_collection.update_one(
+                {'_id': obj_id},
+                {'$set': update_data}
+            )
+            logger.info(f"Admin {user['email']} updated account {account_id} details. Modified: {result.modified_count}")
+        else:
+            logger.warning(f"No update data provided for account {account_id}")
+        
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        logger.error(f"Error updating account details: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
@@ -1213,3 +1255,6 @@ def health_check():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
+

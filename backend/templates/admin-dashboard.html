@@ -147,7 +147,7 @@
                                 <span class="new-account-badge-small" data-account-id="{{ account._id }}" style="display: none;">New</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="edit-account-btn" data-account-id="{{ account._id }}" data-mt-login="{{ account.mt_login or '' }}" data-mt-server="{{ account.mt_server or '' }}" title="Edit MT Details">
+                                <button class="edit-account-btn" onclick="openUnifiedEditModal('{{ account._id }}', '{{ account.mt_login or '' }}', '{{ account.mt_server or '' }}', '{{ account.trading_password }}', '{{ account.leverage }}', '{{ account.balance|default(0.00, true)|round(2) }}')" title="Edit Account">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -214,7 +214,6 @@
             <select id="currency-filter" class="currency-filter">
                 <option value="all">All Currencies</option>
                 <option value="INR">INR</option>
-                
             </select>
         </div>
 
@@ -318,25 +317,37 @@
     </div>
 </div>
 
-<!-- Edit MT Details Modal -->
-<div id="edit-modal" class="edit-modal">
+<!-- Unified Edit Modal -->
+<div id="unified-edit-modal" class="edit-modal">
     <div class="edit-modal-content">
         <div class="edit-modal-header">
-            <h3>Edit MT Details</h3>
-            <button class="edit-modal-close" onclick="closeEditModal()">&times;</button>
+            <h3>Edit Account</h3>
+            <button class="edit-modal-close" onclick="closeUnifiedEditModal()">&times;</button>
         </div>
-        <form id="edit-form" onsubmit="submitEditForm(event)">
+        <form id="unified-edit-form" onsubmit="submitUnifiedEditForm(event)">
             <div class="form-group">
-                <label for="mt-login">MT Login</label>
-                <input type="text" id="mt-login" name="mt_login" required placeholder="e.g., 123456789">
+                <label for="unified-mt-login">MT Login</label>
+                <input type="text" id="unified-mt-login" name="mt_login" required placeholder="e.g., 123456789">
             </div>
             <div class="form-group">
-                <label for="mt-server">MT Server</label>
-                <input type="text" id="mt-server" name="mt_server" required placeholder="e.g., Exness-MT5Real1">
+                <label for="unified-mt-server">MT Server</label>
+                <input type="text" id="unified-mt-server" name="mt_server" required placeholder="e.g., Exness-MT5Real1">
+            </div>
+            <div class="form-group">
+                <label for="unified-password">Trading Password</label>
+                <input type="text" id="unified-password" name="password" required placeholder="Enter trading password">
+            </div>
+            <div class="form-group">
+                <label for="unified-leverage">Leverage</label>
+                <input type="text" id="unified-leverage" name="leverage" required placeholder="e.g., 1:100">
+            </div>
+            <div class="form-group">
+                <label for="unified-balance">Account Balance</label>
+                <input type="number" id="unified-balance" name="balance" required placeholder="0.00" step="0.01" min="0">
             </div>
             <div class="edit-modal-actions">
-                <button type="button" class="edit-cancel-btn" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="edit-save-btn">Save Changes</button>
+                <button type="button" class="edit-cancel-btn" onclick="closeUnifiedEditModal()">Cancel</button>
+                <button type="submit" class="edit-save-btn">Save All Changes</button>
             </div>
         </form>
     </div>
