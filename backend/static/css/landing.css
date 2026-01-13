@@ -294,6 +294,76 @@
   color: rgba(26, 26, 26, 0.6);
 }
 
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin: 2.25rem 0;
+  animation: slideInUp 0.8s ease 0.3s both;
+  max-width: 600px;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 237, 78, 0.12) 0%, rgba(255, 215, 0, 0.06) 100%);
+  border: 1.5px solid rgba(255, 237, 78, 0.25);
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: cardBounce 3s ease-in-out infinite, borderGlow 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 237, 78, 0.15) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 237, 78, 0.1) 0%, transparent 70%);
+  animation: radiusGlow 2.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 12px;
+}
+
+.stat-card:hover {
+  background: linear-gradient(135deg, rgba(255, 237, 78, 0.25) 0%, rgba(255, 215, 0, 0.15) 100%);
+  border-color: rgba(255, 237, 78, 0.7);
+  box-shadow: 0 12px 30px rgba(255, 237, 78, 0.25), inset 0 0 20px rgba(255, 237, 78, 0.1);
+  transform: translateY(-6px) scale(1.05) rotate(0.5deg);
+  animation: cardBounce 0.6s ease-in-out infinite, borderGlow 1s ease-in-out infinite;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffd500;
+  margin-bottom: 0.3rem;
+  font-family: 'Courier New', monospace;
+  animation: countUp 0.6s ease-out, valueFloat 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(26, 26, 26, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  animation: labelSlide 0.8s ease-out 0.2s both;
+}
+
 .hero-buttons {
   display: flex;
   gap: 1.5rem;
@@ -411,6 +481,57 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+@keyframes cardBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: rgba(255, 237, 78, 0.25);
+    box-shadow: 0 0 10px rgba(255, 237, 78, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 237, 78, 0.5);
+    box-shadow: 0 0 20px rgba(255, 237, 78, 0.25);
+  }
+}
+
+@keyframes radiusGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes valueFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes labelSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInRight {
@@ -725,6 +846,25 @@
 
   .feature-card {
     padding: 1rem;
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    margin: 1.5rem 0;
+    max-width: 100%;
+  }
+  
+  .stat-card {
+    padding: 1.1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem;
   }
   
   .hero-buttons {

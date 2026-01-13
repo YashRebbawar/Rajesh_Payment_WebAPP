@@ -239,6 +239,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Admin user search
+    const adminSearchInput = document.getElementById('admin-user-search');
+    if (adminSearchInput) {
+        adminSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const userCards = document.querySelectorAll('.admin-user-card');
+            
+            userCards.forEach(card => {
+                const userName = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
+                const userEmail = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
+                
+                const matches = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+                card.style.display = matches ? 'block' : 'none';
+            });
+        });
+    }
+
     // Payment filtering
     const searchInput = document.getElementById('payment-search');
     const currencyFilter = document.getElementById('currency-filter');
@@ -453,3 +470,21 @@ setInterval(async () => {
         console.error('Error checking notifications:', error);
     }
 }, 15000);
+
+
+// Mobile admin user search
+const mobileAdminSearchInput = document.getElementById('mobile-admin-user-search');
+if (mobileAdminSearchInput) {
+    mobileAdminSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const userCards = document.querySelectorAll('.admin-user-card');
+        
+        userCards.forEach(card => {
+            const userName = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
+            const userEmail = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
+            
+            const matches = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+            card.style.display = matches ? 'block' : 'none';
+        });
+    });
+}

@@ -1250,6 +1250,28 @@ def update_account_details(account_id):
         logger.error(f"Error updating account details: {e}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
     
+@app.route('/api/stats')
+def get_stats():
+    """Get real-time stats for landing page"""
+    try:
+        total_users = users_collection.count_documents({'is_admin': {'$ne': True}})
+        
+        completed_payments = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        total_deposited = completed_payments[0]['total'] if completed_payments else 0
+        
+        return jsonify({
+            'success': True,
+            'total_users': total_users,
+            'total_deposited': round(total_deposited, 2)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""

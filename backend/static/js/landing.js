@@ -20,6 +20,24 @@ if (memberSinceEl) {
     }
 }
 
+async function updateStats() {
+    try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        if (data.success) {
+            const usersEl = document.getElementById('total-users');
+            const depositedEl = document.getElementById('total-deposited');
+            if (usersEl) usersEl.textContent = data.total_users.toLocaleString();
+            if (depositedEl) depositedEl.textContent = '₹' + data.total_deposited.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+    }
+}
+
+updateStats();
+setInterval(updateStats, 5000);
+
 document.getElementById('profile-toggle')?.addEventListener('click', function() {
     const dropdown = document.getElementById('profile-dropdown');
     dropdown.classList.toggle('active');
