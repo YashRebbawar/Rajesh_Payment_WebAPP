@@ -92,7 +92,7 @@
                     <input type="number" id="amount" placeholder="0" min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}" step="1">
                     <span class="currency-label">{% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</span>
                 </div>
-                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 50,000{% else %}50,000 - 1,00,000{% endif %} {% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</div>
+                <div class="amount-range">{% if account.account_type == 'standard' %}1,000 - 1,00,000{% else %}50,000 - 1,00,000{% endif %} {% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</div>
             </div>
 
             <div class="deposit-summary">

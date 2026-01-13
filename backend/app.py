@@ -1147,41 +1147,35 @@ def get_unread_count():
         logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/api/admin/latest-message', methods=['GET'])
-def get_latest_message():
-    user = get_current_user()
-    if not user or not user.get('is_admin'):
+@app.route('/api/admin/chat-users-with-pending', methods=['GET'])
+def get_chat_users_with_pending():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'})
     
     try:
-        latest_message = chats_collection.find_one(
-            {'admin_id': user['_id']},
-            sort=[('created_at', -1)]
-        )
+        chat_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id']}},
+            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
+            {'$sort': {'last_message_time': -1}}
+        ])
         
-        if not latest_message:
-            return jsonify({'success': False, 'message': 'No messages found'})
+        users_list = []
+        for chat_user in chat_users:
+            user = users_collection.find_one({'_id': chat_user['_id']})
+            if user:
+                pending_count = chat_user['unread_count']
+                if pending_count > 0:
+                    users_list.append({
+                        'user_id': str(user['_id']),
+                        'email': user['email'],
+                        'name': user.get('name', user['email'].split('@')[0]),
+                        'pending_count': pending_count
+                    })
         
-        user_id = latest_message['user_id']
-        user_doc = users_collection.find_one({'_id': user_id})
-        
-        if not user_doc:
-            return jsonify({'success': False, 'message': 'User not found'})
-        
-        return jsonify({
-            'success': True,
-            'user': {
-                '_id': str(user_id),
-                'email': user_doc['email'],
-                'name': user_doc.get('name', user_doc['email'].split('@')[0])
-            },
-            'message': {
-                'content': latest_message['message'],
-                'created_at': latest_message['created_at'].isoformat()
-            }
-        })
+        return jsonify({'success': True, 'users': users_list})
     except Exception as e:
-        logger.error(f"Error getting latest message: {e}")
+        logger.error(f"Error getting chat users with pending: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/admin/update-account-balance/<account_id>', methods=['POST'])
@@ -1250,6 +1244,28 @@ def update_account_details(account_id):
         logger.error(f"Error updating account details: {e}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
     
+@app.route('/api/stats')
+def get_stats():
+    """Get real-time stats for landing page"""
+    try:
+        total_users = users_collection.count_documents({'is_admin': {'$ne': True}})
+        
+        completed_payments = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        total_deposited = completed_payments[0]['total'] if completed_payments else 0
+        
+        return jsonify({
+            'success': True,
+            'total_users': total_users,
+            'total_deposited': round(total_deposited, 2)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""

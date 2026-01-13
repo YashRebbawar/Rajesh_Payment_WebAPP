@@ -294,6 +294,66 @@
   color: rgba(26, 26, 26, 0.6);
 }
 
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin: 2.25rem 0;
+  animation: slideInUp 0.8s ease 0.3s both;
+  max-width: 900px;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 237, 78, 0.12) 0%, rgba(255, 215, 0, 0.06) 100%);
+  border: 2px solid;
+  border-image: linear-gradient(90deg, rgba(255, 237, 78, 0.8), rgba(255, 215, 0, 0.4), rgba(255, 237, 78, 0.8)) 1;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: cardFadeIn 0.8s ease-out;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 237, 78, 0.3);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 237, 78, 0.4), transparent);
+  animation: shimmerBorder 2s infinite;
+  pointer-events: none;
+  border-radius: 12px;
+}
+
+
+.stat-card:hover {
+  background: linear-gradient(135deg, rgba(255, 237, 78, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+  border-color: transparent;
+  box-shadow: 0 12px 30px rgba(255, 237, 78, 0.3), inset 0 0 20px rgba(255, 237, 78, 0.08);
+  transform: translateY(-6px) scale(1.03);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.3rem;
+  font-family: 'Courier New', monospace;
+  animation: countUp 0.6s ease-out, valuePulse 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(26, 26, 26, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  animation: labelSlide 0.8s ease-out 0.2s both;
+}
+
 .hero-buttons {
   display: flex;
   gap: 1.5rem;
@@ -411,6 +471,62 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmerBorder {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes radiusGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes valuePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes labelSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInRight {
@@ -725,6 +841,25 @@
 
   .feature-card {
     padding: 1rem;
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    margin: 1.5rem 0;
+    max-width: 100%;
+  }
+  
+  .stat-card {
+    padding: 1.1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem;
   }
   
   .hero-buttons {

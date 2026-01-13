@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const depositCurrency = accountCurrency === 'USD' ? 'INR' : accountCurrency;
 
     const minAmount = accountType === 'standard' ? 1000 : 50000;
-    const maxAmount = accountType === 'standard' ? 50000 : 100000;
+    const maxAmount = 100000;
 
     amountInput.addEventListener('input', function() {
         const value = parseFloat(this.value) || 0;

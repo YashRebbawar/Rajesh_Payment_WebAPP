@@ -239,6 +239,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Admin user search
+    const adminSearchInput = document.getElementById('admin-user-search');
+    if (adminSearchInput) {
+        adminSearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const userCards = document.querySelectorAll('.admin-user-card');
+            
+            userCards.forEach(card => {
+                const userName = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
+                const userEmail = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
+                
+                const matches = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+                card.style.display = matches ? 'block' : 'none';
+            });
+        });
+    }
+
     // Payment filtering
     const searchInput = document.getElementById('payment-search');
     const currencyFilter = document.getElementById('currency-filter');
@@ -422,24 +439,78 @@ function showErrorMessage(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-async function quickMigrateToLatestAccount() {
+let migrateDropdownOpen = false;
+
+async function toggleMigrateDropdown() {
+    const btn = document.querySelector('.quick-migrate-header-btn');
+    let dropdown = document.getElementById('migrate-dropdown');
+    
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'migrate-dropdown';
+        dropdown.className = 'migrate-dropdown';
+        dropdown.style.cssText = 'position:absolute;top:100%;right:0;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:280px;max-height:400px;overflow-y:auto;z-index:1000;margin-top:8px;';
+        btn.parentElement.style.position = 'relative';
+        btn.parentElement.appendChild(dropdown);
+    }
+    
+    if (migrateDropdownOpen) {
+        dropdown.style.display = 'none';
+        migrateDropdownOpen = false;
+        return;
+    }
+    
+    dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:#999;">Loading...</div>';
+    dropdown.style.display = 'block';
+    migrateDropdownOpen = true;
+    
     try {
-        const response = await fetch('/api/admin/latest-message');
+        const response = await fetch('/api/admin/chat-users-with-pending');
         const data = await response.json();
         
-        if (data.success && data.user) {
-            const userId = data.user._id;
-            const userName = data.user.name;
-            openChatModal(userId, userName);
-            showSuccessMessage('Opened chat with: ' + userName);
+        if (data.success && data.users.length > 0) {
+            dropdown.innerHTML = data.users.map(user => `
+                <div class="migrate-user-item" onclick="selectMigrateUser('${user.user_id}', '${user.name.replace(/'/g, "\\'")}')"
+                     style="padding:12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.2s;">
+                    <div>
+                        <div style="font-weight:500;color:#333;">${user.name}</div>
+                        <div style="font-size:12px;color:#999;">${user.email}</div>
+                    </div>
+                    <div style="background:#ff9800;color:white;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:500;">${user.pending_count}</div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.migrate-user-item').forEach(item => {
+                item.addEventListener('mouseenter', () => item.style.background = '#f5f5f5');
+                item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+            });
         } else {
-            showErrorMessage('No messages found');
+            dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:#999;">No pending messages</div>';
         }
     } catch (error) {
-        console.error('Error migrating to latest message:', error);
-        showErrorMessage('Failed to migrate to latest message');
+        console.error('Error loading migrate users:', error);
+        dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:#f44336;">Error loading users</div>';
     }
 }
+
+function selectMigrateUser(userId, userName) {
+    const dropdown = document.getElementById('migrate-dropdown');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+        migrateDropdownOpen = false;
+    }
+    openChatModal(userId, userName);
+    showSuccessMessage('Opened chat with: ' + userName);
+}
+
+document.addEventListener('click', (e) => {
+    const btn = document.querySelector('.quick-migrate-header-btn');
+    const dropdown = document.getElementById('migrate-dropdown');
+    if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+        migrateDropdownOpen = false;
+    }
+});
 
 setInterval(async () => {
     try {
@@ -453,3 +524,50 @@ setInterval(async () => {
         console.error('Error checking notifications:', error);
     }
 }, 15000);
+
+setInterval(async () => {
+    if (migrateDropdownOpen) {
+        const dropdown = document.getElementById('migrate-dropdown');
+        if (dropdown) {
+            try {
+                const response = await fetch('/api/admin/chat-users-with-pending');
+                const data = await response.json();
+                
+                if (data.success && data.users.length > 0) {
+                    dropdown.innerHTML = data.users.map(user => `
+                        <div class="migrate-user-item" onclick="selectMigrateUser('${user.user_id}', '${user.name.replace(/'/g, "\\'")}')"
+                             style="padding:12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.2s;">
+                            <div>
+                                <div style="font-weight:500;color:#333;">${user.name}</div>
+                                <div style="font-size:12px;color:#999;">${user.email}</div>
+                            </div>
+                            <div style="background:#ff9800;color:white;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:500;">${user.pending_count}</div>
+                        </div>
+                    `).join('');
+                    
+                    document.querySelectorAll('.migrate-user-item').forEach(item => {
+                        item.addEventListener('mouseenter', () => item.style.background = '#f5f5f5');
+                        item.addEventListener('mouseleave', () => item.style.background = 'transparent');
+                    });
+                }
+            } catch (error) {
+                console.error('Error refreshing migrate dropdown:', error);
+            }
+        }
+    }
+}, 5000);
+const mobileAdminSearchInput = document.getElementById('mobile-admin-user-search');
+if (mobileAdminSearchInput) {
+    mobileAdminSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const userCards = document.querySelectorAll('.admin-user-card');
+        
+        userCards.forEach(card => {
+            const userName = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
+            const userEmail = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
+            
+            const matches = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+            card.style.display = matches ? 'block' : 'none';
+        });
+    });
+}
