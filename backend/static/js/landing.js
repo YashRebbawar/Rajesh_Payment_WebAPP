@@ -28,7 +28,7 @@ async function updateStats() {
             const usersEl = document.getElementById('total-users');
             const depositedEl = document.getElementById('total-deposited');
             if (usersEl) usersEl.textContent = data.total_users.toLocaleString();
-            if (depositedEl) depositedEl.textContent = '₹' + data.total_deposited.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            if (depositedEl) depositedEl.textContent = '₹' + data.total_deposited.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
         }
     } catch (error) {
         console.error('Error fetching stats:', error);
