@@ -1266,6 +1266,43 @@ def get_stats():
         logger.error(f"Error fetching stats: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/admin/commission-stats', methods=['GET'])
+def get_commission_stats():
+    """Get total platform fees (1.4% of all completed deposits)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        total_deposits = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        total_amount = total_deposits[0]['total'] if total_deposits else 0
+        platform_fee = total_amount * 0.014
+        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        
+        pending_deposits = list(payments_collection.aggregate([
+            {'$match': {'status': 'pending', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        pending_total = pending_deposits[0]['total'] if pending_deposits else 0
+        pending_fee = pending_total * 0.014
+        
+        return jsonify({
+            'success': True,
+            'total_deposits': round(total_amount, 2),
+            'platform_fee': round(platform_fee, 2),
+            'transaction_count': transaction_count,
+            'pending_deposits': round(pending_total, 2),
+            'pending_fee': round(pending_fee, 2)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching commission stats: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
