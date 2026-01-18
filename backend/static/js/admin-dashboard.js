@@ -5,6 +5,30 @@ function updatePaymentTimes() {
 let currentUnifiedEditAccountId = null;
 let currentUnifiedEditAccountName = null;
 
+// Load commission stats
+async function loadCommissionStats() {
+    try {
+        const response = await fetch('/api/admin/commission-stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('total-platform-fee').textContent = '₹' + data.platform_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('total-deposits').textContent = '₹' + data.total_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('transaction-count').textContent = data.transaction_count;
+            document.getElementById('pending-platform-fee').textContent = '₹' + data.pending_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('pending-deposits').textContent = '₹' + data.pending_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+    } catch (error) {
+        console.error('Error loading commission stats:', error);
+    }
+}
+
+// Load commission stats on page load
+document.addEventListener('DOMContentLoaded', loadCommissionStats);
+
+// Refresh commission stats every 30 seconds
+setInterval(loadCommissionStats, 30000);
+
 function openUnifiedEditModal(accountId, mtLogin, mtServer, password, leverage, balance, nickname) {
     currentUnifiedEditAccountId = accountId;
     currentUnifiedEditAccountName = nickname || 'Account';
