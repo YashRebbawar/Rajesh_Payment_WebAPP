@@ -4,7 +4,7 @@ Flask-based backend for the PrintFree trading account services application with 
 
 ## ✨ Features
 
-- 🎨 **Exness-inspired UI** - Clean, professional design
+- 🎨 **Professional UI** - Clean, professional design
 - 🔐 **Email/Password Authentication** - Secure user registration and login
 - 🌐 **Google OAuth** - One-click sign-in with Google
 - 💾 **Database Integration** - SQLAlchemy ORM with SQLite (production-ready for PostgreSQL/MySQL)

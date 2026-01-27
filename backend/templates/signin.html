@@ -3,48 +3,58 @@
 {% block title %}Sign In - PrintFree{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <a href="/" class="logo-link">
-            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo" class="logo-image-small">
-            <span class="logo-text">PrintFree</span>
+<div class="signin-container">
+    <div class="auth-header-new">
+        <a href="/" class="logo-link-new">
+            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo" class="logo-image-new">
+            <div>
+                <div class="logo-text-new">PrintFree</div>
+                <div class="logo-subtitle-new">Dubai-based Partnered Firm</div>
+            </div>
         </a>
-        
     </div>
-    
-    <div class="auth-box">
-        <h1 class="auth-title">Welcome to PrintFree</h1>
-        
-        <div class="auth-tabs">
-            <button class="auth-tab active" data-tab="signin">Sign in</button>
-            <button class="auth-tab" data-tab="register">Create an account</button>
+
+    <div class="auth-box-combined">
+        <!-- Left: Image -->
+        <div class="auth-image-side">
+            <img src="{{ url_for('static', filename='images/pattern.jpg') }}" alt="Pattern" class="auth-pattern-image">
         </div>
-        
-        <form class="auth-form" id="signin-form">
-            <div class="form-group">
-                <label>Your email address</label>
-                <input type="email" name="email" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Password</label>
-                <div class="password-input">
-                    <input type="password" name="password" id="signin-password" required>
-                    <button type="button" class="toggle-password" data-target="signin-password"></button>
+
+        <!-- Right: Form -->
+        <div class="auth-form-side">
+            <h1 class="form-title">Welcome Back</h1>
+            <p class="form-subtitle">Sign in to your PrintFree account</p>
+
+            <form class="auth-form" id="signin-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
                 </div>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="password-input">
+                        <input type="password" name="password" id="signin-password" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" data-target="signin-password">👁</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="auth-submit-new">Sign In</button>
+                
+                <div class="auth-divider-new">Or continue with</div>
+                
+                <button type="button" class="google-btn-new" id="google-signin">
+                    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                    Google
+                </button>
+                
+                <a href="#" class="forgot-link-new">Forgot your password?</a>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="/register" class="signup-link">Create one</a>
             </div>
-            
-            <button type="submit" class="auth-submit">Sign in</button>
-            
-            <div class="auth-divider">Or sign in with</div>
-            
-            <button type="button" class="google-btn" id="google-signin">
-                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-                Google
-            </button>
-            
-            <a href="#" class="forgot-link">I forgot my password</a>
-        </form>
+        </div>
     </div>
 </div>
 
