@@ -58,6 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const accountType = this.querySelector('h2').textContent;
             openButton.textContent = `Open ${accountType} Account`;
             actionSection.style.display = 'block';
+            
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    actionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
         });
     });
 
