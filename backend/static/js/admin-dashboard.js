@@ -492,6 +492,9 @@ function showErrorMessage(message) {
 let migrateDropdownOpen = false;
 
 async function toggleMigrateDropdown() {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const btn = document.querySelector('.quick-migrate-header-btn');
     let dropdown = document.getElementById('migrate-dropdown');
     
@@ -499,9 +502,11 @@ async function toggleMigrateDropdown() {
         dropdown = document.createElement('div');
         dropdown.id = 'migrate-dropdown';
         dropdown.className = 'migrate-dropdown';
-        dropdown.style.cssText = 'position:absolute;top:100%;right:0;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:280px;max-height:400px;overflow-y:auto;z-index:1000;margin-top:8px;';
-        btn.parentElement.style.position = 'relative';
-        btn.parentElement.appendChild(dropdown);
+        const isMobile = window.innerWidth <= 768;
+        dropdown.style.cssText = isMobile 
+            ? 'position:fixed;top:50px;right:10px;left:10px;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-height:400px;overflow-y:auto;z-index:1000;'
+            : 'position:fixed;top:50px;right:70px;background:white;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:280px;max-height:400px;overflow-y:auto;z-index:1000;';
+        document.body.appendChild(dropdown);
     }
     
     if (migrateDropdownOpen) {
