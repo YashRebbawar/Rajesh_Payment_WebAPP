@@ -10,6 +10,7 @@ body {
   background: linear-gradient(135deg, #faf8f3 0%, #f5f1eb 50%, #efe8e0 100%);
   color: #1a1a1a;
   overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
   min-height: 100vh;
 }

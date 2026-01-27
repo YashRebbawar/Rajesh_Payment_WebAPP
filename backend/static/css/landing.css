@@ -5,7 +5,8 @@
   background: transparent;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   color: #2d2416;
 }
 
@@ -122,7 +123,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
-  padding: 2rem 4rem;
+  padding: 6rem 4rem 2rem;
   position: relative;
   z-index: 2;
   gap: 2rem;
@@ -479,6 +480,14 @@
   margin-top: 8%;
 }
 
+@media (max-width: 1023px) {
+  .hero-visual {
+    margin-left: 0;
+    margin-top: 0;
+    min-height: 350px;
+  }
+}
+
 .hand-image-container {
   width: 100%;
   height: 100%;
@@ -710,7 +719,8 @@
   .hero-section {
     grid-template-columns: 1fr;
     gap: 2rem;
-    padding: 2rem;
+    padding: 6rem 2rem 2rem;
+    min-height: auto;
   }
   
   .brand-name {
@@ -727,10 +737,6 @@
   
   .hero-buttons {
     justify-content: flex-start;
-  }
-  
-  .hero-visual {
-    min-height: 400px;
   }
 }
 
@@ -832,8 +838,12 @@
   }
   
   .hero-section {
-    padding: 1.5rem;
+    padding: 5rem 1.5rem 2rem;
     min-height: auto;
+  }
+
+  .brand-section {
+    margin-bottom: 2rem;
   }
   
   .brand-name {
@@ -842,10 +852,12 @@
   
   .hero-title {
     font-size: 2rem;
+    margin-bottom: 1rem;
   }
   
   .hero-subtitle {
     font-size: 1rem;
+    margin-bottom: 1.5rem;
   }
   
   .badge {
@@ -886,6 +898,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
+    margin-bottom: 2rem;
   }
   
   .btn-primary, .btn-secondary {
@@ -897,15 +910,48 @@
   
   .hero-visual {
     min-height: 300px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hand-image-container {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
+  }
+
+  .hand-image {
+    width: 100%;
+    height: auto;
+    min-height: 300px;
+    max-height: 400px;
+    object-fit: contain;
+    object-position: center;
   }
   
   .demo-content {
     margin: 2rem 1rem;
     grid-template-columns: 1fr;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .demo-video {
+    padding: 1.5rem;
+    min-height: auto;
+  }
+
+  .demo-copy {
+    padding: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
+  .hero-section {
+    padding: 4.5rem 1rem 1.5rem;
+  }
+
   .logo-image {
     width: 50px;
     height: 50px;
@@ -914,13 +960,19 @@
   .brand-name {
     font-size: 1.75rem;
   }
+
+  .brand-section {
+    margin-bottom: 1.5rem;
+  }
   
   .hero-title {
     font-size: 1.75rem;
+    margin-bottom: 0.75rem;
   }
   
   .hero-subtitle {
     font-size: 0.95rem;
+    margin-bottom: 1.25rem;
   }
   
   .badge {
@@ -948,6 +1000,27 @@
   .feature-text p {
     font-size: 0.75rem;
   }
+
+  .stats-section {
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+  }
+
+  .stat-card {
+    padding: 0.9rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .hero-buttons {
+    margin-bottom: 1.5rem;
+  }
   
   .btn-primary, .btn-secondary {
     padding: 0.9rem 1.5rem;
@@ -961,9 +1034,43 @@
   
   .hero-visual {
     min-height: 250px;
+    height: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hand-image-container {
+    width: 100%;
+    height: auto;
+    min-height: 250px;
+  }
+
+  .hand-image {
+    width: 100%;
+    height: auto;
+    min-height: 250px;
+    max-height: 350px;
+    object-fit: contain;
   }
   
-  .demo-video-placeholder {
-    height: 200px;
+  .demo-content {
+    width: 95%;
+    margin: 1rem 0.5rem;
+  }
+
+  .demo-video {
+    padding: 1rem;
+  }
+
+  .demo-copy {
+    padding: 1.25rem 1rem;
+  }
+
+  .demo-copy h3 {
+    font-size: 1.25rem;
+  }
+
+  .demo-copy p {
+    font-size: 0.875rem;
   }
 }
