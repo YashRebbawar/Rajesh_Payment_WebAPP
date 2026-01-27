@@ -23,11 +23,37 @@ async function loadCommissionStats() {
     }
 }
 
+// Load users with no account type
+async function loadUsersNoAccountType() {
+    try {
+        const response = await fetch('/api/admin/users-no-account-type');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('no-account-type-count').textContent = data.count;
+            if (data.count > 0) {
+                const userList = data.users.map(u => u.email).join(', ');
+                document.getElementById('no-account-type-list').textContent = userList.length > 50 ? userList.substring(0, 50) + '...' : userList;
+            } else {
+                document.getElementById('no-account-type-list').textContent = 'None';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading users with no account type:', error);
+    }
+}
+
 // Load commission stats on page load
-document.addEventListener('DOMContentLoaded', loadCommissionStats);
+document.addEventListener('DOMContentLoaded', () => {
+    loadCommissionStats();
+    loadUsersNoAccountType();
+});
 
 // Refresh commission stats every 30 seconds
-setInterval(loadCommissionStats, 30000);
+setInterval(() => {
+    loadCommissionStats();
+    loadUsersNoAccountType();
+}, 30000);
 
 function openUnifiedEditModal(accountId, mtLogin, mtServer, password, leverage, balance, nickname) {
     currentUnifiedEditAccountId = accountId;
