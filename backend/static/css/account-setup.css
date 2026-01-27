@@ -1,6 +1,6 @@
 .setup-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f0f2f5 100%);
+  background: transparent;
   position: relative;
   padding: 3.5rem 2rem 2rem 2rem;
   display: flex;
@@ -8,19 +8,8 @@
   align-items: center;
   justify-content: flex-start;
   overflow-x: hidden;
-}
-
-.setup-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(255, 237, 78, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
-              radial-gradient(circle at 50% 10%, rgba(255, 237, 78, 0.04) 0%, transparent 40%);
-  pointer-events: none;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #2d2416;
 }
 
 .back-button {
@@ -33,13 +22,13 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 237, 78, 0.3);
+  border: 1px solid rgba(212, 165, 116, 0.3);
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   cursor: pointer;
   font-size: 1.3rem;
   font-weight: 900;
-  color: #1a1a1a;
+  color: #2d2416;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   z-index: 100;
@@ -47,8 +36,8 @@
 
 .back-button:hover {
   background: rgba(255, 255, 255, 0.95);
-  border-color: #ffed4e;
-  box-shadow: 0 6px 16px rgba(255, 237, 78, 0.2);
+  border-color: rgba(212, 165, 116, 0.5);
+  box-shadow: 0 6px 16px rgba(212, 165, 116, 0.2);
   transform: translateY(-2px);
 }
 
@@ -71,8 +60,9 @@
   font-size: 28px;
   font-weight: 700;
   margin: 0;
-  color: #000;
+  color: #2d2416;
   letter-spacing: -0.5px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .setup-content {
@@ -86,10 +76,11 @@
 }
 
 .setup-form-section {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(212, 165, 116, 0.2);
   border-radius: 12px;
   padding: 1.75rem;
+  backdrop-filter: blur(10px);
 }
 
 .account-tabs {
@@ -107,8 +98,8 @@
   cursor: default;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1a1a1a;
-  border-bottom: 3px solid #ffed4e;
+  color: #2d2416;
+  border-bottom: 3px solid #d4a574;
   transition: all 0.3s ease;
   text-align: center;
 }
@@ -135,7 +126,7 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #000;
+  color: #2d2416;
 }
 
 .required {
@@ -155,8 +146,8 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #000;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+  border-color: #d4a574;
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
 }
 
 .form-hint {
@@ -235,8 +226,8 @@
 
 .create-account-btn {
   padding: 14px 24px;
-  background: #ffed4e;
-  color: #000;
+  background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
+  color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 700;
@@ -245,11 +236,12 @@
   transition: all 0.2s ease;
   margin-top: 0.75rem;
   width: 100%;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
 }
 
 .create-account-btn:hover {
-  background: #ffd700;
-  box-shadow: 0 4px 12px rgba(255,237,78,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.35);
 }
 
 .create-account-btn:active {
@@ -263,20 +255,22 @@
 }
 
 .account-info-card {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(212, 165, 116, 0.2);
   border-radius: 12px;
   padding: 1.25rem;
   position: sticky;
   top: 3.5rem;
   height: fit-content;
+  backdrop-filter: blur(10px);
 }
 
 .account-info-card h3 {
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 0.75rem 0;
-  color: #000;
+  color: #2d2416;
+  font-family: 'Poppins', sans-serif;
 }
 
 .info-row {
@@ -299,7 +293,7 @@
 
 .info-value {
   font-size: 13px;
-  color: #000;
+  color: #2d2416;
   font-weight: 700;
 }
 
