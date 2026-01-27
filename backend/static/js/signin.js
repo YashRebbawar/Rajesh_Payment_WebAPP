@@ -17,7 +17,7 @@ document.querySelectorAll('.toggle-password').forEach(btn => {
 
 document.getElementById('signin-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const submitBtn = this.querySelector('.auth-submit');
+    const submitBtn = this.querySelector('.auth-submit-new');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;"></span> Signing in...';
