@@ -1,9 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
+
 .main-header {
-    background: #fff;
+    background: linear-gradient(135deg, #faf8f3 0%, #f5f1eb 100%);
     position: sticky;
     top: 0;
     z-index: 1000;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.15);
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.08);
 }
 
 .header-content {
@@ -21,10 +24,11 @@
     align-items: center;
     gap: 12px;
     text-decoration: none;
-    color: #000;
+    color: #2d2416;
     font-size: 22px;
     font-weight: 700;
     letter-spacing: -0.5px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .header-logo img {
@@ -71,6 +75,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     margin: 0;
+    background: linear-gradient(135deg, #faf8f3 0%, #f5f1eb 50%, #efe8e0 100%);
 }
 
 .my-accounts-container {
@@ -79,18 +84,20 @@ body {
     padding: 40px 40px 80px;
     flex: 1;
     width: 100%;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f8f9fa;
-    min-height: calc(100vh - 72px);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #2d2416;
+    position: relative;
+    z-index: 1;
 }
 
 .pending-details {
     display: none;
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(212, 165, 116, 0.2);
     border-radius: 12px;
     margin-bottom: 24px;
     overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
 .pending-details.active {
@@ -99,7 +106,7 @@ body {
 
 .pending-item {
     padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -118,24 +125,25 @@ body {
 .pending-amount {
     font-weight: 700;
     font-size: 16px;
-    color: #000;
+    color: #2d2416;
 }
 
 .pending-ref {
     font-size: 13px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     font-weight: 500;
 }
 
 .pending-status {
     font-size: 12px;
-    color: #000;
-    background: #ffed4e;
+    color: #2d2416;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
     padding: 8px 16px;
     border-radius: 20px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    color: #fff;
 }
 
 .my-accounts-header {
@@ -149,8 +157,9 @@ body {
     font-size: 32px;
     font-weight: 700;
     margin: 0;
-    color: #000;
+    color: #2d2416;
     letter-spacing: -1px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .header-actions {
@@ -160,25 +169,27 @@ body {
 }
 
 .pending-btn {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(212, 165, 116, 0.3);
     padding: 11px 20px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    color: #000;
+    color: #2d2416;
     transition: all 0.2s ease;
     white-space: nowrap;
+    backdrop-filter: blur(10px);
 }
 
 .pending-btn:hover {
-    border-color: #000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(212, 165, 116, 0.6);
+    box-shadow: 0 4px 16px rgba(212, 165, 116, 0.15);
 }
 
 .open-account-btn {
-    background: #ffed4e;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
     border: none;
     padding: 11px 24px;
     border-radius: 8px;
@@ -190,12 +201,13 @@ body {
     gap: 6px;
     transition: all 0.2s ease;
     white-space: nowrap;
-    color: #000;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(212, 165, 116, 0.25);
 }
 
 .open-account-btn:hover {
-    background: #ffd700;
-    box-shadow: 0 4px 12px rgba(255,237,78,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.35);
 }
 
 .open-account-btn span:first-child {
@@ -211,22 +223,24 @@ body {
 
 .sort-dropdown {
     padding: 11px 40px 11px 16px;
-    border: 1px solid #e0e0e0;
+    border: 1.5px solid rgba(212, 165, 116, 0.3);
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    background: white;
+    background: rgba(255, 255, 255, 0.7);
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232d2416' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
-    color: #000;
+    color: #2d2416;
     transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
 }
 
 .sort-dropdown:hover {
-    border-color: #000;
+    border-color: rgba(212, 165, 116, 0.6);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .view-toggle {
@@ -235,25 +249,27 @@ body {
 }
 
 .view-btn {
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(212, 165, 116, 0.3);
     padding: 10px 14px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
     transition: all 0.2s ease;
-    color: #666;
+    color: #2d2416;
+    backdrop-filter: blur(10px);
 }
 
 .view-btn:hover {
-    border-color: #000;
-    color: #000;
+    border-color: rgba(212, 165, 116, 0.6);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .view-btn.active {
-    background: #000;
-    border-color: #000;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
+    border-color: rgba(212, 165, 116, 0.8);
     color: #fff;
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
 }
 
 .empty-state {
@@ -270,12 +286,12 @@ body {
 
 .empty-text {
     font-size: 18px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     margin-bottom: 30px;
 }
 
 .open-account-btn-yellow {
-    background: #ffed4e;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
     border: none;
     padding: 16px 40px;
     border-radius: 8px;
@@ -283,12 +299,13 @@ body {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #000;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.25);
 }
 
 .open-account-btn-yellow:hover {
-    background: #ffd700;
-    box-shadow: 0 8px 24px rgba(255,237,78,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(212, 165, 116, 0.35);
 }
 
 .footer-links {
@@ -296,13 +313,14 @@ body {
     gap: 40px;
     justify-content: center;
     padding: 40px 20px;
-    border-top: 1px solid #e0e0e0;
-    background: #fff;
+    border-top: 1px solid rgba(212, 165, 116, 0.15);
+    background: linear-gradient(135deg, #faf8f3 0%, #f5f1eb 100%);
     margin-top: auto;
+    width: 100%;
 }
 
 .footer-links a {
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
@@ -310,7 +328,7 @@ body {
 }
 
 .footer-links a:hover {
-    color: #000;
+    color: #2d2416;
 }
 
 .user-profile-wrapper {
@@ -335,8 +353,8 @@ body {
 }
 
 .bell-icon-btn {
-    background: #f8f9fa;
-    border: none;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(212, 165, 116, 0.3);
     cursor: pointer;
     padding: 10px;
     position: relative;
@@ -345,11 +363,13 @@ body {
     justify-content: center;
     border-radius: 8px;
     transition: all 0.2s ease;
-    color: #000;
+    color: #2d2416;
+    backdrop-filter: blur(10px);
 }
 
 .bell-icon-btn:hover {
-    background: #e9ecef;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(212, 165, 116, 0.6);
 }
 
 .bell-icon {
@@ -380,15 +400,16 @@ body {
     top: 100%;
     right: 0;
     margin-top: 12px;
-    background: white;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(212, 165, 116, 0.2);
     border-radius: 12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 12px 40px rgba(212, 165, 116, 0.15);
     width: 400px;
     max-height: 500px;
     overflow: hidden;
     display: none;
     z-index: 100;
+    backdrop-filter: blur(10px);
 }
 
 .notification-dropdown.active {
@@ -397,19 +418,19 @@ body {
 
 .notification-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1);
     font-weight: 700;
     font-size: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #000;
+    color: #2d2416;
 }
 
 .clear-all-btn {
     background: none;
     border: none;
-    color: #000;
+    color: #2d2416;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -419,7 +440,7 @@ body {
 }
 
 .clear-all-btn:hover {
-    background: #f0f0f0;
+    background: rgba(212, 165, 116, 0.1);
 }
 
 .notification-list {
@@ -430,13 +451,13 @@ body {
 .notification-empty {
     padding: 40px 20px;
     text-align: center;
-    color: #999;
+    color: rgba(45, 36, 22, 0.5);
     font-size: 14px;
 }
 
 .notification-item {
     padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(212, 165, 116, 0.1);
     display: flex;
     gap: 16px;
     transition: background 0.2s;
@@ -444,7 +465,7 @@ body {
 }
 
 .notification-item:hover {
-    background: #f8f9fa;
+    background: rgba(212, 165, 116, 0.05);
 }
 
 .notification-close {
@@ -453,7 +474,7 @@ body {
     right: 12px;
     background: none;
     border: none;
-    color: #999;
+    color: rgba(45, 36, 22, 0.5);
     font-size: 16px;
     cursor: pointer;
     padding: 4px;
@@ -467,8 +488,8 @@ body {
 }
 
 .notification-close:hover {
-    background: #f0f0f0;
-    color: #666;
+    background: rgba(212, 165, 116, 0.1);
+    color: #2d2416;
 }
 
 .notification-item:last-child {
@@ -505,19 +526,19 @@ body {
     font-weight: 700;
     font-size: 14px;
     margin-bottom: 4px;
-    color: #000;
+    color: #2d2416;
 }
 
 .notification-text {
     font-size: 13px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     margin-bottom: 4px;
     font-weight: 500;
 }
 
 .notification-time {
     font-size: 12px;
-    color: #999;
+    color: rgba(45, 36, 22, 0.5);
 }
 
 @media (max-width: 768px) {
@@ -796,16 +817,20 @@ body {
 }
 
 .account-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(212, 165, 116, 0.2);
     border-radius: 12px;
     padding: 20px;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     position: relative;
+    backdrop-filter: blur(10px);
 }
 
 .account-card:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(212, 165, 116, 0.35);
+    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.12);
+    transform: translateY(-4px);
 }
 
 .account-header {
@@ -822,27 +847,30 @@ body {
 }
 
 .badge {
-    background: #f0f0f0;
+    background: rgba(212, 165, 116, 0.12);
+    border: 1px solid rgba(212, 165, 116, 0.25);
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
-    color: #000;
+    color: #a67c52;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
 }
 
 .account-id {
     font-size: 14px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
 }
 
 .account-name {
     font-size: 15px;
     font-weight: 700;
-    color: #000;
+    color: #2d2416;
     margin-bottom: 8px;
     margin-top: 0;
+    font-family: 'Poppins', sans-serif;
 }
 
 .account-balance {
@@ -855,26 +883,26 @@ body {
 .balance-amount {
     font-size: 28px;
     font-weight: 700;
-    color: #000;
+    color: #2d2416;
     letter-spacing: -0.5px;
 }
 
 .balance-currency {
     font-size: 14px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     display: inline;
 }
 
 .balance-asterisk {
     font-size: 14px;
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     cursor: help;
     margin-left: 2px;
 }
 
 .balance-note {
     font-size: 12px;
-    color: #999;
+    color: rgba(45, 36, 22, 0.5);
     margin-left: 4px;
 }
 
@@ -884,8 +912,9 @@ body {
     gap: 10px;
     margin-bottom: 12px;
     padding: 12px;
-    background: #f8f9fa;
+    background: rgba(212, 165, 116, 0.08);
     border-radius: 6px;
+    border: 1px solid rgba(212, 165, 116, 0.12);
 }
 
 .detail-row {
@@ -895,13 +924,13 @@ body {
 }
 
 .detail-row span:first-child {
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     font-weight: 500;
 }
 
 .detail-row span:last-child {
     font-weight: 700;
-    color: #000;
+    color: #2d2416;
 }
 
 .account-footer {
@@ -910,8 +939,9 @@ body {
     align-items: center;
     margin-bottom: 0;
     padding: 12px;
-    background: #f8f9fa;
+    background: rgba(212, 165, 116, 0.08);
     border-radius: 6px;
+    border: 1px solid rgba(212, 165, 116, 0.12);
     flex-wrap: wrap;
 }
 
@@ -922,32 +952,32 @@ body {
 }
 
 .footer-info span:first-child {
-    color: #666;
+    color: rgba(45, 36, 22, 0.65);
     font-weight: 500;
 }
 
 .footer-info span:last-child {
     font-weight: 700;
-    color: #000;
+    color: #2d2416;
 }
 
 .change-password-btn {
     background: transparent;
-    border: 1px solid #e0e0e0;
+    border: 1px solid rgba(212, 165, 116, 0.3);
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     margin-left: auto;
-    color: #000;
+    color: #2d2416;
     transition: all 0.2s ease;
 }
 
 .change-password-btn:hover {
-    background: #000;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
     color: #fff;
-    border-color: #000;
+    border-color: rgba(212, 165, 116, 0.8);
 }
 
 .account-actions {
@@ -971,36 +1001,36 @@ body {
 }
 
 .trade-btn {
-    background: #ffed4e;
-    color: #000;
-}
-
-.trade-btn:hover {
-    background: #ffd700;
-    box-shadow: 0 4px 12px rgba(255,237,78,0.4);
-}
-
-.deposit-btn {
-    background: #000;
+    background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
     color: #fff;
 }
 
+.trade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.25);
+}
+
+.deposit-btn {
+    background: linear-gradient(135deg, #3b2f1e 0%, #ce9c46 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(107, 90, 58, 0.25);
+}
+
 .deposit-btn:hover {
-    background: #1a1a1a;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 90, 58, 0.35);
 }
 
 .withdraw-btn {
-    background: #fff;
-    color: #000;
-    border: 2px solid #000;
+    background: rgba(255, 255, 255, 0.7);
+    color: #2d2416;
+    border: 1.5px solid rgba(212, 165, 116, 0.3);
+    backdrop-filter: blur(10px);
 }
 
 .withdraw-btn:hover {
-    background: #fff;
-    color: #000;
-    border: 2px solid #000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(212, 165, 116, 0.6);
+    box-shadow: 0 4px 16px rgba(212, 165, 116, 0.15);
 }
-
-

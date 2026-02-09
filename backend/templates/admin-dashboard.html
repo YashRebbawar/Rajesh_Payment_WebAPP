@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-payments.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+
 {% endblock %}
 
 {% block content %}
@@ -16,8 +17,19 @@
             <span>PrintFree</span>
         </a>
         <nav class="header-nav">
-            
             {% if user %}
+            <div class="admin-search-wrapper">
+                <input type="text" id="admin-user-search" class="admin-search-input" placeholder="Search users by name, email..." />
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </div>
+            <button class="quick-migrate-header-btn" onclick="toggleMigrateDropdown()" title="Migrate to pending messages" style="position:relative;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: black;">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </button>
             <div class="user-profile-wrapper">
                 <button class="profile-icon-btn" id="profile-toggle">
                     <div class="profile-icon">{{ user.email[0].upper() }}</div>
@@ -28,7 +40,6 @@
                             <div class="profile-card-header">
                                 <div class="profile-card-header-left">
                                     Admin Account
-                                    
                                 </div>
                             </div>
                             <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
@@ -59,12 +70,101 @@
             </div>
             {% endif %}
         </nav>
+        <button class="hamburger-menu" id="hamburger-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="mobile-menu" id="mobile-menu">
+            {% if user %}
+            <div class="mobile-search-section">
+                <input type="text" id="mobile-admin-user-search" class="mobile-admin-search-input" placeholder="Search users..." />
+            </div>
+            <div class="mobile-profile-section">
+                <div class="mobile-profile-icon">{{ user.email[0].upper() }}</div>
+                <div class="mobile-profile-info">
+                    <h3>{{ user.email.split('@')[0] }}</h3>
+                    <p>{{ user.email }}</p>
+                </div>
+                <button class="mobile-logout-btn" onclick="window.location.href='/logout'">
+                    <span>Log out</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </header>
 
+<div class="mobile-tabs">
+    <button class="mobile-tab-btn active" data-tab="users">Users</button>
+    <button class="mobile-tab-btn" data-tab="payments">Payments {% if pending_payments %}<span class="tab-badge">{{ pending_payments|length }}</span>{% endif %}</button>
+</div>
+
 <div class="admin-dashboard-wrapper">
+    <!-- Commission Stats Widget -->
+    <div class="commission-stats-widget">
+        <div class="stats-card total-commission-card">
+            <div class="stats-card-header">
+                <h3>Platform Fees (1.4%)</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                    <path d="M12 6v12M9 9h6"></path>
+                </svg>
+            </div>
+            <div class="stats-card-content">
+                <div class="commission-amount" id="total-platform-fee">₹0.00</div>
+                <div class="commission-meta">
+                    <span class="meta-item">
+                        <span class="meta-label">Total Deposits:</span>
+                        <span class="meta-value" id="total-deposits">₹0.00</span>
+                    </span>
+                    <span class="meta-item">
+                        <span class="meta-label">Transactions:</span>
+                        <span class="meta-value" id="transaction-count">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="stats-card pending-fee-card">
+            <div class="stats-card-header">
+                <h3>Pending Fees</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+            <div class="stats-card-content">
+                <div class="commission-amount" id="pending-platform-fee">₹0.00</div>
+                <div class="commission-meta">
+                    <span class="meta-item">
+                        <span class="meta-label">Pending Deposits:</span>
+                        <span class="meta-value" id="pending-deposits">₹0.00</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="stats-card no-account-type-card">
+            <div class="stats-card-header">
+                <h3>Users with No Account Type</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <div class="stats-card-content">
+                <div class="commission-amount" id="no-account-type-count">0</div>
+                <div class="commission-meta">
+                    <span class="meta-item">
+                        <span class="meta-label">Users without accounts:</span>
+                        <span class="meta-value" id="no-account-type-list">-</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Left Section: All Users & Accounts -->
-    <div class="admin-users-section">
+    <div class="admin-users-section" id="users-tab">
         <div class="section-header">
             <h2>All Users & Accounts</h2>
             <div style="display: flex; align-items: center; gap: 12px;">
@@ -121,7 +221,7 @@
                                 <span class="new-account-badge-small" data-account-id="{{ account._id }}" style="display: none;">New</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="edit-account-btn" data-account-id="{{ account._id }}" data-mt-login="{{ account.mt_login or '' }}" data-mt-server="{{ account.mt_server or '' }}" title="Edit MT Details">
+                                <button class="edit-account-btn" onclick="openUnifiedEditModal('{{ account._id }}', '{{ account.mt_login or '' }}', '{{ account.mt_server or '' }}', '{{ account.trading_password }}', '{{ account.leverage }}', '{{ account.balance|default(0.00, true)|round(2) }}', '{{ account.nickname }}');" title="Edit Account">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -174,7 +274,7 @@
     </div>
 
     <!-- Right Section: Pending Payments -->
-    <div class="pending-payments-wrapper">
+    <div class="pending-payments-wrapper" id="payments-tab">
         <div class="section-header">
             <h2>Pending Payments</h2>
             {% if pending_payments %}
@@ -188,7 +288,6 @@
             <select id="currency-filter" class="currency-filter">
                 <option value="all">All Currencies</option>
                 <option value="INR">INR</option>
-                
             </select>
         </div>
 
@@ -292,25 +391,37 @@
     </div>
 </div>
 
-<!-- Edit MT Details Modal -->
-<div id="edit-modal" class="edit-modal">
+<!-- Unified Edit Modal -->
+<div id="unified-edit-modal" class="edit-modal">
     <div class="edit-modal-content">
         <div class="edit-modal-header">
-            <h3>Edit MT Details</h3>
-            <button class="edit-modal-close" onclick="closeEditModal()">&times;</button>
+            <h3>Edit Account</h3>
+            <button class="edit-modal-close" onclick="closeUnifiedEditModal()">&times;</button>
         </div>
-        <form id="edit-form" onsubmit="submitEditForm(event)">
+        <form id="unified-edit-form" onsubmit="submitUnifiedEditForm(event)">
             <div class="form-group">
-                <label for="mt-login">MT Login</label>
-                <input type="text" id="mt-login" name="mt_login" required placeholder="e.g., 123456789">
+                <label for="unified-mt-login">MT Login</label>
+                <input type="text" id="unified-mt-login" name="mt_login" required placeholder="e.g., 123456789">
             </div>
             <div class="form-group">
-                <label for="mt-server">MT Server</label>
-                <input type="text" id="mt-server" name="mt_server" required placeholder="e.g., Exness-MT5Real1">
+                <label for="unified-mt-server">MT Server</label>
+                <input type="text" id="unified-mt-server" name="mt_server" required placeholder="e.g., Exness-MT5Real1">
+            </div>
+            <div class="form-group">
+                <label for="unified-password">Trading Password</label>
+                <input type="text" id="unified-password" name="password" required placeholder="Enter trading password">
+            </div>
+            <div class="form-group">
+                <label for="unified-leverage">Leverage</label>
+                <input type="text" id="unified-leverage" name="leverage" required placeholder="e.g., 1:100">
+            </div>
+            <div class="form-group">
+                <label for="unified-balance">Account Balance</label>
+                <input type="number" id="unified-balance" name="balance" required placeholder="0.00" step="0.01" min="0">
             </div>
             <div class="edit-modal-actions">
-                <button type="button" class="edit-cancel-btn" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="edit-save-btn">Save Changes</button>
+                <button type="button" class="edit-cancel-btn" onclick="closeUnifiedEditModal()" id="unified-cancel-btn">Cancel</button>
+                <button type="submit" class="edit-save-btn" id="unified-save-btn">Save All Changes</button>
             </div>
         </form>
     </div>
@@ -341,7 +452,7 @@
     <div class="edit-modal-content">
         <div class="edit-modal-header">
             <h3>Edit Account Balance</h3>
-            <button class="edit-modal-close" onclick="closeBalanceModal()">&times;</button>
+            <button class="edit-modal-close" onclick="closeBalanceModal()"></button>
         </div>
         <form id="balance-form" onsubmit="submitBalanceForm(event)">
             <div class="form-group">
@@ -361,6 +472,41 @@
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script>
     currentUserId = '{{ user._id }}';
+    
+    const hamburgerToggle = document.getElementById('hamburger-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    hamburgerToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+        hamburgerToggle.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.hamburger-menu') && !e.target.closest('.mobile-menu')) {
+            mobileMenu.classList.remove('active');
+            hamburgerToggle.classList.remove('active');
+        }
+    });
+    
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('users-tab').style.display = tab === 'users' ? 'flex' : 'none';
+            document.getElementById('payments-tab').style.display = tab === 'payments' ? 'flex' : 'none';
+        });
+    });
+    
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            document.getElementById('users-tab').style.display = 'flex';
+            document.getElementById('payments-tab').style.display = 'flex';
+            document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-tab="users"]').classList.add('active');
+        }
+    });
     
     async function loadNewAccountNotifications() {
         try {

@@ -1147,6 +1147,37 @@ def get_unread_count():
         logger.error(f"Get unread count error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/api/admin/chat-users-with-pending', methods=['GET'])
+def get_chat_users_with_pending():
+    admin = get_current_user()
+    if not admin or not admin.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+    
+    try:
+        chat_users = chats_collection.aggregate([
+            {'$match': {'admin_id': admin['_id']}},
+            {'$group': {'_id': '$user_id', 'last_message_time': {'$max': '$created_at'}, 'unread_count': {'$sum': {'$cond': [{'$eq': ['$read', False]}, 1, 0]}}}},
+            {'$sort': {'last_message_time': -1}}
+        ])
+        
+        users_list = []
+        for chat_user in chat_users:
+            user = users_collection.find_one({'_id': chat_user['_id']})
+            if user:
+                pending_count = chat_user['unread_count']
+                if pending_count > 0:
+                    users_list.append({
+                        'user_id': str(user['_id']),
+                        'email': user['email'],
+                        'name': user.get('name', user['email'].split('@')[0]),
+                        'pending_count': pending_count
+                    })
+        
+        return jsonify({'success': True, 'users': users_list})
+    except Exception as e:
+        logger.error(f"Error getting chat users with pending: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/admin/update-account-balance/<account_id>', methods=['POST'])
 def update_account_balance(account_id):
     user = get_current_user()
@@ -1170,6 +1201,127 @@ def update_account_balance(account_id):
     except Exception as e:
         logger.error(f"Error updating account balance: {e}")
         return jsonify({'success': False, 'message': str(e)})
+    
+@app.route('/api/admin/update-account-details/<account_id>', methods=['POST'])
+def update_account_details(account_id):
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        try:
+            obj_id = ObjectId(account_id)
+        except Exception as e:
+            logger.error(f"Invalid account_id format: {account_id} - {e}")
+            return jsonify({'success': False, 'message': 'Invalid account ID format'}), 400
+        
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        account = accounts_collection.find_one({'_id': obj_id})
+        if not account:
+            logger.warning(f"Account not found: {account_id}")
+            return jsonify({'success': False, 'message': 'Account not found'}), 404
+        
+        update_data = {}
+        if 'password' in data:
+            update_data['trading_password'] = data['password']
+        if 'leverage' in data:
+            update_data['leverage'] = data['leverage']
+        
+        if update_data:
+            result = accounts_collection.update_one(
+                {'_id': obj_id},
+                {'$set': update_data}
+            )
+            logger.info(f"Admin {user['email']} updated account {account_id} details. Modified: {result.modified_count}")
+        else:
+            logger.warning(f"No update data provided for account {account_id}")
+        
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        logger.error(f"Error updating account details: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+@app.route('/api/stats')
+def get_stats():
+    """Get real-time stats for landing page"""
+    try:
+        total_users = users_collection.count_documents({'is_admin': {'$ne': True}})
+        
+        completed_payments = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        total_deposited = completed_payments[0]['total'] if completed_payments else 0
+        
+        return jsonify({
+            'success': True,
+            'total_users': total_users,
+            'total_deposited': round(total_deposited, 2)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/commission-stats', methods=['GET'])
+def get_commission_stats():
+    """Get total platform fees (1.4% of all completed deposits)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        total_deposits = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        total_amount = total_deposits[0]['total'] if total_deposits else 0
+        platform_fee = total_amount * 0.014
+        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        
+        pending_deposits = list(payments_collection.aggregate([
+            {'$match': {'status': 'pending', 'type': 'deposit'}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        pending_total = pending_deposits[0]['total'] if pending_deposits else 0
+        pending_fee = pending_total * 0.014
+        
+        return jsonify({
+            'success': True,
+            'total_deposits': round(total_amount, 2),
+            'platform_fee': round(platform_fee, 2),
+            'transaction_count': transaction_count,
+            'pending_deposits': round(pending_total, 2),
+            'pending_fee': round(pending_fee, 2)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching commission stats: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/users-no-account-type', methods=['GET'])
+def get_users_no_account_type():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        users_with_accounts = set(doc['user_id'] for doc in accounts_collection.find({}, {'user_id': 1}))
+        users_with_no_type = []
+        for u in users_collection.find({'is_admin': {'$ne': True}, '_id': {'$nin': list(users_with_accounts)}}):
+            users_with_no_type.append({
+                'user_id': str(u['_id']),
+                'email': u['email'],
+                'name': u.get('name', u['email'].split('@')[0])
+            })
+        return jsonify({'success': True, 'count': len(users_with_no_type), 'users': users_with_no_type})
+    except Exception as e:
+        logger.error(f"Error fetching users with no account type: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/health')
 def health_check():
@@ -1179,3 +1331,6 @@ def health_check():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
+

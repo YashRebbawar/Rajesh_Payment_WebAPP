@@ -23,8 +23,10 @@ db = client.printfree
 db.trading_accounts.delete_many({})
 db.payments.delete_many({})
 db.notifications.delete_many({})
+db.chats.delete_many({})
 
 print("✓ Deleted all trading accounts")
 print("✓ Deleted all payments")
 print("✓ Deleted all notifications")
+print("✓ Deleted all chats")
 print("✓ Users collection preserved")
