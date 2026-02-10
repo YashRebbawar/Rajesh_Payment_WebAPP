@@ -6,9 +6,13 @@ let currentUnifiedEditAccountId = null;
 let currentUnifiedEditAccountName = null;
 
 // Load commission stats
-async function loadCommissionStats() {
+async function loadCommissionStats(year = null, month = null) {
     try {
-        const response = await fetch('/api/admin/commission-stats');
+        let url = '/api/admin/commission-stats';
+        if (year && month) {
+            url += `?year=${year}&month=${month}`;
+        }
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.success) {
@@ -23,6 +27,44 @@ async function loadCommissionStats() {
     } catch (error) {
         console.error('Error loading commission stats:', error);
     }
+}
+
+// Populate month selector
+function populateMonthSelector() {
+    const selector = document.getElementById('month-selector');
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    const startYear = 2026;
+    const startMonth = 1;
+    
+    const months = [];
+    for (let year = startYear; year <= currentYear; year++) {
+        const monthStart = (year === startYear) ? startMonth : 1;
+        const monthEnd = (year === currentYear) ? currentMonth : 12;
+        
+        for (let month = monthStart; month <= monthEnd; month++) {
+            months.push({ year, month });
+        }
+    }
+    
+    months.reverse().forEach((item, index) => {
+        const monthName = new Date(item.year, item.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const option = document.createElement('option');
+        option.value = `${item.year}-${item.month}`;
+        option.textContent = index === 0 ? `Current Month (${monthName})` : monthName;
+        selector.appendChild(option);
+    });
+    
+    selector.addEventListener('change', function() {
+        if (this.value === 'current') {
+            loadCommissionStats();
+        } else {
+            const [year, month] = this.value.split('-');
+            loadCommissionStats(parseInt(year), parseInt(month));
+        }
+    });
 }
 
 // Load users with no account type
@@ -47,13 +89,20 @@ async function loadUsersNoAccountType() {
 
 // Load commission stats on page load
 document.addEventListener('DOMContentLoaded', () => {
+    populateMonthSelector();
     loadCommissionStats();
     loadUsersNoAccountType();
 });
 
 // Refresh commission stats every 30 seconds
 setInterval(() => {
-    loadCommissionStats();
+    const selector = document.getElementById('month-selector');
+    if (selector.value === 'current') {
+        loadCommissionStats();
+    } else {
+        const [year, month] = selector.value.split('-');
+        loadCommissionStats(parseInt(year), parseInt(month));
+    }
     loadUsersNoAccountType();
 }, 30000);
 

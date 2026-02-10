@@ -1284,6 +1284,9 @@ def get_commission_stats():
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     try:
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+        
         total_deposits = list(payments_collection.aggregate([
             {'$match': {'status': 'completed', 'type': 'deposit'}},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
@@ -1303,9 +1306,22 @@ def get_commission_stats():
         
         # Calculate monthly commission
         now = get_current_utc_time()
-        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if year and month:
+            month_start = now.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
+            if month == 12:
+                month_end = month_start.replace(year=year+1, month=1)
+            else:
+                month_end = month_start.replace(month=month+1)
+        else:
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_end = None
+        
+        match_query = {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}
+        if month_end:
+            match_query['approved_at']['$lt'] = month_end
+        
         monthly_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}},
+            {'$match': match_query},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
