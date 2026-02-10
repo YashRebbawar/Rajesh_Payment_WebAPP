@@ -15,6 +15,8 @@ async function loadCommissionStats() {
             document.getElementById('total-platform-fee').textContent = '₹' + data.platform_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('total-deposits').textContent = '₹' + data.total_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('transaction-count').textContent = data.transaction_count;
+            document.getElementById('monthly-deposits').textContent = '₹' + data.monthly_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monthly-fee').textContent = '₹' + data.monthly_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('pending-platform-fee').textContent = '₹' + data.pending_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('pending-deposits').textContent = '₹' + data.pending_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }

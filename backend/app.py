@@ -572,6 +572,12 @@ def upload_screenshot(payment_id):
         if file.filename == '':
             return jsonify({'success': False, 'message': 'No file selected'})
         
+        # Validate file extension
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.heic', '.heif'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({'success': False, 'message': 'Invalid file format. Supported: JPG, PNG, GIF, BMP, WEBP, SVG, HEIC, HEIF'})
+        
         # Read and encode file as base64
         file_data = file.read()
         if len(file_data) > 5 * 1024 * 1024:  # 5MB limit
@@ -598,6 +604,10 @@ def simulate_payment(payment_id):
         payment = payments_collection.find_one({'_id': ObjectId(payment_id)})
         if not payment:
             return jsonify({'success': False, 'message': 'Payment not found'})
+        
+        # Validate screenshot is uploaded
+        if not payment.get('screenshot'):
+            return jsonify({'success': False, 'message': 'Screenshot is required to submit payment'})
         
         # Keep payment status as 'pending' until admin approves it
         payments_collection.update_one(
@@ -1291,13 +1301,26 @@ def get_commission_stats():
         pending_total = pending_deposits[0]['total'] if pending_deposits else 0
         pending_fee = pending_total * 0.014
         
+        # Calculate monthly commission
+        now = get_current_utc_time()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_deposits = list(payments_collection.aggregate([
+            {'$match': {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}},
+            {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
+        ]))
+        
+        monthly_amount = monthly_deposits[0]['total'] if monthly_deposits else 0
+        monthly_fee = monthly_amount * 0.014
+        
         return jsonify({
             'success': True,
             'total_deposits': round(total_amount, 2),
             'platform_fee': round(platform_fee, 2),
             'transaction_count': transaction_count,
             'pending_deposits': round(pending_total, 2),
-            'pending_fee': round(pending_fee, 2)
+            'pending_fee': round(pending_fee, 2),
+            'monthly_deposits': round(monthly_amount, 2),
+            'monthly_fee': round(monthly_fee, 2)
         })
     except Exception as e:
         logger.error(f"Error fetching commission stats: {e}")
