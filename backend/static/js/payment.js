@@ -21,6 +21,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const minAmount = accountType === 'standard' ? 1000 : 50000;
     const maxAmount = 100000;
 
+    // Payment method selection
+    let selectedPaymentMethod = 'upi';
+    const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
+    
+    paymentMethodOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            paymentMethodOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            selectedPaymentMethod = this.dataset.method;
+        });
+    });
+
     amountInput.addEventListener('input', function() {
         const value = parseFloat(this.value) || 0;
         const fee = value * 0.014;
@@ -49,7 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        showQRModal(amount, depositCurrency, accountId);
+        if (selectedPaymentMethod === 'upi') {
+            showQRModal(amount, depositCurrency, accountId);
+        } else {
+            showIMPSModal(amount, depositCurrency, accountId);
+        }
     });
 
     function showQRModal(amount, currency, accountId) {
@@ -62,6 +78,16 @@ document.addEventListener('DOMContentLoaded', function() {
         initializePaymentData(accountId, amount, currency);
     }
 
+    function showIMPSModal(amount, currency, accountId) {
+        const modal = document.getElementById('imps-modal');
+        const fee = amount * 0.014;
+        const total = amount + fee;
+        document.getElementById('imps-amount').textContent = total.toFixed(2);
+        document.getElementById('imps-currency').textContent = currency;
+        modal.style.display = 'block';
+        initializeIMPSPaymentData(accountId, amount, currency);
+    }
+
     function generateReference() {
         return 'PAY' + Date.now().toString().slice(-8);
     }
@@ -69,11 +95,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentPaymentId = null;
     let screenshotFile = null;
     let pendingPaymentData = null;
+    let impsScreenshotFile = null;
+    let pendingIMPSPaymentData = null;
 
     function initializePaymentData(accountId, amount, currency) {
         const reference = generateReference();
         document.getElementById('payment-ref').textContent = reference;
         pendingPaymentData = { accountId, amount, currency, reference };
+    }
+
+    function initializeIMPSPaymentData(accountId, amount, currency) {
+        const reference = generateReference();
+        document.getElementById('imps-payment-ref').textContent = reference;
+        pendingIMPSPaymentData = { accountId, amount, currency, reference };
     }
 
     document.getElementById('upload-screenshot-btn').addEventListener('click', function() {
@@ -188,13 +222,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('discard-confirm-btn').addEventListener('click', function() {
         document.getElementById('discard-modal').style.display = 'none';
         document.getElementById('qr-modal').style.display = 'none';
+        document.getElementById('imps-modal').style.display = 'none';
         currentPaymentId = null;
         screenshotFile = null;
         pendingPaymentData = null;
+        impsScreenshotFile = null;
+        pendingIMPSPaymentData = null;
         document.getElementById('screenshot-input').value = '';
         document.getElementById('screenshot-filename').style.display = 'none';
         document.getElementById('upload-screenshot-btn').style.display = 'flex';
         document.getElementById('confirm-payment-btn').disabled = true;
+        document.getElementById('imps-screenshot-input').value = '';
+        document.getElementById('imps-screenshot-filename').style.display = 'none';
+        document.getElementById('imps-upload-screenshot-btn').style.display = 'flex';
+        document.getElementById('imps-confirm-payment-btn').disabled = true;
     });
 
     const profileToggle = document.getElementById('profile-toggle');
@@ -210,6 +251,112 @@ document.addEventListener('DOMContentLoaded', function() {
         const wrapper = document.querySelector('.user-profile-wrapper');
         if (wrapper && !wrapper.contains(e.target)) {
             profileDropdown?.classList.remove('active');
+        }
+    });
+
+    // IMPS Modal handlers
+    document.getElementById('imps-upload-screenshot-btn').addEventListener('click', function() {
+        document.getElementById('imps-screenshot-input').click();
+    });
+
+    document.getElementById('imps-screenshot-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+            
+            impsScreenshotFile = file;
+            document.getElementById('imps-filename-text').textContent = file.name;
+            document.getElementById('imps-screenshot-filename').style.display = 'flex';
+            document.getElementById('imps-upload-screenshot-btn').style.display = 'none';
+            document.getElementById('imps-confirm-payment-btn').disabled = false;
+        }
+    });
+
+    document.getElementById('imps-remove-screenshot-btn').addEventListener('click', function() {
+        impsScreenshotFile = null;
+        document.getElementById('imps-screenshot-input').value = '';
+        document.getElementById('imps-screenshot-filename').style.display = 'none';
+        document.getElementById('imps-upload-screenshot-btn').style.display = 'flex';
+        document.getElementById('imps-confirm-payment-btn').disabled = true;
+    });
+
+    document.getElementById('imps-confirm-payment-btn').addEventListener('click', async function() {
+        if (!impsScreenshotFile || !pendingIMPSPaymentData) return;
+        
+        const btn = this;
+        btn.style.display = 'none';
+        document.getElementById('imps-payment-status').style.display = 'flex';
+        
+        try {
+            const initiateResponse = await fetch('/api/payment/initiate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    account_id: pendingIMPSPaymentData.accountId,
+                    amount: pendingIMPSPaymentData.amount,
+                    currency: depositCurrency,
+                    reference: pendingIMPSPaymentData.reference
+                })
+            });
+            
+            const initiateData = await initiateResponse.json();
+            if (!initiateData.success) {
+                alert('Error creating payment. Please try again.');
+                btn.style.display = 'block';
+                document.getElementById('imps-payment-status').style.display = 'none';
+                return;
+            }
+            
+            currentPaymentId = initiateData.payment_id;
+            
+            const formData = new FormData();
+            formData.append('screenshot', impsScreenshotFile);
+            
+            const uploadResponse = await fetch(`/api/payment/upload-screenshot/${currentPaymentId}`, {
+                method: 'POST',
+                body: formData
+            });
+            const uploadData = await uploadResponse.json();
+            
+            if (!uploadData.success) {
+                alert('Error uploading screenshot: ' + uploadData.message);
+                btn.style.display = 'block';
+                document.getElementById('imps-payment-status').style.display = 'none';
+                return;
+            }
+            
+            const response = await fetch(`/api/payment/simulate/${currentPaymentId}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('imps-modal').style.display = 'none';
+                document.getElementById('success-modal').style.display = 'block';
+            } else {
+                alert('Error processing payment. Please contact support.');
+                btn.style.display = 'block';
+                document.getElementById('imps-payment-status').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Payment confirmation error:', error);
+            alert('Error processing payment. Please contact support.');
+            btn.style.display = 'block';
+            document.getElementById('imps-payment-status').style.display = 'none';
+        }
+    });
+
+    document.querySelector('.imps-close').addEventListener('click', function() {
+        document.getElementById('discard-modal').style.display = 'block';
+    });
+
+    window.addEventListener('click', function(event) {
+        const impsModal = document.getElementById('imps-modal');
+        if (event.target === impsModal) {
+            document.getElementById('discard-modal').style.display = 'block';
         }
     });
 });
