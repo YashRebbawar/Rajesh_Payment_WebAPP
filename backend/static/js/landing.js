@@ -74,24 +74,31 @@ if (params.get('status') === 'registered') {
 
 const watchDemoBtn = document.getElementById('watch-demo-btn');
 const demoModal = document.getElementById('demo-modal');
-const demoBackdrop = document.getElementById('demo-backdrop');
 const demoClose = document.getElementById('demo-close');
 
 function openDemo() {
-    demoModal?.classList.add('active');
-    document.body.classList.add('no-scroll');
+    if (demoModal) {
+        demoModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 }
 function closeDemo() {
-    demoModal?.classList.remove('active');
-    document.body.classList.remove('no-scroll');
+    if (demoModal) {
+        demoModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        const video = demoModal.querySelector('video');
+        if (video) video.pause();
+    }
 }
 
 watchDemoBtn?.addEventListener('click', openDemo);
-demoBackdrop?.addEventListener('click', closeDemo);
+demoModal?.addEventListener('click', (e) => {
+    if (e.target === demoModal) closeDemo();
+});
 demoClose?.addEventListener('click', closeDemo);
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && demoModal?.classList.contains('active')) {
+    if (e.key === 'Escape' && demoModal && demoModal.style.display === 'flex') {
         closeDemo();
     }
 });
@@ -112,3 +119,20 @@ document.addEventListener('click', (e) => {
         mobileMenu.classList.remove('active');
     }
 });
+
+// Scroll animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, observerOptions);
+
+const scrollElements = document.querySelectorAll('.scroll-fade');
+scrollElements.forEach(el => observer.observe(el));

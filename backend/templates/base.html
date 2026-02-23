@@ -6,6 +6,8 @@
     <title>{% block title %}PrintFree - Trading Account Services{% endblock %}</title>
     <link rel="icon" type="image/png" sizes="40x40" href="{{ url_for('static', filename='images/Printfree_logo.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/Printfree_logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
@@ -17,7 +19,7 @@
 
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="bg-white text-gray-800">
     {% block content %}{% endblock %}
 </body>
 </html>

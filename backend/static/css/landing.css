@@ -136,6 +136,7 @@
   right: 0;
   bottom: 0;
   z-index: 1;
+  display: none;
 }
 
 .floating-shapes {
@@ -156,7 +157,7 @@
   height: 400px;
   top: 5%;
   left: 5%;
-  background: radial-gradient(circle, rgba(212, 165, 116, 0.12), rgba(212, 165, 116, 0.03));
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
   animation-delay: 0s;
 }
 
@@ -174,7 +175,7 @@
   height: 250px;
   bottom: 10%;
   left: 50%;
-  background: radial-gradient(circle, rgba(179, 157, 219, 0.08), rgba(179, 157, 219, 0.02));
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.01));
   animation-delay: 4s;
 }
 
@@ -205,7 +206,7 @@
   height: 70px;
   object-fit: contain;
   margin-bottom: 6%;
-  filter: drop-shadow(0 4px 12px rgba(212, 165, 116, 0.15));
+  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
 }
 
 .brand-name {
