@@ -21,12 +21,101 @@ document.addEventListener('DOMContentLoaded', function() {
     const minAmount = accountType === 'standard' ? 1000 : 50000;
     const maxAmount = 100000;
 
+    // Load maintenance status
+    let maintenanceStatus = { upi_maintenance: false, imps_maintenance: false };
+    
+    async function loadMaintenanceStatus() {
+        try {
+            const response = await fetch('/api/maintenance/status');
+            const data = await response.json();
+            if (data.success) {
+                maintenanceStatus = data;
+                updatePaymentMethodsUI();
+            }
+        } catch (error) {
+            console.error('Error loading maintenance status:', error);
+        }
+    }
+    
+    function updatePaymentMethodsUI() {
+        const upiOption = document.querySelector('[data-method="upi"]');
+        const impsOption = document.querySelector('[data-method="imps"]');
+        
+        if (maintenanceStatus.upi_maintenance) {
+            upiOption.classList.add('maintenance-mode');
+            upiOption.style.opacity = '0.5';
+            upiOption.style.cursor = 'not-allowed';
+            if (upiOption.classList.contains('active')) {
+                upiOption.classList.remove('active');
+                if (!maintenanceStatus.imps_maintenance) {
+                    impsOption.classList.add('active');
+                    selectedPaymentMethod = 'imps';
+                }
+            }
+        } else {
+            upiOption.classList.remove('maintenance-mode');
+            upiOption.style.opacity = '1';
+            upiOption.style.cursor = 'pointer';
+        }
+        
+        if (maintenanceStatus.imps_maintenance) {
+            impsOption.classList.add('maintenance-mode');
+            impsOption.style.opacity = '0.5';
+            impsOption.style.cursor = 'not-allowed';
+            if (impsOption.classList.contains('active')) {
+                impsOption.classList.remove('active');
+                if (!maintenanceStatus.upi_maintenance) {
+                    upiOption.classList.add('active');
+                    selectedPaymentMethod = 'upi';
+                }
+            }
+        } else {
+            impsOption.classList.remove('maintenance-mode');
+            impsOption.style.opacity = '1';
+            impsOption.style.cursor = 'pointer';
+        }
+        
+        if (maintenanceStatus.upi_maintenance && maintenanceStatus.imps_maintenance) {
+            payButton.disabled = true;
+            payButton.textContent = 'Payment methods under maintenance';
+        }
+    }
+    
+    loadMaintenanceStatus();
+
+    function showMaintenanceAlert(method) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'maintenance-alert';
+        alertDiv.innerHTML = `
+            <div class="maintenance-alert-content">
+                <div class="maintenance-alert-icon">🔧</div>
+                <div class="maintenance-alert-text">
+                    <h3>${method} is currently under maintenance</h3>
+                    <p>Please try another payment method.</p>
+                </div>
+                <button class="maintenance-alert-close" onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.classList.add('show'), 10);
+        setTimeout(() => {
+            alertDiv.classList.remove('show');
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 4000);
+    }
+
     // Payment method selection
     let selectedPaymentMethod = 'upi';
     const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
     
     paymentMethodOptions.forEach(option => {
         option.addEventListener('click', function() {
+            const method = this.dataset.method;
+            if ((method === 'upi' && maintenanceStatus.upi_maintenance) || 
+                (method === 'imps' && maintenanceStatus.imps_maintenance)) {
+                showMaintenanceAlert(method.toUpperCase());
+                return;
+            }
             paymentMethodOptions.forEach(opt => opt.classList.remove('active'));
             this.classList.add('active');
             selectedPaymentMethod = this.dataset.method;
@@ -58,6 +147,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!amount || amount < minAmount) {
             alert(`Please enter an amount of at least ${minAmount} ${depositCurrency}`);
+            return;
+        }
+        
+        if ((selectedPaymentMethod === 'upi' && maintenanceStatus.upi_maintenance) || 
+            (selectedPaymentMethod === 'imps' && maintenanceStatus.imps_maintenance)) {
+            showMaintenanceAlert(selectedPaymentMethod.toUpperCase());
             return;
         }
 

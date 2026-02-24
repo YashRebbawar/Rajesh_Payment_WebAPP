@@ -65,6 +65,7 @@ accounts_collection = db.trading_accounts
 payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
+maintenance_collection = db.maintenance
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
@@ -1360,6 +1361,67 @@ def get_users_no_account_type():
         return jsonify({'success': True, 'count': len(users_with_no_type), 'users': users_with_no_type})
     except Exception as e:
         logger.error(f"Error fetching users with no account type: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/maintenance/status', methods=['GET'])
+def get_maintenance_status():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        settings = maintenance_collection.find_one({'_id': 'payment_methods'})
+        if not settings:
+            settings = {'upi_maintenance': False, 'imps_maintenance': False}
+        return jsonify({
+            'success': True,
+            'upi_maintenance': settings.get('upi_maintenance', False),
+            'imps_maintenance': settings.get('imps_maintenance', False)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching maintenance status: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/maintenance/toggle', methods=['POST'])
+def toggle_maintenance():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json
+        method = data.get('method')
+        enabled = data.get('enabled')
+        
+        if method not in ['upi', 'imps']:
+            return jsonify({'success': False, 'message': 'Invalid method'}), 400
+        
+        field = f'{method}_maintenance'
+        maintenance_collection.update_one(
+            {'_id': 'payment_methods'},
+            {'$set': {field: enabled}},
+            upsert=True
+        )
+        
+        logger.info(f"Admin {user['email']} toggled {method} maintenance to {enabled}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error toggling maintenance: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/maintenance/status', methods=['GET'])
+def get_public_maintenance_status():
+    try:
+        settings = maintenance_collection.find_one({'_id': 'payment_methods'})
+        if not settings:
+            settings = {'upi_maintenance': False, 'imps_maintenance': False}
+        return jsonify({
+            'success': True,
+            'upi_maintenance': settings.get('upi_maintenance', False),
+            'imps_maintenance': settings.get('imps_maintenance', False)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching public maintenance status: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/health')

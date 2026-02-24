@@ -92,6 +92,63 @@ document.addEventListener('DOMContentLoaded', () => {
     populateMonthSelector();
     loadCommissionStats();
     loadUsersNoAccountType();
+    loadMaintenanceStatus();
+});
+
+// Load maintenance status
+async function loadMaintenanceStatus() {
+    try {
+        const response = await fetch('/api/admin/maintenance/status');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('upi-maintenance-toggle').checked = data.upi_maintenance;
+            document.getElementById('imps-maintenance-toggle').checked = data.imps_maintenance;
+        }
+    } catch (error) {
+        console.error('Error loading maintenance status:', error);
+    }
+}
+
+// Toggle maintenance mode
+async function toggleMaintenance(method, enabled) {
+    try {
+        const response = await fetch('/api/admin/maintenance/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ method, enabled })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccessMessage(`${method.toUpperCase()} maintenance mode ${enabled ? 'enabled' : 'disabled'}`);
+        } else {
+            showErrorMessage('Error: ' + data.message);
+            loadMaintenanceStatus();
+        }
+    } catch (error) {
+        console.error('Error toggling maintenance:', error);
+        showErrorMessage('Failed to toggle maintenance mode');
+        loadMaintenanceStatus();
+    }
+}
+
+// Add event listeners for maintenance toggles
+document.addEventListener('DOMContentLoaded', () => {
+    const upiToggle = document.getElementById('upi-maintenance-toggle');
+    const impsToggle = document.getElementById('imps-maintenance-toggle');
+    
+    if (upiToggle) {
+        upiToggle.addEventListener('change', function() {
+            toggleMaintenance('upi', this.checked);
+        });
+    }
+    
+    if (impsToggle) {
+        impsToggle.addEventListener('change', function() {
+            toggleMaintenance('imps', this.checked);
+        });
+    }
 });
 
 // Refresh commission stats every 30 seconds
