@@ -26,7 +26,7 @@ async function updateStats() {
         const data = await response.json();
         if (data.success) {
             const usersEl = document.getElementById('total-users');
-            const depositedEl = document.getElementById('total-deposited');
+            const depositedEl = document.getElementById('stats-total-deposited');
             if (usersEl) usersEl.textContent = data.total_users.toLocaleString();
             if (depositedEl) depositedEl.textContent = '₹' + data.total_deposited.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
