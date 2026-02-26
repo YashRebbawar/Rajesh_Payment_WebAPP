@@ -52,13 +52,14 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // ─── Count up ────────────────────────────────────────────────
-function countUp(el, target, duration) {
+function countUp(el, target, duration, formatter) {
   let start = 0;
   const step = target / (duration / 16);
+  const formatValue = formatter || (value => Math.floor(value).toLocaleString());
   const timer = setInterval(() => {
     start += step;
     if (start >= target) { start = target; clearInterval(timer); }
-    el.textContent = Math.floor(start).toLocaleString();
+    el.textContent = formatValue(start);
   }, 16);
 }
 const tradersObs = new IntersectionObserver(entries => {
@@ -68,7 +69,12 @@ const tradersObs = new IntersectionObserver(entries => {
       .then(data => {
         if (data.success) {
           countUp(document.getElementById('countTraders'), data.total_users, 1500);
-          countUp(document.getElementById('countDeposits'), data.total_deposited, 1500);
+          countUp(
+            document.getElementById('countDeposits'),
+            data.total_deposited,
+            1500,
+            value => Math.floor(value).toLocaleString('en-IN')
+          );
         }
       })
       .catch(() => {

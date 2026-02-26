@@ -42,9 +42,9 @@ document.getElementById('google-signin').addEventListener('click',function(){
 
 // Pair configs
 const PAIRS = {
-  EURUSD: { base:1.08452, pip:0.0001, dec:5, label:'EUR / USD · SPOT', vol:'2.4M' },
-  XAUUSD: { base:2041.50, pip:0.10,   dec:2, label:'XAU / USD · SPOT', vol:'840K' },
-  BTCUSD: { base:52440,   pip:1,       dec:0, label:'BTC / USD · SPOT', vol:'320K' },
+  EURUSD: { base:1.17000, pip:0.0001, dec:5, label:'EUR / USD · SPOT', vol:'2.4M' },
+  XAUUSD: { base:4939.19, pip:0.10,   dec:2, label:'XAU / USD · SPOT', vol:'840K' },
+  BTCUSD: { base:112228,  pip:1,       dec:0, label:'BTC / USD · SPOT', vol:'320K' },
 };
 
 let activePair = 'XAUUSD';
