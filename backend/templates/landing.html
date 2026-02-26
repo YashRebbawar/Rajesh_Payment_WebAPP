@@ -18,10 +18,10 @@
 <nav id="navbar">
   <div class="nav-logo">Print<span>Free</span></div>
   <ul class="nav-links">
-    <li><a href="#">Invest</a></li>
-    <li><a href="#">Markets</a></li>
-    <li><a href="#">Pricing</a></li>
-    <li><a href="#">Learn</a></li>
+    <li><a href="#features">Invest</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#testimonials">Testimonials</a></li>
+    <li><a href="#faq">FAQ</a></li>
   </ul>
   <div class="nav-cta">
     
@@ -34,10 +34,10 @@
 
 <!-- Mobile Nav Overlay -->
 <div class="mobile-nav" id="mobileNav">
-  <a href="#" onclick="closeMobileNav()">Invest</a>
-  <a href="#" onclick="closeMobileNav()">Markets</a>
-  <a href="#" onclick="closeMobileNav()">Pricing</a>
-  <a href="#" onclick="closeMobileNav()">Learn</a>
+  <a href="#features" onclick="closeMobileNav()">Invest</a>
+  <a href="#security" onclick="closeMobileNav()">Security</a>
+  <a href="#testimonials" onclick="closeMobileNav()">Testimonials</a>
+  <a href="#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
   </div>
@@ -103,7 +103,7 @@
           </div>
           <div>
             <div class="notif-title">Order Filled</div>
-            <div class="notif-val">Bought 5 TSLA</div>
+            <div class="notif-val">Bought 1 Lot XAUUSD</div>
           </div>
         </div>
 
@@ -112,8 +112,8 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           </div>
           <div>
-            <div class="notif-title">Dividend</div>
-            <div class="notif-val" style="color:#16a34a;">+$42.30 AAPL</div>
+            <div class="notif-title">Profit</div>
+            <div class="notif-val" style="color:#16a34a;">+$462.30</div>
           </div>
         </div>
 
@@ -173,15 +173,15 @@
 
               <div class="holding">
                 <div class="holding-left">
-                  <div class="holding-icon" style="background:#3b82f6;">A</div>
+                  <div class="holding-icon" style="background:#f59e0b;">X</div>
                   <div>
-                    <div class="holding-name">AAPL</div>
-                    <div class="holding-shares">12.3 shares</div>
+                    <div class="holding-name">XAUUSD</div>
+                    <div class="holding-shares">12 Lot</div>
                   </div>
                 </div>
                 <div>
-                  <div class="holding-price">$2,845</div>
-                  <div class="holding-change">+1.39%</div>
+                  <div class="holding-price">$28,458</div>
+                  <div class="holding-change">+14.39%</div>
                 </div>
               </div>
 
@@ -190,26 +190,26 @@
                   <div class="holding-icon" style="background:#f59e0b;">₿</div>
                   <div>
                     <div class="holding-name">BTC</div>
-                    <div class="holding-shares">0.42 BTC</div>
+                    <div class="holding-shares">5 Lot</div>
                   </div>
                 </div>
                 <div>
-                  <div class="holding-price">$44,054</div>
+                  <div class="holding-price">$15,324</div>
                   <div class="holding-change">+2.28%</div>
                 </div>
               </div>
 
               <div class="holding">
                 <div class="holding-left">
-                  <div class="holding-icon" style="background:#10b981;">N</div>
+                  <div class="holding-icon" style="background:#10b981;">U</div>
                   <div>
-                    <div class="holding-name">NVDA</div>
-                    <div class="holding-shares">3.2 shares</div>
+                    <div class="holding-name">USOIL</div>
+                    <div class="holding-shares">1 Lot</div>
                   </div>
                 </div>
                 <div>
-                  <div class="holding-price">$440</div>
-                  <div class="holding-change">+4.11%</div>
+                  <div class="holding-price">$3,600</div>
+                  <div class="holding-change">+1.11%</div>
                 </div>
               </div>
 
@@ -270,7 +270,7 @@
 </div>
 
 <!-- FEATURES -->
-<div class="section">
+<div class="section" id="features">
   <div class="reveal">
     <div class="section-label">What we offer</div>
     <h2 class="section-title">MT5 Accounts <em>Without</em><br>Restrictions</h2>
@@ -309,7 +309,7 @@
 </div>
 
 <!-- SECURITY -->
-<div class="security-section">
+<div class="security-section" id="security">
   <div class="security-inner">
     <div class="reveal">
       <div class="section-label" style="color:#86efac;">Security</div>
@@ -364,7 +364,7 @@
 </div>
 
 <!-- TESTIMONIALS -->
-<div class="testimonials-wrap">
+<div class="testimonials-wrap" id="testimonials">
   <div class="testimonials-inner">
     <div class="reveal">
       <div class="section-label">Testimonials</div>
@@ -394,27 +394,43 @@
 </div>
 
 <!-- FAQ -->
-<div class="faq-section">
+<div class="faq-section" id="faq">
   <div class="reveal" style="text-align:center;margin-bottom:60px;">
     <div class="section-label" style="justify-content:center;">FAQ</div>
     <h2 class="section-title" style="letter-spacing:-1.5px;">Frequently Asked<br><em>Questions</em></h2>
   </div>
 
   <div class="faq-item reveal" onclick="toggleFaq(this)">
-    <div class="faq-question">Why choose our MT5 accounts? <span class="faq-toggle">+</span></div>
-    <div class="faq-answer">We provide hassle-free MT5 trading from Dubai with zero account freeze restrictions, instant setup, and 24/7 live support. Our Dubai partnership gives you access to global markets without the typical broker headaches.</div>
+    <div class="faq-question">How do I create an MT5 trading account? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">Simply register on PrintFree, choose your account type (Standard, Pro, Raw Spread, or Zero), set your preferred currency, leverage, and platform. Your account will be created instantly and MT5 credentials will be provided by our admin team.</div>
   </div>
   <div class="faq-item reveal" onclick="toggleFaq(this)">
-    <div class="faq-question">How is my money protected? <span class="faq-toggle">+</span></div>
-    <div class="faq-answer">Your funds are held in fully segregated accounts with bank-level security, 256-bit SSL encryption, and two-factor authentication. We maintain 100% transparency on all operations.</div>
+    <div class="faq-question">What payment methods are supported for deposits? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">We support UPI and IMPS for instant deposits in INR. For USD accounts, deposits are accepted in INR and converted automatically. Simply upload your payment screenshot after transfer for quick verification.</div>
   </div>
   <div class="faq-item reveal" onclick="toggleFaq(this)">
-    <div class="faq-question">What instruments can I trade? <span class="faq-toggle">+</span></div>
-    <div class="faq-answer">Trade forex pairs, commodities (gold, oil, silver), global indices (S&P, NASDAQ, FTSE), cryptocurrencies, and more — all from a single MT5 account with deep liquidity.</div>
+    <div class="faq-question">How long does it take to process withdrawals? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">Withdrawal requests are processed within 24 hours after admin approval. Funds are transferred directly to your UPI ID or bank account. You'll receive notifications once your withdrawal is approved and completed.</div>
   </div>
   <div class="faq-item reveal" onclick="toggleFaq(this)">
-    <div class="faq-question">How quickly can I start trading? <span class="faq-toggle">+</span></div>
-    <div class="faq-answer">Account verification and setup takes just minutes. Fund your account via multiple payment methods and start trading immediately — no waiting periods.</div>
+    <div class="faq-question">Can I have multiple trading accounts? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">Yes, you can create up to 3 MT5 trading accounts with different configurations. Each account can have different currency, leverage, and account types to suit your trading strategies.</div>
+  </div>
+  <div class="faq-item reveal" onclick="toggleFaq(this)">
+    <div class="faq-question">What leverage options are available? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">We offer flexible leverage from 1:1 up to 1:Unlimited depending on your account type and trading experience. Choose the leverage that matches your risk tolerance and trading style.</div>
+  </div>
+  <div class="faq-item reveal" onclick="toggleFaq(this)">
+    <div class="faq-question">Is my trading data and funds secure? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">Absolutely. We use bank-level security with 256-bit SSL encryption. All transactions are monitored, and your personal information is protected. Our Dubai-based partnership ensures regulatory compliance and fund safety.</div>
+  </div>
+  <div class="faq-item reveal" onclick="toggleFaq(this)">
+    <div class="faq-question">What trading instruments can I access? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">Trade forex pairs (EURUSD, GBPUSD, etc.), commodities (Gold/XAUUSD, Oil/USOIL, Silver), cryptocurrencies (Bitcoin, Ethereum), and global indices (S&P 500, NASDAQ) — all from your MT5 platform.</div>
+  </div>
+  <div class="faq-item reveal" onclick="toggleFaq(this)">
+    <div class="faq-question">How do I get my MT5 login credentials? <span class="faq-toggle">+</span></div>
+    <div class="faq-answer">After creating your account, our admin team will assign your MT5 login ID and server details. You'll receive a notification in your dashboard once your credentials are ready. You can then login to MT5 using these credentials.</div>
   </div>
 </div>
 
