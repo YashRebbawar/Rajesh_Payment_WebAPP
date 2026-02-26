@@ -232,9 +232,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .mobile-logo-name span{color:var(--green);}
 
 @media(max-width:900px){
-  .auth-page{grid-template-columns:1fr;}
+  .auth-page{grid-template-columns:1fr;min-height:auto;}
   .auth-left{display:none;}
-  .auth-right{padding:24px 24px 48px;justify-content:flex-start;}
+  .auth-right{padding:24px 24px 48px;justify-content:flex-start;min-height:auto;}
   .mobile-logo{display:flex;}
   .form-wrap{max-width:460px;margin-top:28px;}
 }

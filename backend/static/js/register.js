@@ -57,8 +57,8 @@ const PAIRS={
   XAUUSD:{base:2041.50,pip:0.10,dec:2,label:'XAU / USD · SPOT',vol:'840K'},
   BTCUSD:{base:52440,pip:1,dec:0,label:'BTC / USD · SPOT',vol:'320K'},
 };
-let activePair='EURUSD';
-let currentPrice=PAIRS.EURUSD.base;
+let activePair='XAUUSD';
+let currentPrice=PAIRS.XAUUSD.base;
 let candles=[];let candleTick=0;
 
 function initCandles(pair){
@@ -73,15 +73,6 @@ function initCandles(pair){
   currentPrice=p;candleTick=0;
 }
 
-function updateClock(){
-  const now=new Date();
-  const h=String(now.getUTCHours()).padStart(2,'0');
-  const m=String(now.getUTCMinutes()).padStart(2,'0');
-  const s=String(now.getUTCSeconds()).padStart(2,'0');
-  document.getElementById('clockLabel').textContent=`UTC ${h}:${m}:${s}`;
-}
-setInterval(updateClock,1000);updateClock();
-
 const canvas=document.getElementById('chartCanvas');
 const ctx=canvas.getContext('2d');
 function resizeCanvas(){
@@ -92,6 +83,8 @@ function resizeCanvas(){
 }
 function drawChart(){
   resizeCanvas();const W=canvas.clientWidth;const H=110;
+  const RIGHT_GUTTER=44;
+  const plotW=Math.max(10,W-RIGHT_GUTTER);
   ctx.clearRect(0,0,W,H);
   const visible=candles.slice(-36);
   const prices=visible.flatMap(c=>[c.h,c.l]);
@@ -108,7 +101,7 @@ function drawChart(){
     d.textContent=val.toFixed(PAIRS[activePair].dec>2?4:2);
     labels.appendChild(d);
   }
-  const cw=(W-4)/visible.length;
+  const cw=(plotW-4)/visible.length;
   visible.forEach((c,i)=>{
     const x=i*cw+cw/2;const isUp=c.c>=c.o;
     const col=isUp?'#4ade80':'#f87171';
@@ -123,7 +116,7 @@ function drawChart(){
   });
   const py=toY(currentPrice);
   ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
-  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(plotW,py);ctx.stroke();ctx.setLineDash([]);
   const cfg=PAIRS[activePair];const tag=currentPrice.toFixed(cfg.dec>2?4:2);
   const tw=ctx.measureText(tag).width+10;
   ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(W-tw-2,py-8,tw,16);
@@ -204,6 +197,6 @@ function switchPair(btn,pair){
   document.getElementById('feedRows').innerHTML='';
   initCandles(pair);drawChart();renderBook();
 }
-initCandles('EURUSD');drawChart();renderBook();addFeedRow(currentPrice,true);
+initCandles('XAUUSD');drawChart();renderBook();addFeedRow(currentPrice,true);
 setInterval(tick,600);
 window.addEventListener('resize',drawChart);

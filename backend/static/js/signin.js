@@ -47,8 +47,8 @@ const PAIRS = {
   BTCUSD: { base:52440,   pip:1,       dec:0, label:'BTC / USD · SPOT', vol:'320K' },
 };
 
-let activePair = 'EURUSD';
-let currentPrice = PAIRS.EURUSD.base;
+let activePair = 'XAUUSD';
+let currentPrice = PAIRS.XAUUSD.base;
 let candles = [];   // {o,h,l,c}
 let candleTick = 0;
 
@@ -71,16 +71,6 @@ function initCandles(pair){
   candleTick = 0;
 }
 
-// Clock
-function updateClock(){
-  const now = new Date();
-  const h=String(now.getUTCHours()).padStart(2,'0');
-  const m=String(now.getUTCMinutes()).padStart(2,'0');
-  const s=String(now.getUTCSeconds()).padStart(2,'0');
-  document.getElementById('clockLabel').textContent=`UTC ${h}:${m}:${s}`;
-}
-setInterval(updateClock,1000);updateClock();
-
 // Canvas chart
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
@@ -98,6 +88,8 @@ function drawChart(){
   resizeCanvas();
   const W = canvas.clientWidth;
   const H = 110;
+  const RIGHT_GUTTER = 44;
+  const plotW = Math.max(10, W - RIGHT_GUTTER);
   ctx.clearRect(0,0,W,H);
 
   const visible = candles.slice(-36);
@@ -126,7 +118,7 @@ function drawChart(){
     labels.appendChild(d);
   }
 
-  const cw = (W-4)/visible.length;
+  const cw = (plotW-4)/visible.length;
 
   visible.forEach((c,i)=>{
     const x = i*cw + cw/2;
@@ -152,7 +144,7 @@ function drawChart(){
   // Current price line
   const py=toY(currentPrice);
   ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
-  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(plotW,py);ctx.stroke();
   ctx.setLineDash([]);
 
   // Price tag
@@ -273,7 +265,7 @@ function switchPair(btn,pair){
 }
 
 // Init
-initCandles('EURUSD');
+initCandles('XAUUSD');
 drawChart();
 renderBook();
 addFeedRow(currentPrice,true);
