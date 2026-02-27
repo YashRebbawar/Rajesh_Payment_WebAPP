@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+<script>document.body.classList.add('my-accounts-page');</script>
 <nav id="navbar" class="my-accounts-nav">
     <a href="/" class="nav-logo">Print<span>Free</span></a>
     <ul class="nav-links">
@@ -87,7 +88,10 @@
 
 <div class="my-accounts-container">
     <div class="my-accounts-header">
-        <h1>My accounts</h1>
+        <div class="my-accounts-header-copy">
+            <h1>My accounts</h1>
+            <p class="my-accounts-subtitle">Track balances, manage funding, and monitor account status in one place.</p>
+        </div>
         <div class="header-actions">
             {% if pending_payments %}
             <div class="pending-dropdown-wrapper">
