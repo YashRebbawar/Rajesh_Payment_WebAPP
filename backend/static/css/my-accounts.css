@@ -151,10 +151,10 @@ body.my-accounts-page {
 }
 
 .my-accounts-container {
-    max-width: 1320px;
+    width: calc(100% - 64px);
+    max-width: 1160px;
     margin: 0 auto;
-    width: 100%;
-    padding: 152px 28px 72px;
+    padding: 152px 0 72px;
 }
 
 .my-accounts-nav {
@@ -861,8 +861,7 @@ body.my-accounts-page {
 }
 
 @media (max-width: 768px) {
-    .header-content,
-    .my-accounts-container {
+    .header-content {
         padding-left: 16px;
         padding-right: 16px;
     }
@@ -992,6 +991,12 @@ body.my-accounts-page {
         border-radius: 18px;
     }
 
+    .my-accounts-container {
+        width: calc(100% - 20px);
+        padding-left: 0;
+        padding-right: 0;
+    }
+
     .my-accounts-nav .nav-logo {
         font-size: 1.2rem;
     }
@@ -1008,9 +1013,15 @@ body.my-accounts-page {
 
 @media (max-width: 480px) {
     .my-accounts-nav {
-        width: calc(100% - 14px);
+        width: calc(100% - 24px);
         top: 6px;
         padding: 8px 10px;
+    }
+
+    .my-accounts-container {
+        width: calc(100% - 24px);
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .my-accounts-nav .nav-logo {
