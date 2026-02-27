@@ -24,8 +24,11 @@
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <div class="nav-cta">
-    
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'">Get Started →</button>
+    {% endif %}
   </div>
   <button class="hamburger" id="hamburger" aria-label="Toggle menu">
     <span></span><span></span><span></span>
@@ -39,7 +42,11 @@
   <a href="#testimonials" onclick="closeMobileNav()">Testimonials</a>
   <a href="#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
+    {% endif %}
   </div>
 </div>
 

@@ -657,7 +657,12 @@ body.my-accounts-page {
     align-items: center;
     gap: 8px;
     font-size: 0.82rem;
-    color: var(--ink-60);
+    font-weight: 600;
+    color: var(--green);
+    background: var(--green-bg);
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(45, 122, 79, 0.2);
 }
 
 .mt-pending-status svg {
