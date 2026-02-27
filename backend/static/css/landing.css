@@ -84,7 +84,7 @@ body {
 
 /* ─── NAVBAR ────────────────────────────────────────────────── */
 nav {
-  position: fixed; top: 28px; left: 50%; transform: translateX(-50%);
+  position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
   width: calc(100% - 64px); max-width: 1160px;
   background: rgba(247,246,242,0.75);
   backdrop-filter: blur(20px) saturate(180%);
@@ -97,7 +97,7 @@ nav {
   transition: all 0.4s;
 }
 nav.scrolled {
-  top: 12px;
+  top: 22px;
   background: rgba(247,246,242,0.95);
   box-shadow: 0 8px 40px rgba(26,21,16,0.12);
 }
@@ -107,6 +107,8 @@ nav.scrolled {
   font-size: 22px;
   color: var(--ink);
   letter-spacing: -0.5px;
+  text-decoration: none;
+  cursor: pointer;
 }
 .nav-logo span { color: var(--green); }
 .nav-links {
@@ -1132,7 +1134,7 @@ footer {
 @media (max-width: 1024px) {
   /* Nav */
   nav {
-    top: 16px;
+    top: 22px;
     width: calc(100% - 32px);
     padding: 12px 20px;
   }
@@ -1195,7 +1197,7 @@ footer {
 @media (max-width: 640px) {
   /* Nav */
   nav {
-    top: 10px;
+    top: 15px;
     width: calc(100% - 24px);
     padding: 11px 18px;
     border-radius: 20px;

@@ -1,3 +1,34 @@
+// ─── Hamburger menu ──────────────────────────────────────────
+const hamburger = document.getElementById('hamburger');
+const mobileNav = document.getElementById('mobileNav');
+
+function closeMobileNav() {
+  if (hamburger && mobileNav) {
+    hamburger.classList.remove('open');
+    mobileNav.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+if (hamburger && mobileNav) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+}
+
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
+
+// ─── Navbar scroll ───────────────────────────────────────────
+const navbar = document.getElementById('navbar');
+if (navbar) {
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+  });
+}
+
 function updateTime() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -59,11 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
             openButton.textContent = `Open ${accountType} Account`;
             actionSection.style.display = 'block';
             
-            if (window.innerWidth <= 768) {
-                setTimeout(() => {
-                    actionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            }
+            setTimeout(() => {
+                openButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         });
     });
 
@@ -98,6 +127,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 
 function editName() {
     document.getElementById('name-display').style.display = 'none';

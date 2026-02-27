@@ -1,6 +1,31 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     /* ═══════════════════════════════════════════
+       HAMBURGER MENU & NAVBAR
+    ═══════════════════════════════════════════ */
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+    const navbar = document.getElementById('navbar');
+
+    if (hamburger && mobileNav) {
+        hamburger.addEventListener('click', () => {
+            const isOpen = hamburger.classList.toggle('open');
+            mobileNav.classList.toggle('open', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && mobileNav) closeMobileNav(); });
+
+    // Navbar scroll
+    if (navbar) {
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 60);
+        });
+    }
+
+    /* ═══════════════════════════════════════════
        ELEMENT REFS
     ═══════════════════════════════════════════ */
     const backButton       = document.getElementById('back-button');
@@ -275,6 +300,16 @@ document.addEventListener('DOMContentLoaded', function () {
    HELPERS (outside DOMContentLoaded so they
    can be called from inline onclick attrs too)
 ═══════════════════════════════════════════ */
+function closeMobileNav() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileNav = document.getElementById('mobileNav');
+    if (hamburger && mobileNav) {
+        hamburger.classList.remove('open');
+        mobileNav.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+}
+
 function formatMemberSince(isoString) {
     const date = new Date(isoString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

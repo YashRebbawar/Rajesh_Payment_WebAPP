@@ -2,8 +2,47 @@
 
 {% block title %}Account Selection - PrintFree{% endblock %}
 
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cabinet+Grotesk:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/accounts.css') }}">
+
+<nav id="navbar">
+  <a href="/" class="nav-logo">Print<span>Free</span></a>
+  <ul class="nav-links">
+    <li><a href="/#features">Invest</a></li>
+    <li><a href="/#security">Security</a></li>
+    <li><a href="/#testimonials">Testimonials</a></li>
+    <li><a href="/#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    {% else %}
+    <button class="btn-pill" onclick="window.location.href='/signin'">Get Started →</button>
+    {% endif %}
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="/#features" onclick="closeMobileNav()">Invest</a>
+  <a href="/#security" onclick="closeMobileNav()">Security</a>
+  <a href="/#testimonials" onclick="closeMobileNav()">Testimonials</a>
+  <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
+  <div class="mobile-nav-cta">
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    {% else %}
+    <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
+    {% endif %}
+  </div>
+</div>
 
 <div class="account-container">
   <!-- Floating ambient blobs -->
@@ -13,51 +52,7 @@
     <div class="account-shape account-shape-3"></div>
   </div>
 
-  <!-- Profile dropdown -->
-  {% if user %}
-  <div class="auth-buttons">
-    <div class="user-profile-wrapper">
-      <button class="profile-icon-btn" id="profile-toggle">
-        <div class="profile-icon">{{ user.email[0].upper() }}</div>
-      </button>
-      <div class="profile-dropdown" id="profile-dropdown">
-        <div class="profile-card-wrapper">
-          <div class="profile-card-main">
-            <div class="profile-card-header">
-              <div class="profile-card-header-left">Trading Account</div>
-              <div class="profile-card-header-right">
-                <div class="profile-time-icon">⏱</div>
-                <span id="current-time"></span>
-              </div>
-            </div>
-            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
-              <div class="profile-card-avatar">{{ user.email[0].upper() }}</div>
-              <div class="profile-card-name-block">
-                <div class="profile-card-status-row">
-                  <span class="profile-status-dot"></span>
-                  <span>{{ user.email }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="profile-card-actions">
-              <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
-                <span>My Account</span>
-              </button>
-              <button class="profile-card-btn" onclick="window.location.href='/logout'">
-                <span class="profile-card-btn-icon">▢</span>
-                <span>Log out</span>
-              </button>
-            </div>
-          </div>
-          <div class="profile-intensity-card">
-            <span>Member Since:</span>
-            <span id="member-since"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
+
 
   <!-- Back -->
   <button type="button" class="back-button" id="back-button" aria-label="Go back">

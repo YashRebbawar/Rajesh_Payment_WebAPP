@@ -30,6 +30,139 @@ html, body {
   overflow-x: hidden;
 }
 
+/* ── NAVBAR ────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 64px); max-width: 1160px;
+  background: rgba(247,246,242,0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 500;
+  box-shadow: 0 4px 24px rgba(26,21,16,0.07);
+  transition: all 0.4s;
+}
+nav.scrolled {
+  top: 22px;
+  background: rgba(247,246,242,0.95);
+  box-shadow: 0 8px 40px rgba(26,21,16,0.12);
+}
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.nav-logo span { color: var(--green); }
+.nav-links {
+  display: flex; gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 13px; font-weight: 500;
+  color: var(--ink-45);
+  text-decoration: none;
+  transition: color 0.2s;
+  letter-spacing: 0.01em;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta {
+  display: flex; gap: 10px; align-items: center;
+}
+.btn-pill {
+  font-size: 13px; font-weight: 700;
+  color: #fff;
+  background: var(--green);
+  border: none; cursor: pointer;
+  padding: 10px 22px;
+  border-radius: 100px;
+  transition: all 0.25s;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  box-shadow: 0 4px 16px rgba(45,122,79,0.3);
+}
+.btn-pill:hover {
+  background: var(--green-lt);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(45,122,79,0.35);
+}
+
+/* ── HAMBURGER MENU ────────────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 600;
+}
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(247,246,242,0.98);
+  backdrop-filter: blur(24px);
+  z-index: 499;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.mobile-nav.open {
+  display: flex;
+  opacity: 1;
+}
+.mobile-nav a {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: -1.5px;
+  padding: 8px 24px;
+  transition: color 0.2s;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: mobileNavIn 0.4s ease forwards;
+}
+.mobile-nav a:nth-child(1) { animation-delay: 0.05s; }
+.mobile-nav a:nth-child(2) { animation-delay: 0.10s; }
+.mobile-nav a:nth-child(3) { animation-delay: 0.15s; }
+.mobile-nav a:nth-child(4) { animation-delay: 0.20s; }
+.mobile-nav a:hover { color: var(--green); }
+@keyframes mobileNavIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+.mobile-nav-cta {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-top: 24px;
+  opacity: 0;
+  animation: mobileNavIn 0.4s 0.25s ease forwards;
+}
+.mobile-nav-cta .btn-pill {
+  font-size: 15px;
+  padding: 14px 36px;
+}
+
 /* Ambient background */
 body::before {
   content: '';
@@ -416,6 +549,16 @@ body::after {
 
 /* ════ RESPONSIVE ════ */
 @media (max-width: 1024px) {
+  /* Nav */
+  nav {
+    top: 22px;
+    width: calc(100% - 32px);
+    padding: 12px 20px;
+  }
+  .nav-links { display: none; }
+  .nav-cta { display: none; }
+  .hamburger { display: flex; }
+
   .setup-container { 
     grid-template-columns: 1fr 340px; 
     gap: 0 32px;
@@ -425,6 +568,15 @@ body::after {
 }
 
 @media (max-width: 860px) {
+  /* Nav */
+  nav {
+    top: 15px;
+    width: calc(100% - 24px);
+    padding: 11px 18px;
+    border-radius: 20px;
+  }
+  .nav-logo { font-size: 19px; }
+
   .setup-container { 
     grid-template-columns: 1fr; 
     padding: 80px 16px 40px;
