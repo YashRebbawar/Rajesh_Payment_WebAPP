@@ -3,87 +3,87 @@
 {% block title %}My accounts - PrintFree{% endblock %}
 
 {% block head %}
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cabinet+Grotesk:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
 {% endblock %}
 
 {% block content %}
-<header class="main-header">
-    <div class="header-content">
-        <a href="/" class="header-logo">
-            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo">
-            <span>PrintFree</span>
-        </a>
-        <nav class="header-nav">
-            
-            {% if user %}
-            <div class="notification-bell-wrapper">
-                <button class="bell-icon-btn" id="bell-toggle">
-                    <svg class="bell-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span class="notification-badge" id="notification-badge" style="display: none;"></span>
-                </button>
-                <div class="notification-dropdown" id="notification-dropdown">
-                    <div class="notification-header">
-                        <span>Notifications</span>
-                        <button class="clear-all-btn" id="clear-all-btn" style="display: none;">Clear all</button>
+<nav id="navbar" class="my-accounts-nav">
+    <a href="/" class="nav-logo">Print<span>Free</span></a>
+    <ul class="nav-links">
+        <li><a href="/my-accounts" class="active">My Accounts</a></li>
+        <li><a href="/accounts">Open Account</a></li>
+        <li><a href="/#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-cta">
+        {% if user %}
+        <div class="notification-bell-wrapper">
+            <button class="bell-icon-btn" id="bell-toggle">
+                <svg class="bell-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+            </button>
+            <div class="notification-dropdown" id="notification-dropdown">
+                <div class="notification-header">
+                    <span>Notifications</span>
+                    <button class="clear-all-btn" id="clear-all-btn" style="display: none;">Clear all</button>
+                </div>
+                <div class="notification-list" id="notification-list">
+                    <div class="notification-empty">No notifications</div>
+                </div>
+            </div>
+        </div>
+        <div class="user-profile-wrapper">
+            <button class="profile-icon-btn" id="profile-toggle">
+                <div class="profile-icon">{{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}</div>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <div class="profile-card-wrapper">
+                    <div class="profile-card-main">
+                        <div class="profile-card-header">
+                            <div class="profile-card-header-left">Trading Account</div>
+                            <div class="profile-card-header-right">
+                                <div class="profile-time-icon">&#9201;</div>
+                                <span id="current-time"></span>
+                            </div>
+                        </div>
+                        <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
+                            <div class="profile-card-avatar">
+                                {{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}
+                            </div>
+                            <div class="profile-card-name-block">
+                                <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
+                                    <h2 id="profile-name-text">{{ accounts[0].nickname if accounts else user.email.split('@')[0] }}</h2>
+                                </div>
+                                <div class="profile-card-status-row">
+                                    <span class="profile-status-dot"></span>
+                                    <span>{{ user.email }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-card-actions">
+                            <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
+                                <span>My Account</span>
+                            </button>
+                            <button class="profile-card-btn" onclick="window.location.href='/logout'">
+                                <span class="profile-card-btn-icon">&#9632;</span>
+                                <span>Log out</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="notification-list" id="notification-list">
-                        <div class="notification-empty">No notifications</div>
+                    <div class="profile-intensity-card">
+                        <span>Member Since:</span>
+                        <span id="member-since"></span>
                     </div>
                 </div>
             </div>
-            <div class="user-profile-wrapper">
-                <button class="profile-icon-btn" id="profile-toggle">
-                    <div class="profile-icon">{{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}</div>
-                </button>
-                <div class="profile-dropdown" id="profile-dropdown">
-                    <div class="profile-card-wrapper">
-                        <div class="profile-card-main">
-                            <div class="profile-card-header">
-                                <div class="profile-card-header-left">Trading Account</div>
-                                <div class="profile-card-header-right">
-                                    <div class="profile-time-icon">⏱</div>
-                                    <span id="current-time"></span>
-                                </div>
-                            </div>
-                            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
-                                <div class="profile-card-avatar">
-                                    {{ (accounts[0].nickname[0] if accounts else user.email[0]).upper() }}
-                                </div>
-                                <div class="profile-card-name-block">
-                                    <div style="display: flex; align-items: center; gap: 6px;" id="name-display">
-                                        <h2 id="profile-name-text">{{ accounts[0].nickname if accounts else user.email.split('@')[0] }}</h2>
-                                    </div>
-                                    <div class="profile-card-status-row">
-                                        <span class="profile-status-dot"></span>
-                                        <span>{{ user.email }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="profile-card-actions">
-                                <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
-                                    <span>My Account</span>
-                                </button>
-                                <button class="profile-card-btn" onclick="window.location.href='/logout'">
-                                    <span class="profile-card-btn-icon">▢</span>
-                                    <span>Log out</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="profile-intensity-card">
-                            <span>Member Since:</span>
-                            <span id="member-since"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </nav>
+        </div>
+        {% endif %}
     </div>
-</header>
+</nav>
 
 <div class="my-accounts-container">
     <div class="my-accounts-header">
@@ -92,7 +92,7 @@
             {% if pending_payments %}
             <div class="pending-dropdown-wrapper">
                 <button class="pending-btn" id="pending-toggle">
-                    ⏳ Pending ({{ pending_payments|length }})
+                    &#9203; Pending ({{ pending_payments|length }})
                 </button>
                 <div class="pending-status-dropdown" id="pending-status-dropdown">
                     {% for payment in pending_payments %}
@@ -100,7 +100,7 @@
                     <div class="status-item {% if is_withdrawal %}withdrawal-item{% else %}deposit-item{% endif %}">
                         <div class="status-item-content">
                             <div class="status-item-header">
-                                <span class="status-type">{% if is_withdrawal %}↗ Withdrawal{% else %}↙ Deposit{% endif %}</span>
+                                <span class="status-type">{% if is_withdrawal %}&#8599; Withdrawal{% else %}&#8600; Deposit{% endif %}</span>
                                 <span class="status-time">{{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</span>
                             </div>
                             <span class="status-amount">{{ payment.amount }} {{ payment.currency }}</span>
@@ -126,10 +126,10 @@
                 <div class="pending-card-header">
                     <div class="pending-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
                         {% if is_withdrawal %}
-                            <span class="badge-icon">↗</span>
+                            <span class="badge-icon">&#8599;</span>
                             <span>Withdrawal</span>
                         {% else %}
-                            <span class="badge-icon">↙</span>
+                            <span class="badge-icon">&#8600;</span>
                             <span>Deposit</span>
                         {% endif %}
                     </div>
@@ -171,11 +171,10 @@
             <option>Balance (Low to High)</option>
         </select>
         <div class="view-toggle">
-            <button class="view-btn active" data-view="list">☰</button>
-            <button class="view-btn" data-view="grid">⊞</button>
+            <button class="view-btn active" data-view="list">&#9776;</button>
+            <button class="view-btn" data-view="grid">&#9638;</button>
         </div>
     </div>
-
 
     <div class="accounts-list">
         {% for account in accounts %}
@@ -208,14 +207,6 @@
                 <div class="detail-row">
                     <span>Adjust leverage</span>
                     <span>{{ account.leverage }}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Equity</span>
-                    <span>0.00 {{ account.currency }}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Floating P/L</span>
-                    <span>0.00 {{ account.currency }}</span>
                 </div>
                 <div class="detail-row">
                     <span>Platform</span>
@@ -254,7 +245,6 @@
     {% endif %}
 </div>
 
-<!-- User Chat Modal -->
 <div id="user-chat-modal" class="chat-modal">
     <div class="chat-modal-content">
         <div class="chat-header">

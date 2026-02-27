@@ -261,14 +261,14 @@ async function loadNotifications() {
                     if (notif.type === 'mt_credentials_updated') {
                         return `
                             <div class="notification-item mt-updated" data-id="${notif._id}">
-                                <div class="notification-icon">🎉</div>
+                                <div class="notification-icon">&#127881;</div>
                                 <div class="notification-content">
                                     <div class="notification-title">Great News!</div>
                                     <div class="notification-text">
                                         Your MT credentials for ${notif.account_nickname} are ready! Check your account details.
                                     </div>
                                 </div>
-                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
+                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">&times;</button>
                             </div>
                         `;
                     } else {
@@ -278,7 +278,7 @@ async function loadNotifications() {
                         const typeLabel = paymentType === 'withdrawal' ? 'Withdrawal' : 'Deposit';
                         const statusText = isApproved ? 'Successful' : 'Failed';
                         const titleText = `${typeLabel} ${statusText}`;
-                        const icon = isApproved ? '✓' : '✕';
+                        const icon = isApproved ? '&#10003;' : '&#10005;';
                         
                         return `
                             <div class="notification-item ${statusClass}" data-id="${notif._id}">
@@ -289,7 +289,7 @@ async function loadNotifications() {
                                         ${notif.account_nickname}: ${notif.amount} ${notif.currency}
                                     </div>
                                 </div>
-                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">✕</button>
+                                <button class="notification-close" onclick="clearNotification('${notif._id}', event)">&times;</button>
                             </div>
                         `;
                     }
@@ -374,7 +374,7 @@ function displayUserMessages(messages) {
         messagesContainer.innerHTML = `
         <div class="chat-empty">
             <div class="welcome-content">
-                <div class="welcome-emoji">⚠️</div>
+                    <div class="welcome-emoji">&#9888;&#65039;</div>
                 <h3>Oops!</h3>
                 <p>Error loading messages. Please try again.</p>
             </div>
@@ -389,8 +389,8 @@ function displayUserMessages(messages) {
         messagesContainer.innerHTML = `
             <div class="chat-empty">
                 <div class="welcome-content">
-                    <div class="welcome-emoji">🙋</div>
-                    <h3>Hello! 👋</h3>
+                    <div class="welcome-emoji">&#128587;</div>
+                    <h3>Hello! &#128075;</h3>
                     <p>Send us a message and we'll get back to you shortly</p>
                 </div>
             </div>
