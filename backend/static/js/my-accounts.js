@@ -1,21 +1,85 @@
-// Load notifications immediately
-loadNotifications();
-
-function updateTime() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    const timeEl = document.getElementById('current-time');
-    if (timeEl) timeEl.textContent = timeStr;
-}
-updateTime();
-setInterval(updateTime, 1000);
-
-function formatMemberSince(isoString) {
-    const date = new Date(isoString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
+// Pending Dropdown Functions
 document.addEventListener('DOMContentLoaded', function() {
+    const pendingToggle = document.getElementById('pending-toggle');
+    const pendingDetails = document.getElementById('pending-details');
+    const pendingDropdown = document.getElementById('pending-status-dropdown');
+    
+    if (pendingToggle && pendingDetails) {
+        pendingToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            pendingDetails.classList.toggle('active');
+            if (pendingDropdown) pendingDropdown.classList.toggle('active');
+        });
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (!document.querySelector('.pending-dropdown-wrapper')?.contains(e.target)) {
+            if (pendingDropdown) pendingDropdown.classList.remove('active');
+            if (pendingDetails) pendingDetails.classList.remove('active');
+        }
+    });
+
+    // User Chat Functions
+    const modal = document.getElementById('user-chat-modal');
+    if (modal) {
+        const closeBtn = modal.querySelector('.chat-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeUserChatModal();
+            });
+        }
+        
+        const input = document.getElementById('user-chat-input');
+        const sendBtn = document.querySelector('.user-chat-send-btn');
+        
+        if (input && sendBtn) {
+            sendBtn.addEventListener('click', sendUserChatMessage);
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendUserChatMessage();
+                }
+            });
+        }
+        
+        const modalContent = modal.querySelector('.chat-modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeUserChatModal();
+            }
+        });
+    }
+
+    // Support Widget
+    const widget = document.getElementById('support-widget');
+    
+    if (!widget) {
+        const supportWidget = document.createElement('div');
+        supportWidget.id = 'support-widget';
+        supportWidget.className = 'support-widget';
+        supportWidget.innerHTML = `
+            <div class="support-widget-container">
+                <div class="support-widget-text">Chat Support</div>
+                <button class="support-widget-icon-btn" onclick="openUserChatModalWithBadge()">
+                    <img src="/static/images/support-icon.png" alt="Support" class="support-icon-img">
+                    <span class="support-badge" style="display: none;"></span>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(supportWidget);
+    }
+    
+    pollUserUnreadMessages();
+    setInterval(pollUserUnreadMessages, 3000);
+
+    // Existing code continues...
     const navToggle = document.getElementById('nav-toggle');
     const navMenu = document.getElementById('nav-menu');
     
@@ -74,15 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearAllBtn = document.getElementById('clear-all-btn');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', clearAllNotifications);
-    }
-
-    const pendingToggle = document.getElementById('pending-toggle');
-    const pendingDetails = document.getElementById('pending-details');
-    if (pendingToggle && pendingDetails) {
-        pendingToggle.addEventListener('click', function() {
-            pendingDetails.classList.toggle('active');
-            this.classList.toggle('active');
-        });
     }
 
     const accountsList = document.querySelector('.accounts-list');
@@ -272,4 +327,221 @@ function formatTime(isoString) {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// User Chat Functions
+function openUserChatModal() {
+    const modal = document.getElementById('user-chat-modal');
+    if (modal) {
+        modal.classList.add('active');
+        loadUserChatMessages();
+    }
+}
+
+function closeUserChatModal() {
+    const modal = document.getElementById('user-chat-modal');
+    const widget = document.getElementById('support-widget');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    if (widget) {
+        widget.style.display = 'block';
+    }
+}
+
+function loadUserChatMessages() {
+    fetch('/api/chat/user-messages')
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayUserMessages(data.messages);
+            } else {
+                console.error('Failed to load messages:', data.message);
+            }
+        })
+        .catch(err => console.error('Error loading messages:', err));
+}
+
+function displayUserMessages(messages) {
+    const messagesContainer = document.getElementById('user-chat-messages');
+    if (!messagesContainer) return;
+    
+    if (!Array.isArray(messages)) {
+        console.error('Invalid messages format');
+        messagesContainer.innerHTML = `
+        <div class="chat-empty">
+            <div class="welcome-content">
+                <div class="welcome-emoji">⚠️</div>
+                <h3>Oops!</h3>
+                <p>Error loading messages. Please try again.</p>
+            </div>
+        </div>
+    `;
+        return;
+    }
+    
+    messagesContainer.innerHTML = '';
+    
+    if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+            <div class="chat-empty">
+                <div class="welcome-content">
+                    <div class="welcome-emoji">🙋</div>
+                    <h3>Hello! 👋</h3>
+                    <p>Send us a message and we'll get back to you shortly</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    const userId = document.body.dataset.userId;
+    messages.forEach(msg => {
+        try {
+            if (!msg.sender_id || !msg.message || !msg.created_at) {
+                console.warn('Invalid message object:', msg);
+                return;
+            }
+            const isOwn = msg.sender_id === userId;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isOwn ? 'sent' : 'received'}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = `message-bubble ${isOwn ? 'sent' : 'received'}`;
+            bubbleDiv.textContent = msg.message;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeDiv.textContent = time;
+            
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(bubbleDiv);
+            wrapper.appendChild(timeDiv);
+            messageDiv.appendChild(wrapper);
+            
+            messagesContainer.appendChild(messageDiv);
+        } catch (err) {
+            console.error('Error rendering message:', err, msg);
+        }
+    });
+    
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function sendUserChatMessage() {
+    const input = document.getElementById('user-chat-input');
+    const message = input.value.trim();
+    
+    if (!message) {
+        console.warn('Empty message');
+        return;
+    }
+    
+    const btn = document.querySelector('.user-chat-send-btn');
+    if (!btn) {
+        console.error('Send button not found');
+        return;
+    }
+    
+    btn.disabled = true;
+    
+    fetch('/api/chat/user-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadUserChatMessages();
+        } else {
+            console.error('Send failed:', data.message);
+            alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        console.error('Error sending message:', err);
+        alert('Error sending message: ' + err.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Support Widget Functions
+function openUserChatModalWithBadge() {
+    openUserChatModal();
+    clearUserChatBadge();
+}
+
+function showUserChatBadge(count) {
+    const btn = document.querySelector('.support-widget-icon-btn');
+    if (btn) {
+        let badge = btn.querySelector('.support-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'support-badge';
+            btn.style.position = 'relative';
+            btn.appendChild(badge);
+        }
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function clearUserChatBadge() {
+    showUserChatBadge(0);
+}
+
+function pollUserUnreadMessages() {
+    const modal = document.getElementById('user-chat-modal');
+    if (modal && !modal.classList.contains('active')) {
+        fetch('/api/chat/user-messages')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.messages)) {
+                    const userId = document.body.dataset.userId;
+                    const unreadCount = data.messages.filter(msg => 
+                        msg.sender_id !== userId && !msg.read
+                    ).length;
+                    showUserChatBadge(unreadCount);
+                }
+            })
+            .catch(err => console.error('Error polling user messages:', err));
+    }
+}
+
+// Load notifications immediately
+loadNotifications();
+
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const timeEl = document.getElementById('current-time');
+    if (timeEl) timeEl.textContent = timeStr;
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+function formatMemberSince(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }

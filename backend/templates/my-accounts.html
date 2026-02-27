@@ -3,8 +3,7 @@
 {% block title %}My accounts - PrintFree{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-cards.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pending-dropdown.css') }}">
+
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
 {% endblock %}
 
@@ -281,9 +280,7 @@
 </footer>
 
 <script src="{{ url_for('static', filename='js/my-accounts.js') }}"></script>
-<script src="{{ url_for('static', filename='js/pending-dropdown.js') }}"></script>
-<script src="{{ url_for('static', filename='js/user-chat.js') }}"></script>
-<script src="{{ url_for('static', filename='js/support-widget.js') }}"></script>
+
 <script>
     document.body.dataset.userId = '{{ user._id }}';
 </script>
