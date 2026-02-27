@@ -6,6 +6,16 @@ function showToast(msg,type='success'){
   setTimeout(()=>t.classList.remove('show'),3500);
 }
 
+const passwordRules={
+  length:v=>v.length>=8&&v.length<=15,
+  case:v=>/[a-z]/.test(v)&&/[A-Z]/.test(v),
+  number:v=>/\d/.test(v),
+  special:v=>/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v)
+};
+function isPasswordValid(v){
+  return Object.values(passwordRules).every(fn=>fn(v));
+}
+
 // ── Password toggle ──
 document.querySelectorAll('.pw-toggle').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -35,6 +45,82 @@ document.getElementById('google-signin').addEventListener('click',function(){
   this.innerHTML='<span style="width:18px;height:18px;border:2px solid rgba(26,21,16,0.2);border-top-color:var(--ink);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;"></span> Connecting…';
   setTimeout(()=>window.location.href='/auth/google',800);
 });
+
+const forgotModal=document.getElementById('forgot-password-modal');
+const forgotLink=document.getElementById('forgot-password-link');
+const forgotClose=document.getElementById('forgot-password-close');
+const forgotForm=document.getElementById('forgot-password-form');
+const forgotNewPassword=document.getElementById('forgot-new-password');
+const forgotConfirmPassword=document.getElementById('forgot-confirm-password');
+const forgotMatchMsg=document.getElementById('fp-match-msg');
+
+function updateForgotMatchState(){
+  if(!forgotNewPassword||!forgotConfirmPassword||!forgotMatchMsg) return;
+  const a=forgotNewPassword.value;
+  const b=forgotConfirmPassword.value;
+  if(!a&&!b){
+    forgotMatchMsg.textContent='';
+    forgotMatchMsg.classList.remove('ok','err');
+    return;
+  }
+  if(a===b){
+    forgotMatchMsg.textContent='Passwords match';
+    forgotMatchMsg.classList.add('ok');
+    forgotMatchMsg.classList.remove('err');
+  }else{
+    forgotMatchMsg.textContent='Passwords do not match';
+    forgotMatchMsg.classList.add('err');
+    forgotMatchMsg.classList.remove('ok');
+  }
+}
+
+if(forgotLink&&forgotModal){
+  forgotLink.addEventListener('click',function(e){
+    e.preventDefault();
+    const signinEmail=document.querySelector('#signin-form input[name="email"]');
+    const forgotEmail=document.getElementById('forgot-email');
+    if(signinEmail&&forgotEmail&&signinEmail.value) forgotEmail.value=signinEmail.value;
+    forgotModal.classList.add('active');
+  });
+}
+if(forgotClose&&forgotModal){
+  forgotClose.addEventListener('click',()=>forgotModal.classList.remove('active'));
+  forgotModal.addEventListener('click',e=>{if(e.target===forgotModal)forgotModal.classList.remove('active');});
+}
+if(forgotNewPassword) forgotNewPassword.addEventListener('input',updateForgotMatchState);
+if(forgotConfirmPassword) forgotConfirmPassword.addEventListener('input',updateForgotMatchState);
+if(forgotForm){
+  forgotForm.addEventListener('submit',async function(e){
+    e.preventDefault();
+    const btn=document.getElementById('forgot-password-btn');
+    const data=Object.fromEntries(new FormData(this));
+    if(data.new_password!==data.confirm_password){
+      showToast('Passwords do not match.','error');
+      return;
+    }
+    if(!isPasswordValid(data.new_password)){
+      showToast('Password must be 8-15 chars with upper/lowercase, number, and special character.','error');
+      return;
+    }
+    btn.classList.add('loading');btn.disabled=true;
+    try{
+      const res=await fetch('/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const result=await res.json();
+      if(result.success){
+        showToast(result.message||'Password reset successful. Please sign in.');
+        forgotModal.classList.remove('active');
+        this.reset();
+        updateForgotMatchState();
+      }else{
+        showToast(result.message||'Unable to reset password.','error');
+      }
+    }catch{
+      showToast('Connection error. Please try again.','error');
+    }finally{
+      btn.classList.remove('loading');btn.disabled=false;
+    }
+  });
+}
 
 // ======================================================
 // ===== LIVE TRADING TERMINAL ENGINE ==================

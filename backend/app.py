@@ -224,6 +224,35 @@ def api_signin():
     logger.warning(f"Failed sign in attempt for: {data['email']}")
     return jsonify({'success': False, 'message': 'Invalid credentials'})
 
+@app.route('/api/forgot-password', methods=['POST'])
+def api_forgot_password():
+    data = request.json or {}
+    email = (data.get('email') or '').strip().lower()
+    new_password = data.get('new_password')
+    confirm_password = data.get('confirm_password')
+
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'}), 400
+
+    if new_password != confirm_password:
+        return jsonify({'success': False, 'message': 'Passwords do not match'}), 400
+
+    is_valid_password, password_error = validate_password_policy(new_password)
+    if not is_valid_password:
+        return jsonify({'success': False, 'message': password_error}), 400
+
+    user = users_collection.find_one({'email': email})
+    if not user:
+        logger.warning(f"Forgot-password attempt for non-existing email: {email}")
+        return jsonify({'success': False, 'message': 'Email is not registered'}), 404
+
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'password': generate_password_hash(new_password)}}
+    )
+    logger.info(f"Password reset completed for: {email}")
+    return jsonify({'success': True, 'message': 'Password reset successful. Please sign in.'})
+
 @app.route('/auth/google')
 def google_login():
     if not google:

@@ -243,3 +243,32 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
   .form-wrap{margin-top:20px;}
   .form-title{font-size:30px;}
 }
+
+.fp-modal{
+  position:fixed;inset:0;background:rgba(10,8,6,0.55);display:none;
+  align-items:center;justify-content:center;z-index:10000;padding:16px;
+}
+.fp-modal.active{display:flex;}
+.fp-modal-card{
+  width:100%;max-width:440px;background:#fff;border-radius:16px;padding:24px;
+  box-shadow:0 16px 48px rgba(26,21,16,0.25);position:relative;
+}
+.fp-modal-card h3{
+  font-family:'Fraunces',serif;font-size:28px;font-weight:900;letter-spacing:-0.5px;color:var(--ink);margin:0 0 8px;
+}
+.fp-modal-card p{
+  margin:0 0 18px;color:var(--ink-60);font-size:13px;
+}
+.fp-close{
+  position:absolute;top:10px;right:10px;border:none;background:none;color:var(--ink-60);
+  font-size:24px;line-height:1;cursor:pointer;padding:6px;
+}
+.fp-close:hover{color:var(--ink);}
+.fp-match-msg{
+  margin-top:6px;
+  font-size:12px;
+  font-weight:600;
+  min-height:18px;
+}
+.fp-match-msg.ok{color:var(--green);}
+.fp-match-msg.err{color:var(--red);}

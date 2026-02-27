@@ -121,7 +121,7 @@
           </div>
         </div>
         <div class="forgot-row">
-          <a href="#" class="forgot-link">Forgot password?</a>
+          <a href="#" class="forgot-link" id="forgot-password-link">Forgot password?</a>
         </div>
         <button type="submit" class="btn-submit" id="signin-btn">
           <span class="spinner"></span>
@@ -136,6 +136,41 @@
       <div class="auth-switch">Don't have an account? <a href="/register">Create one →</a></div>
       
     </div>
+  </div>
+</div>
+
+<div class="fp-modal" id="forgot-password-modal">
+  <div class="fp-modal-card">
+    <button type="button" class="fp-close" id="forgot-password-close">&times;</button>
+    <h3>Reset Password</h3>
+    <p>Enter your email and set a new password.</p>
+    <form id="forgot-password-form">
+      <div class="field">
+        <label>Email Address</label>
+        <div class="field-wrap">
+          <input type="email" name="email" id="forgot-email" placeholder="your@email.com" required autocomplete="email">
+        </div>
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <div class="field-wrap">
+          <input type="password" name="new_password" id="forgot-new-password" placeholder="••••••••" required autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="forgot-new-password">👁</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <div class="field-wrap">
+          <input type="password" name="confirm_password" id="forgot-confirm-password" placeholder="••••••••" required autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="forgot-confirm-password">👁</button>
+        </div>
+        <div class="fp-match-msg" id="fp-match-msg"></div>
+      </div>
+      <button type="submit" class="btn-submit" id="forgot-password-btn">
+        <span class="spinner"></span>
+        <span class="btn-text">Reset Password</span>
+      </button>
+    </form>
   </div>
 </div>
 
