@@ -4,6 +4,16 @@ function updatePaymentTimes() {
 
 let currentUnifiedEditAccountId = null;
 let currentUnifiedEditAccountName = null;
+const passwordRules = {
+    length: v => v.length >= 8 && v.length <= 15,
+    case: v => /[a-z]/.test(v) && /[A-Z]/.test(v),
+    number: v => /\d/.test(v),
+    special: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v)
+};
+
+function isPasswordValid(password) {
+    return Object.values(passwordRules).every(rule => rule(password));
+}
 
 // Load commission stats
 async function loadCommissionStats(year = null, month = null) {
@@ -138,6 +148,11 @@ async function submitUnifiedEditForm(event) {
     
     if (!mtLogin || !mtServer || !password || !leverage || isNaN(balance)) {
         showErrorMessage('Please fill in all fields');
+        return;
+    }
+
+    if (!isPasswordValid(password)) {
+        showErrorMessage('Trading password must be 8-15 chars with upper/lowercase, number, and special character');
         return;
     }
     

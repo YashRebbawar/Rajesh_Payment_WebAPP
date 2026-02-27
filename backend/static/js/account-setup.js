@@ -5,6 +5,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password');
     const togglePasswordBtn = document.getElementById('toggle-password');
     const setupForm = document.getElementById('setup-form');
+    const passwordRules = {
+        length: v => v.length >= 8 && v.length <= 15,
+        case: v => /[a-z]/.test(v) && /[A-Z]/.test(v),
+        number: v => /\d/.test(v),
+        special: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v)
+    };
+
+    function isPasswordValid(password) {
+        return Object.values(passwordRules).every(rule => rule(password));
+    }
 
     if (backButton) {
         backButton.addEventListener('click', function() {
@@ -26,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordInput.addEventListener('input', function() {
         const password = this.value;
         const requirements = {
-            length: password.length >= 8 && password.length <= 15,
-            case: /[a-z]/.test(password) && /[A-Z]/.test(password),
-            number: /\d/.test(password),
-            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            length: passwordRules.length(password),
+            case: passwordRules.case(password),
+            number: passwordRules.number(password),
+            special: passwordRules.special(password)
         };
 
         updateRequirement('req-length', requirements.length);
@@ -51,6 +61,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setupForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        const password = document.getElementById('password').value;
+        if (!isPasswordValid(password)) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 16px 24px; border-radius: 8px; z-index: 9999; font-weight: 600; max-width: 420px;';
+            toast.textContent = 'Trading password must be 8-15 chars with upper/lowercase, number, and special character.';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+            return;
+        }
+
         const accountType = setupForm.dataset.accountType;
         const formData = {
             account_type: accountType,

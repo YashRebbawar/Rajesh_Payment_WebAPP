@@ -8,6 +8,7 @@ from urllib.parse import quote_plus
 import os
 import logging
 import base64
+import re
 from datetime import datetime, timezone, timedelta
 
 def get_current_utc_time():
@@ -66,6 +67,8 @@ payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
 
+PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
+
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
@@ -110,6 +113,32 @@ def get_current_user():
             logger.error(f"Error retrieving user from session: {e}")
             session.pop('user_id', None)
     return None
+
+def validate_password_policy(password):
+    """Validate password against shared policy and return (is_valid, message)."""
+    if password is None:
+        return False, 'Password is required'
+
+    if not isinstance(password, str):
+        return False, 'Password must be a string'
+
+    if len(password) < 8 or len(password) > 15:
+        return False, 'Password must be between 8 and 15 characters'
+
+    has_lower = any(c.islower() for c in password)
+    has_upper = any(c.isupper() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+
+    has_special = re.search(PASSWORD_SPECIAL_RE, password) is not None
+
+    if not (has_lower and has_upper):
+        return False, 'Password must include at least one uppercase and one lowercase letter'
+    if not has_digit:
+        return False, 'Password must include at least one number'
+    if not has_special:
+        return False, 'Password must include at least one special character'
+
+    return True, None
 
 @app.route('/')
 def landing_page():
@@ -159,6 +188,10 @@ def account_setup(account_type):
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json
+
+    is_valid_password, password_error = validate_password_policy(data.get('password'))
+    if not is_valid_password:
+        return jsonify({'success': False, 'message': password_error}), 400
     
     if users_collection.find_one({'email': data['email']}):
         logger.warning(f"Registration attempt with existing email: {data['email']}")
@@ -306,6 +339,11 @@ def account_setup_api():
         return jsonify({'success': False, 'message': 'You have reached the maximum limit of 3 accounts. Please delete an existing account to create a new one.'})
     
     data = request.json
+
+    is_valid_password, password_error = validate_password_policy(data.get('password'))
+    if not is_valid_password:
+        return jsonify({'success': False, 'message': password_error}), 400
+
     account_doc = {
         'user_id': user['_id'],
         'account_type': data['account_type'],
@@ -1236,6 +1274,9 @@ def update_account_details(account_id):
         
         update_data = {}
         if 'password' in data:
+            is_valid_password, password_error = validate_password_policy(data.get('password'))
+            if not is_valid_password:
+                return jsonify({'success': False, 'message': password_error}), 400
             update_data['trading_password'] = data['password']
         if 'leverage' in data:
             update_data['leverage'] = data['leverage']
