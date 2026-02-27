@@ -3,165 +3,220 @@
 {% block title %}Account Selection - PrintFree{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/accounts.css') }}">
+
 <div class="account-container">
-    <div class="account-floating-shapes">
-        <div class="account-shape account-shape-1"></div>
-        <div class="account-shape account-shape-2"></div>
-        <div class="account-shape account-shape-3"></div>
+  <!-- Floating ambient blobs -->
+  <div class="account-floating-shapes">
+    <div class="account-shape account-shape-1"></div>
+    <div class="account-shape account-shape-2"></div>
+    <div class="account-shape account-shape-3"></div>
+  </div>
+
+  <!-- Profile dropdown -->
+  {% if user %}
+  <div class="auth-buttons">
+    <div class="user-profile-wrapper">
+      <button class="profile-icon-btn" id="profile-toggle">
+        <div class="profile-icon">{{ user.email[0].upper() }}</div>
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-card-wrapper">
+          <div class="profile-card-main">
+            <div class="profile-card-header">
+              <div class="profile-card-header-left">Trading Account</div>
+              <div class="profile-card-header-right">
+                <div class="profile-time-icon">⏱</div>
+                <span id="current-time"></span>
+              </div>
+            </div>
+            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
+              <div class="profile-card-avatar">{{ user.email[0].upper() }}</div>
+              <div class="profile-card-name-block">
+                <div class="profile-card-status-row">
+                  <span class="profile-status-dot"></span>
+                  <span>{{ user.email }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="profile-card-actions">
+              <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
+                <span>My Account</span>
+              </button>
+              <button class="profile-card-btn" onclick="window.location.href='/logout'">
+                <span class="profile-card-btn-icon">▢</span>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+          <div class="profile-intensity-card">
+            <span>Member Since:</span>
+            <span id="member-since"></span>
+          </div>
+        </div>
+      </div>
     </div>
-    {% if user %}
-    <div class="auth-buttons">
-        <div class="user-profile-wrapper">
-            <button class="profile-icon-btn" id="profile-toggle">
-                <div class="profile-icon">{{ user.email[0].upper() }}</div>
-            </button>
-            <div class="profile-dropdown" id="profile-dropdown">
-                <div class="profile-card-wrapper">
-                    <div class="profile-card-main">
-                        <div class="profile-card-header">
-                            <div class="profile-card-header-left">Trading Account</div>
-                            <div class="profile-card-header-right">
-                                <div class="profile-time-icon">⏱</div>
-                                <span id="current-time"></span>
-                            </div>
-                        </div>
-                        <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
-                            <div class="profile-card-avatar">
-                                {{ user.email[0].upper() }}
-                            </div>
-                            <div class="profile-card-name-block">
-                                <div class="profile-card-status-row">
-                                    <span class="profile-status-dot"></span>
-                                    <span>{{ user.email }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="profile-card-actions">
-                            <button class="profile-card-btn" onclick="window.location.href='/my-accounts'">
-                                <span>My Account</span>
-                            </button>
-                            <button class="profile-card-btn" onclick="window.location.href='/logout'">
-                                <span class="profile-card-btn-icon">▢</span>
-                                <span>Log out</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="profile-intensity-card">
-                        <span>Member Since:</span>
-                        <span id="member-since"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    <button type="button" class="back-button" id="back-button" aria-label="Go back">
-        <span class="back-icon">←</span>
-    </button>
-    <div class="header-section">
-        <h1 class="account-title">Open New Account</h1>
-        <p class="subtitle-text">
-            Choose the account type that best fits your trading style and start your journey with professional trading conditions
-        </p>
-    </div>
+  </div>
+  {% endif %}
 
-    <div class="account-grid">
-        <div class="account-card popular" data-id="standard">
-            <div class="popular-badge">Popular</div>
-            <div class="card-header">
-                <h2>Standard/Cent</h2>
-                <div class="subtitle">Recommended</div>
-                <p class="description">Most popular! A great account for all types of traders</p>
-            </div>
-            <div class="card-details">
-                <div class="detail-row">
-                    <span class="label">Min. deposit</span>
-                    <span class="value">10 USD</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Spread</span>
-                    <span class="value">From 0.20</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Commission</span>
-                    <span class="value">No commission</span>
-                </div>
-            </div>
-        </div>
+  <!-- Back -->
+  <button type="button" class="back-button" id="back-button" aria-label="Go back">
+    <span class="back-icon">←</span>
+  </button>
 
-        <div class="account-card" data-id="pro">
-            <div class="card-header">
-                <h2>Pro</h2>
-                <div class="subtitle">Instant or market execution</div>
-                <p class="description">Zero commission and low spreads with both instant or market execution.</p>
-            </div>
-            <div class="card-details">
-                <div class="detail-row">
-                    <span class="label">Min. deposit</span>
-                    <span class="value">500 USD</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Spread</span>
-                    <span class="value">From 0.10</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Commission</span>
-                    <span class="value">No commission</span>
-                </div>
-            </div>
-        </div>
+  <!-- Page heading -->
+  <div class="header-section">
+    <div class="header-eyebrow">Step 1 of 2</div>
+    <h1 class="account-title">Choose your<br><em>account type</em></h1>
+    <p class="subtitle-text">Select the account that fits your trading style.</p>
+  </div>
 
-        <div class="account-card" data-id="raw-spread">
-            <div class="card-header">
-                <h2>Raw spread</h2>
-                <div class="subtitle">Professional</div>
-                <p class="description">Low raw spreads and a low fixed commission</p>
-            </div>
-            <div class="card-details">
-                <div class="detail-row">
-                    <span class="label">Min. deposit</span>
-                    <span class="value">500 USD</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Spread</span>
-                    <span class="value">From 0.00</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Commission</span>
-                    <span class="value">To 3.50 USD</span>
-                </div>
-            </div>
-        </div>
+  <!-- Cards grid -->
+  <div class="account-grid">
 
-        <div class="account-card" data-id="zero">
-            <div class="best-badge">Best</div>
-            <div class="card-header">
-                <h2>Zero</h2>
-                <div class="subtitle">Professional</div>
-                <p class="description">Get 0 spreads for 95% of the day on 30 pairs</p>
-            </div>
-            <div class="card-details">
-                <div class="detail-row">
-                    <span class="label">Min. deposit</span>
-                    <span class="value">500 USD</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Spread</span>
-                    <span class="value">Best</span>
-                </div>
-                <div class="detail-row">
-                    <span class="label">Commission</span>
-                    <span class="value">From 0.20 USD</span>
-                </div>
-            </div>
+    <!-- Standard / Cent -->
+    <div class="account-card popular" data-id="standard">
+      <div class="card-accent"></div>
+      <div class="card-number">01</div>
+      <div class="card-inner">
+        <div class="popular-badge">Most Popular</div>
+        <div class="card-header">
+          <h2>Standard<br>/ Cent</h2>
+          <div class="card-type-pill">Recommended</div>
+          <p class="description">The ideal starting point — low barrier, broad market access, and flexible lot sizing.</p>
         </div>
+        <div class="card-divider"></div>
+        <div class="card-details">
+          <div class="detail-row">
+            <span class="label">Min. deposit</span>
+            <span class="value">10 USD</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Spread from</span>
+            <span class="value">0.20 pips</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Commission</span>
+            <span class="value">None</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-select-hint">Select plan</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
     </div>
 
-    <div class="action-section" id="action-section" style="display: none;">
-        <button class="open-button" id="open-button">Open Account</button>
-        <p class="action-note">Your account will be ready in minutes</p>
+    <!-- Pro -->
+    <div class="account-card" data-id="pro">
+      <div class="card-accent"></div>
+      <div class="card-number">02</div>
+      <div class="card-inner">
+        <div class="popular-badge" style="visibility: hidden;">Placeholder</div>
+        <div class="card-header">
+          <h2>Pro</h2>
+          <div class="card-type-pill">Market Execution</div>
+          <p class="description">Zero commission with tight spreads. Supports both instant and market execution modes.</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-details">
+          <div class="detail-row">
+            <span class="label">Min. deposit</span>
+            <span class="value">500 USD</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Spread from</span>
+            <span class="value">0.10 pips</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Commission</span>
+            <span class="value">None</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-select-hint">Select plan</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
     </div>
-</div>
+
+    <!-- Raw Spread -->
+    <div class="account-card" data-id="raw-spread">
+      <div class="card-accent"></div>
+      <div class="card-number">03</div>
+      <div class="card-inner">
+        <div class="popular-badge" style="visibility: hidden;">Placeholder</div>
+        <div class="card-header">
+          <h2>Raw<br>Spread</h2>
+          <div class="card-type-pill">Professional</div>
+          <p class="description">Raw interbank spreads from 0.0 pips with a fixed low-cost commission per lot.</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-details">
+          <div class="detail-row">
+            <span class="label">Min. deposit</span>
+            <span class="value">500 USD</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Spread from</span>
+            <span class="value">0.00 pips</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Commission</span>
+            <span class="value">3.50 USD/lot</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-select-hint">Select plan</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zero -->
+    <div class="account-card" data-id="zero">
+      <div class="card-accent"></div>
+      <div class="card-number">04</div>
+      <div class="card-inner">
+        <div class="best-badge">Best Spreads</div>
+        <div class="card-header">
+          <h2>Zero</h2>
+          <div class="card-type-pill">Ultra-Tight</div>
+          <p class="description">Zero spreads 95% of the trading day on 30 major currency pairs.</p>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-details">
+          <div class="detail-row">
+            <span class="label">Min. deposit</span>
+            <span class="value">500 USD</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Spread</span>
+            <span class="value">0.00 — Best</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Commission</span>
+            <span class="value">From 0.20 USD</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-select-hint">Select plan</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /account-grid -->
+
+  <!-- Action -->
+  <div class="action-section" id="action-section" style="display:none;">
+    <button class="open-button" id="open-button">Open Account</button>
+    <p class="action-note">Your account will be ready in minutes</p>
+  </div>
+
+  
+
+</div><!-- /account-container -->
 
 <script src="{{ url_for('static', filename='js/accounts.js') }}"></script>
 {% endblock %}
