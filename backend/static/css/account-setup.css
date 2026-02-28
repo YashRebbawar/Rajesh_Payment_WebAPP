@@ -221,17 +221,18 @@ body::before {
 .setup-header {
   grid-column: 1 / -1;
   padding: 32px 0 24px;
-  display: flex; align-items: flex-end; justify-content: space-between;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   border-bottom: 1px solid var(--border);
   margin-bottom: 32px;
   animation: hdrIn 0.65s cubic-bezier(0.22,1,0.36,1) both;
+  text-align: center;
 }
 @keyframes hdrIn { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:none; } }
 
 .header-eyebrow {
   font-family: 'Cabinet Grotesk', sans-serif;
   font-size: 10px; font-weight: 800; letter-spacing: 0.20em; text-transform: uppercase;
-  color: var(--green); display: flex; align-items: center; gap: 9px; margin-bottom: 12px;
+  color: var(--green); display: flex; align-items: center; gap: 9px; margin-bottom: 12px; justify-content: center;
 }
 .eyebrow-dash { display: inline-block; width: 24px; height: 1.5px; background: var(--green); opacity: 0.45; border-radius: 2px; flex-shrink: 0; }
 
@@ -242,7 +243,7 @@ body::before {
 }
 .setup-header h1 em { font-style: italic; color: var(--green); }
 
-.header-chip-group { text-align: right; padding-bottom: 4px; }
+.header-chip-group { text-align: center; padding-top: 12px; }
 .header-chip {
   display: inline-flex; align-items: center; gap: 7px;
   font-family: 'Cabinet Grotesk', sans-serif;
@@ -580,10 +581,11 @@ body::before {
   }
   .setup-header { 
     flex-direction: column; 
-    align-items: flex-start; 
+    align-items: center; 
     gap: 16px; 
     padding: 0 0 24px;
     margin-bottom: 24px;
+    text-align: center;
   }
   .setup-header h1 { font-size: 32px; letter-spacing: -1.8px; }
   .setup-info-section { 
