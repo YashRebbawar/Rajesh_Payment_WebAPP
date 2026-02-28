@@ -59,7 +59,7 @@ nav.scrolled {
 }
 .nav-logo span { color: var(--green); }
 .nav-links {
-  display: flex; gap: 32px;
+  display: none;
   list-style: none;
 }
 .nav-links a {
@@ -166,20 +166,13 @@ nav.scrolled {
   padding: 14px 36px;
 }
 
-/* Ambient background */
 body::before {
   content: '';
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background:
-    radial-gradient(ellipse 55% 45% at 0% 5%, rgba(45,122,79,0.065) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 40% at 100% 95%, rgba(184,148,74,0.07) 0%, transparent 55%);
-}
-/* Dot grid texture */
-body::after {
-  content: '';
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(circle, rgba(26,21,16,0.07) 1px, transparent 1px);
-  background-size: 28px 28px;
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
 }
 
 /* ── Toast ── */
