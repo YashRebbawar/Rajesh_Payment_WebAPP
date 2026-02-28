@@ -588,11 +588,18 @@ body::before {
     text-align: center;
   }
   .setup-header h1 { font-size: 32px; letter-spacing: -1.8px; }
+  .setup-header { order: 1; }
   .setup-info-section { 
-    order: -1; 
+    order: 2; 
     position: static;
     margin-bottom: 16px;
   }
+  .setup-form-section { order: 3; }
+  .passport-top { padding: 14px 18px 10px; }
+  .passport-body { padding: 14px 18px 12px; gap: 12px; }
+  .passport-mrz { padding: 10px 18px 12px; }
+  .p-chart { height: 24px; }
+  .p-stat { padding: 10px 12px; }
   .p-name { font-size: 28px; }
   .pg-wm { font-size: 130px; }
   .back-button { top: 20px; left: 16px; }
@@ -600,8 +607,13 @@ body::before {
 
 @media (max-width: 560px) {
   .setup-container { padding: 76px 12px 32px; }
-  .setup-header { padding: 0 0 20px; }
+  .setup-header { padding: 15px 0 10px; }
   .setup-header h1 { font-size: 28px; letter-spacing: -1.5px; }
+  .passport-top { padding: 12px 14px 9px; }
+  .passport-body { padding: 12px 14px 10px; gap: 10px; }
+  .passport-mrz { padding: 8px 14px 10px; }
+  .p-chart { height: 20px; }
+  .p-stat { padding: 8px 10px; }
   .back-button { top: 16px; left: 12px; width: 36px; height: 36px; font-size: 16px; }
   .header-eyebrow { font-size: 9px; }
   .pw-requirements { grid-template-columns: 1fr; }
