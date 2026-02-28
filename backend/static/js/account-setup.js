@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const setupForm        = document.getElementById('setup-form');
     const createBtn        = document.getElementById('create-btn');
     const strengthBar      = document.getElementById('strength-bar');
+    const jumpToFormLink   = document.getElementById('jump-to-form-btn');
+    const setupFormSection = document.getElementById('setup-form-section');
 
     /* ═══════════════════════════════════════════
        THEMED TOAST
@@ -112,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (backButton) {
         backButton.addEventListener('click', function () {
             window.history.back();
+        });
+    }
+
+    if (jumpToFormLink && setupFormSection) {
+        jumpToFormLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            setupFormSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     }
 

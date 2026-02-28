@@ -20,6 +20,9 @@
     {% block head %}{% endblock %}
 </head>
 <body class="bg-white text-gray-800">
+    <div class="pf-cursor-dot" id="pfCursorDot" aria-hidden="true"></div>
+    <div class="pf-cursor-ring" id="pfCursorRing" aria-hidden="true"></div>
     {% block content %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/cursor-global.js') }}"></script>
 </body>
 </html>

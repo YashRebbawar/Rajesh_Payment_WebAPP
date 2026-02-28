@@ -23,6 +23,53 @@ body::after {
   display: none;
 }
 
+.pf-cursor-dot,
+.pf-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  will-change: transform, opacity, width, height;
+}
+
+.pf-cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2d7a4f;
+  box-shadow: 0 0 18px rgba(45, 122, 79, 0.45);
+  transition: opacity 0.2s ease;
+}
+
+.pf-cursor-ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(45, 122, 79, 0.75);
+  transition: width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+}
+
+html.pf-cursor-active .pf-cursor-dot,
+html.pf-cursor-active .pf-cursor-ring {
+  opacity: 1;
+}
+
+html.pf-cursor-hover .pf-cursor-ring {
+  width: 44px;
+  height: 44px;
+  opacity: 0.88;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .pf-cursor-dot,
+  .pf-cursor-ring {
+    display: none !important;
+  }
+}
+
 @keyframes float1 {
   0%, 100% {
     transform: translate(0, 0);
