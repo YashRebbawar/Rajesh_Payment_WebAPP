@@ -126,6 +126,9 @@ nav.scrolled {
 .nav-cta {
   display: flex; gap: 10px; align-items: center;
 }
+.nav-cta .hamburger {
+  display: flex;
+}
 .btn-ghost {
   font-size: 13px; font-weight: 600;
   color: var(--ink-60);
@@ -1139,8 +1142,8 @@ footer {
     padding: 12px 20px;
   }
   .nav-links { display: none; }
-  .nav-cta { display: none; }
-  .hamburger { display: flex; }
+  .hamburger-mobile { display: flex !important; }
+  .nav-cta .hamburger { display: none !important; }
 
   /* Hero */
   .hero {

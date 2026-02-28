@@ -4,12 +4,21 @@ document.addEventListener('DOMContentLoaded', function () {
        HAMBURGER MENU & NAVBAR
     ═══════════════════════════════════════════ */
     const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
     const mobileNav = document.getElementById('mobileNav');
     const navbar = document.getElementById('navbar');
 
     if (hamburger && mobileNav) {
         hamburger.addEventListener('click', () => {
             const isOpen = hamburger.classList.toggle('open');
+            mobileNav.classList.toggle('open', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+    }
+
+    if (hamburgerMobile && mobileNav) {
+        hamburgerMobile.addEventListener('click', () => {
+            const isOpen = hamburgerMobile.classList.toggle('open');
             mobileNav.classList.toggle('open', isOpen);
             document.body.style.overflow = isOpen ? 'hidden' : '';
         });
@@ -302,12 +311,12 @@ document.addEventListener('DOMContentLoaded', function () {
 ═══════════════════════════════════════════ */
 function closeMobileNav() {
     const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
     const mobileNav = document.getElementById('mobileNav');
-    if (hamburger && mobileNav) {
-        hamburger.classList.remove('open');
-        mobileNav.classList.remove('open');
-        document.body.style.overflow = '';
-    }
+    if (hamburger) hamburger.classList.remove('open');
+    if (hamburgerMobile) hamburgerMobile.classList.remove('open');
+    if (mobileNav) mobileNav.classList.remove('open');
+    document.body.style.overflow = '';
 }
 
 function formatMemberSince(isoString) {

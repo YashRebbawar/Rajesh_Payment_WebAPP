@@ -60,7 +60,8 @@ nav.scrolled {
 }
 .nav-logo span { color: var(--green); }
 .nav-links {
-  display: flex; gap: 32px;
+  display: none;
+  gap: 32px;
   list-style: none;
 }
 .nav-links a {
@@ -73,6 +74,9 @@ nav.scrolled {
 .nav-links a:hover { color: var(--ink); }
 .nav-cta {
   display: flex; gap: 10px; align-items: center;
+}
+.nav-cta .hamburger {
+  display: flex;
 }
 .btn-pill {
   font-size: 13px; font-weight: 700;
@@ -610,8 +614,8 @@ body::after {
     padding: 12px 20px;
   }
   .nav-links { display: none; }
-  .nav-cta { display: none; }
-  .hamburger { display: flex; }
+  .hamburger-mobile { display: flex !important; }
+  .nav-cta .hamburger { display: none !important; }
 
   .account-container { padding: 100px 20px 60px; }
   .back-button { top: 80px; }

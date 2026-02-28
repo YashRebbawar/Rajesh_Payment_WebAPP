@@ -20,12 +20,14 @@
   </ul>
   <div class="nav-cta">
     {% if user %}
-    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
     {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'">Get Started →</button>
     {% endif %}
   </div>
-  <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+  <button class="hamburger hamburger-mobile" id="hamburger-mobile" aria-label="Toggle menu" style="display:none;">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -38,6 +40,7 @@
   <div class="mobile-nav-cta">
     {% if user %}
     <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    <button class="btn-pill" onclick="window.location.href='/logout'; closeMobileNav()">Logout →</button>
     {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
     {% endif %}
@@ -53,11 +56,6 @@
   </div>
 
 
-
-  <!-- Back -->
-  <button type="button" class="back-button" id="back-button" aria-label="Go back">
-    <span class="back-icon">←</span>
-  </button>
 
   <!-- Page heading -->
   <div class="header-section">

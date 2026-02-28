@@ -73,6 +73,9 @@ nav.scrolled {
 .nav-cta {
   display: flex; gap: 10px; align-items: center;
 }
+.nav-cta .hamburger {
+  display: flex;
+}
 .btn-pill {
   font-size: 13px; font-weight: 700;
   color: #fff;
@@ -216,7 +219,7 @@ body::after {
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 62px 20px 20px;
+  padding: 90px 25px 20px;
   gap: 0 52px;
   align-items: start;
 }
@@ -237,7 +240,7 @@ body::after {
   font-size: 10px; font-weight: 800; letter-spacing: 0.20em; text-transform: uppercase;
   color: var(--green); display: flex; align-items: center; gap: 9px; margin-bottom: 12px;
 }
-.eyebrow-dash { display: inline-block; width: 24px; height: 1.5px; background: var(--green); opacity: 0.45; border-radius: 2px; }
+.eyebrow-dash { display: inline-block; width: 24px; height: 1.5px; background: var(--green); opacity: 0.45; border-radius: 2px; flex-shrink: 0; }
 
 .setup-header h1 {
   font-family: 'Fraunces', serif;
@@ -556,8 +559,8 @@ body::after {
     padding: 12px 20px;
   }
   .nav-links { display: none; }
-  .nav-cta { display: none; }
-  .hamburger { display: flex; }
+  .hamburger-mobile { display: flex !important; }
+  .nav-cta .hamburger { display: none !important; }
 
   .setup-container { 
     grid-template-columns: 1fr 340px; 
@@ -613,4 +616,5 @@ body::after {
   .p-stats { grid-template-columns: 1fr; }
   .submit-row { flex-direction: column; align-items: stretch; }
   .create-account-btn { min-width: 100%; }
+  .submit-note { justify-content: center; }
 }

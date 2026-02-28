@@ -23,19 +23,31 @@ if (!isTouchDevice()) {
 
 // ─── Hamburger menu ──────────────────────────────────────────
 const hamburger = document.getElementById('hamburger');
+const hamburgerMobile = document.getElementById('hamburger-mobile');
 const mobileNav = document.getElementById('mobileNav');
 
 function closeMobileNav() {
-  hamburger.classList.remove('open');
+  if (hamburger) hamburger.classList.remove('open');
+  if (hamburgerMobile) hamburgerMobile.classList.remove('open');
   mobileNav.classList.remove('open');
   document.body.style.overflow = '';
 }
 
-hamburger.addEventListener('click', () => {
-  const isOpen = hamburger.classList.toggle('open');
-  mobileNav.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
-});
+if (hamburger) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+}
+
+if (hamburgerMobile) {
+  hamburgerMobile.addEventListener('click', () => {
+    const isOpen = hamburgerMobile.classList.toggle('open');
+    mobileNav.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+}
 
 // Close on Escape key
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
