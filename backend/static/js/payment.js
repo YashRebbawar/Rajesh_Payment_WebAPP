@@ -158,8 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectedPaymentMethod === 'upi') {
             showQRModal(amount, depositCurrency, accountId);
-        } else {
+        } else if (selectedPaymentMethod === 'imps') {
             showIMPSModal(amount, depositCurrency, accountId);
+        } else if (selectedPaymentMethod === 'usdt') {
+            showUSDTModal(amount, depositCurrency, accountId);
         }
     });
 
@@ -183,6 +185,16 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeIMPSPaymentData(accountId, amount, currency);
     }
 
+    function showUSDTModal(amount, currency, accountId) {
+        const modal = document.getElementById('usdt-modal');
+        const fee = amount * 0.014;
+        const total = amount + fee;
+        document.getElementById('usdt-amount').textContent = total.toFixed(2);
+        document.getElementById('usdt-currency').textContent = currency;
+        modal.style.display = 'block';
+        initializeUSDTPaymentData(accountId, amount, currency);
+    }
+
     function generateReference() {
         return 'PAY' + Date.now().toString().slice(-8);
     }
@@ -192,6 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let pendingPaymentData = null;
     let impsScreenshotFile = null;
     let pendingIMPSPaymentData = null;
+    let usdtScreenshotFile = null;
+    let pendingUSDTPaymentData = null;
 
     function initializePaymentData(accountId, amount, currency) {
         const reference = generateReference();
@@ -203,6 +217,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const reference = generateReference();
         document.getElementById('imps-payment-ref').textContent = reference;
         pendingIMPSPaymentData = { accountId, amount, currency, reference };
+    }
+
+    function initializeUSDTPaymentData(accountId, amount, currency) {
+        const reference = generateReference();
+        document.getElementById('usdt-payment-ref').textContent = reference;
+        pendingUSDTPaymentData = { accountId, amount, currency, reference };
     }
 
     document.getElementById('upload-screenshot-btn').addEventListener('click', function() {
@@ -318,11 +338,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('discard-modal').style.display = 'none';
         document.getElementById('qr-modal').style.display = 'none';
         document.getElementById('imps-modal').style.display = 'none';
+        document.getElementById('usdt-modal').style.display = 'none';
         currentPaymentId = null;
         screenshotFile = null;
         pendingPaymentData = null;
         impsScreenshotFile = null;
         pendingIMPSPaymentData = null;
+        usdtScreenshotFile = null;
+        pendingUSDTPaymentData = null;
         document.getElementById('screenshot-input').value = '';
         document.getElementById('screenshot-filename').style.display = 'none';
         document.getElementById('upload-screenshot-btn').style.display = 'flex';
@@ -331,6 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('imps-screenshot-filename').style.display = 'none';
         document.getElementById('imps-upload-screenshot-btn').style.display = 'flex';
         document.getElementById('imps-confirm-payment-btn').disabled = true;
+        document.getElementById('usdt-screenshot-input').value = '';
+        document.getElementById('usdt-screenshot-filename').style.display = 'none';
+        document.getElementById('usdt-upload-screenshot-btn').style.display = 'flex';
+        document.getElementById('usdt-confirm-payment-btn').disabled = true;
     });
 
     const profileToggle = document.getElementById('profile-toggle');
@@ -451,6 +478,112 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', function(event) {
         const impsModal = document.getElementById('imps-modal');
         if (event.target === impsModal) {
+            document.getElementById('discard-modal').style.display = 'block';
+        }
+    });
+
+    // USDT Modal handlers
+    document.getElementById('usdt-upload-screenshot-btn').addEventListener('click', function() {
+        document.getElementById('usdt-screenshot-input').click();
+    });
+
+    document.getElementById('usdt-screenshot-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+            
+            usdtScreenshotFile = file;
+            document.getElementById('usdt-filename-text').textContent = file.name;
+            document.getElementById('usdt-screenshot-filename').style.display = 'flex';
+            document.getElementById('usdt-upload-screenshot-btn').style.display = 'none';
+            document.getElementById('usdt-confirm-payment-btn').disabled = false;
+        }
+    });
+
+    document.getElementById('usdt-remove-screenshot-btn').addEventListener('click', function() {
+        usdtScreenshotFile = null;
+        document.getElementById('usdt-screenshot-input').value = '';
+        document.getElementById('usdt-screenshot-filename').style.display = 'none';
+        document.getElementById('usdt-upload-screenshot-btn').style.display = 'flex';
+        document.getElementById('usdt-confirm-payment-btn').disabled = true;
+    });
+
+    document.getElementById('usdt-confirm-payment-btn').addEventListener('click', async function() {
+        if (!usdtScreenshotFile || !pendingUSDTPaymentData) return;
+        
+        const btn = this;
+        btn.style.display = 'none';
+        document.getElementById('usdt-payment-status').style.display = 'flex';
+        
+        try {
+            const initiateResponse = await fetch('/api/payment/initiate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    account_id: pendingUSDTPaymentData.accountId,
+                    amount: pendingUSDTPaymentData.amount,
+                    currency: depositCurrency,
+                    reference: pendingUSDTPaymentData.reference
+                })
+            });
+            
+            const initiateData = await initiateResponse.json();
+            if (!initiateData.success) {
+                alert('Error creating payment. Please try again.');
+                btn.style.display = 'block';
+                document.getElementById('usdt-payment-status').style.display = 'none';
+                return;
+            }
+            
+            currentPaymentId = initiateData.payment_id;
+            
+            const formData = new FormData();
+            formData.append('screenshot', usdtScreenshotFile);
+            
+            const uploadResponse = await fetch(`/api/payment/upload-screenshot/${currentPaymentId}`, {
+                method: 'POST',
+                body: formData
+            });
+            const uploadData = await uploadResponse.json();
+            
+            if (!uploadData.success) {
+                alert('Error uploading screenshot: ' + uploadData.message);
+                btn.style.display = 'block';
+                document.getElementById('usdt-payment-status').style.display = 'none';
+                return;
+            }
+            
+            const response = await fetch(`/api/payment/simulate/${currentPaymentId}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('usdt-modal').style.display = 'none';
+                document.getElementById('success-modal').style.display = 'block';
+            } else {
+                alert('Error processing payment. Please contact support.');
+                btn.style.display = 'block';
+                document.getElementById('usdt-payment-status').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Payment confirmation error:', error);
+            alert('Error processing payment. Please contact support.');
+            btn.style.display = 'block';
+            document.getElementById('usdt-payment-status').style.display = 'none';
+        }
+    });
+
+    document.querySelector('.usdt-close').addEventListener('click', function() {
+        document.getElementById('discard-modal').style.display = 'block';
+    });
+
+    window.addEventListener('click', function(event) {
+        const usdtModal = document.getElementById('usdt-modal');
+        if (event.target === usdtModal) {
             document.getElementById('discard-modal').style.display = 'block';
         }
     });

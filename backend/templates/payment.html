@@ -76,6 +76,9 @@
                     <div class="payment-method-option" data-method="imps">
                         <img src="{{ url_for('static', filename='images/imps_logo.png') }}" alt="IMPS" class="payment-icon" style="width: 70px; height: auto;">
                     </div>
+                    <div class="payment-method-option" data-method="usdt">
+                        <span style="font-weight: 600; font-size: 14px;">USDT</span>
+                    </div>
                 </div>
             </div>
 
@@ -242,6 +245,53 @@
         
         <button class="confirm-payment-btn" id="imps-confirm-payment-btn" disabled>I have completed the payment</button>
         <div class="payment-status" id="imps-payment-status" style="display: none;">
+            <div class="status-spinner"></div>
+            <span>Waiting for payment...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Payment USDT Modal -->
+<div id="usdt-modal" class="qr-modal">
+    <div class="qr-modal-content">
+        <span class="usdt-close">&times;</span>
+        <h2>Complete Payment</h2>
+        <div class="qr-amount-display">
+            <span class="qr-amount-label">Amount to Pay:</span>
+            <span class="qr-amount-value" id="usdt-amount">0.00</span>
+            <span class="qr-currency" id="usdt-currency">USD</span>
+        </div>
+        <div class="bank-details-container">
+            <div class="bank-detail-item">
+                <span class="bank-detail-label">Address</span>
+                <span class="bank-detail-value">0x7e80db68b9b49782a233949feb2a2ded34e55642</span>
+            </div>
+            <div class="bank-detail-item">
+                <span class="bank-detail-label">Network</span>
+                <span class="bank-detail-value">BEP20</span>
+            </div>
+        </div>
+        <div class="payment-reference">
+            <span class="ref-label">Payment Reference:</span>
+            <span class="ref-code" id="usdt-payment-ref">-</span>
+        </div>
+        <p class="qr-instruction">Transfer USDT to the address above and include the reference code in transaction memo</p>
+        
+        <div class="screenshot-upload-section">
+            <input type="file" id="usdt-screenshot-input" accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp,image/webp,image/svg+xml,image/heic,image/heif" style="display: none;">
+            <button class="upload-screenshot-btn" id="usdt-upload-screenshot-btn">
+                <span class="upload-icon">📎</span>
+                <span id="usdt-upload-text">Upload Payment Screenshot</span>
+            </button>
+            <div class="screenshot-filename" id="usdt-screenshot-filename" style="display: none;">
+                <span class="file-icon">📎</span>
+                <span class="filename-text" id="usdt-filename-text"></span>
+                <button class="remove-screenshot-btn" id="usdt-remove-screenshot-btn">✕</button>
+            </div>
+        </div>
+        
+        <button class="confirm-payment-btn" id="usdt-confirm-payment-btn" disabled>I have completed the payment</button>
+        <div class="payment-status" id="usdt-payment-status" style="display: none;">
             <div class="status-spinner"></div>
             <span>Waiting for payment...</span>
         </div>
