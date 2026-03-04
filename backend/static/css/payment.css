@@ -5,7 +5,7 @@
     padding: 0;
     display: grid;
     grid-template-columns: 1fr 320px;
-    gap: 100px;
+    gap: 60px;
     align-items: start;
     position: relative;
     z-index: 2;
@@ -118,9 +118,15 @@
 .left-section {
     background: transparent;
     border-radius: 0;
-    padding: 0 60px 0 0;
+    padding: 0 40px 0 0;
     border: none;
     box-shadow: none;
+}
+
+@media (max-width: 1024px) {
+    .left-section {
+        padding: 0;
+    }
 }
 
 @media (max-width: 768px) {
@@ -164,6 +170,7 @@
 .payment-method-selector {
     display: flex;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
@@ -174,6 +181,7 @@
 
 .payment-method-option {
     flex: 1;
+    min-width: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -208,17 +216,22 @@
 @media (max-width: 768px) {
     .payment-method-option {
         padding: 12px 10px;
-        gap: 8px;
-        font-size: 13px;
+        gap: 6px;
+        font-size: 12px;
+        min-width: 80px;
     }
     
     .payment-icon {
-        font-size: 20px;
+        font-size: 18px;
     }
     
     .payment-method-option img {
-        width: 50px !important;
+        width: 45px !important;
         height: auto !important;
+    }
+    
+    .payment-method-option span {
+        font-size: 12px !important;
     }
 }
 
@@ -1363,19 +1376,26 @@
 }
 
 .payment-method-option.maintenance-mode::after {
-    content: 'Under Maintenance';
+    content: 'Maintenance';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(255, 152, 0, 0.95);
     color: white;
-    padding: 4px 12px;
+    padding: 3px 8px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     white-space: nowrap;
     z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .payment-method-option.maintenance-mode::after {
+        font-size: 8px;
+        padding: 2px 6px;
+    }
 }
 
 .payment-method-option.maintenance-mode:hover {

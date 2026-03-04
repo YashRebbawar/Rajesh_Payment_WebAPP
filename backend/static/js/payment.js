@@ -119,6 +119,30 @@ document.addEventListener('DOMContentLoaded', function() {
             paymentMethodOptions.forEach(opt => opt.classList.remove('active'));
             this.classList.add('active');
             selectedPaymentMethod = this.dataset.method;
+            
+            // Update currency display based on payment method
+            const currencyLabel = document.getElementById('currency-label');
+            const depositCurrencyEl = document.getElementById('deposit-currency');
+            const amountRange = document.getElementById('amount-range');
+            const amountInput = document.getElementById('amount');
+            
+            if (selectedPaymentMethod === 'usdt') {
+                currencyLabel.textContent = 'USD';
+                depositCurrencyEl.textContent = 'USD';
+                amountRange.textContent = '50 - 5,000 USD';
+                amountInput.min = '50';
+                amountInput.max = '5000';
+                amountInput.step = '0.01';
+            } else {
+                currencyLabel.textContent = depositCurrency;
+                depositCurrencyEl.textContent = depositCurrency;
+                amountRange.textContent = (accountType === 'standard' ? '1,000 - 1,00,000' : '50,000 - 1,00,000') + ' ' + depositCurrency;
+                amountInput.min = accountType === 'standard' ? '1000' : '50000';
+                amountInput.max = '100000';
+                amountInput.step = '1';
+            }
+            amountInput.value = '';
+            depositValueEl.textContent = '0';
         });
     });
 
@@ -126,13 +150,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const value = parseFloat(this.value) || 0;
         const fee = value * 0.014;
         const total = value + fee;
-        depositValueEl.textContent = total.toFixed(0);
+        depositValueEl.textContent = selectedPaymentMethod === 'usdt' ? total.toFixed(2) : total.toFixed(0);
         
         document.getElementById('tooltip-amount').textContent = value.toFixed(2);
         document.getElementById('tooltip-fee').textContent = fee.toFixed(2);
         document.getElementById('tooltip-total').textContent = total.toFixed(2);
         
-        const isValid = value >= minAmount && value <= maxAmount;
+        let currentMin, currentMax;
+        if (selectedPaymentMethod === 'usdt') {
+            currentMin = 50;
+            currentMax = 5000;
+        } else {
+            currentMin = minAmount;
+            currentMax = maxAmount;
+        }
+        
+        const isValid = value >= currentMin && value <= currentMax;
         payButton.disabled = !isValid;
         if (isValid) {
             payButton.classList.add('active');
@@ -144,9 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
     payButton.addEventListener('click', async function(e) {
         e.preventDefault();
         const amount = parseFloat(amountInput.value);
+        const currentMin = selectedPaymentMethod === 'usdt' ? 50 : minAmount;
+        const currentCurrency = selectedPaymentMethod === 'usdt' ? 'USD' : depositCurrency;
         
-        if (!amount || amount < minAmount) {
-            alert(`Please enter an amount of at least ${minAmount} ${depositCurrency}`);
+        if (!amount || amount < currentMin) {
+            alert(`Please enter an amount of at least ${currentMin} ${currentCurrency}`);
             return;
         }
         
@@ -161,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (selectedPaymentMethod === 'imps') {
             showIMPSModal(amount, depositCurrency, accountId);
         } else if (selectedPaymentMethod === 'usdt') {
-            showUSDTModal(amount, depositCurrency, accountId);
+            showUSDTModal(amount, 'USD', accountId);
         }
     });
 
