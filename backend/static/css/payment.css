@@ -158,12 +158,12 @@ body::after{
 }
 
 /* ── BIG AMOUNT INPUT ── */
-.amount-field{position:relative;padding-top:16px;margin-bottom:8px;}
+.amount-field{position:relative;padding-top:22px;margin-bottom:8px;}
 .amount-field-label{
-  position:absolute;top:16px;left:0;
+  position:absolute;top:0;left:0;
   font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink-45);
-  pointer-events:none;transform-origin:left top;
-  transition:transform .24s cubic-bezier(.22,1,.36,1),color .24s;
+  pointer-events:none;
+  transition:color .24s;
 }
 .amount-field::after{
   content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
@@ -172,12 +172,12 @@ body::after{
 }
 .amount-field:focus-within::after{transform:scaleX(1);}
 .amount-field:focus-within .amount-field-label,
-.amount-field.filled .amount-field-label{transform:translateY(-18px) scale(.77);color:var(--green);}
+.amount-field.filled .amount-field-label{color:var(--green);}
 
 .amount-input-wrapper{display:flex;align-items:baseline;gap:10px;}
 .amount-input-wrapper input{
   flex:1;border:none;border-bottom:1.5px solid var(--bdr-md);border-radius:0;
-  background:transparent;padding:8px 0 9px;
+  background:transparent;padding:12px 0 9px;
   font-family:'Fraunces',serif;font-size:44px;font-weight:900;letter-spacing:-2px;
   color:var(--ink);outline:none;transition:border-color .22s;
   -moz-appearance:textfield;width:100%;
@@ -486,15 +486,89 @@ body::after{
 @media(max-width:860px){
   .account-container{grid-template-columns:1fr;padding:0 20px 60px;}
   .header-section{flex-direction:column;align-items:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;}
-  .right-section{order:-1;position:static;}
-  .rcpt-total-amount{font-size:36px;}
+  .right-section{order:2;position:static;}
+  .left-section{order:1;}
+  .form-group{margin-bottom:24px;}
+  .payment-method-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .payment-method-option{max-width:none;min-height:68px;padding:12px 14px;}
+  .account-select{padding:12px 0;}
+  .amount-field{padding-top:20px;}
+  .amount-input-wrapper input{font-size:40px;line-height:1.05;}
+  .amount-range{margin-top:6px;}
+  .deposit-summary{margin:20px 0 24px;padding:14px 16px;}
+  .continue-button{padding:15px 24px;}
+  .receipt-card{
+    border-radius:16px;
+    box-shadow:0 10px 28px rgba(26,21,16,.16),0 2px 8px rgba(26,21,16,.08);
+  }
+  .rcpt-wm{font-size:120px;right:-10px;bottom:-14px;}
+  .rcpt-top{padding:12px 14px 11px;}
+  .rcpt-body{padding:14px 14px 6px;}
+  .rcpt-to-account{font-size:18px;}
+  .rcpt-account-type{font-size:10px;margin-bottom:14px;}
+  .rcpt-total-section{margin-bottom:14px;}
+  .rcpt-total-amount{font-size:30px;letter-spacing:-1px;}
+  .rcpt-total-currency{font-size:12px;}
+  .rcpt-breakdown{margin-bottom:12px;padding-top:12px;gap:8px;}
+  .rcpt-row-label{font-size:9px;}
+  .rcpt-row-value{font-size:11px;}
+  .rcpt-row.total .rcpt-row-value{font-size:15px;}
+  .terms-section{padding:0 14px 14px;}
+  .terms-item{padding:8px 10px;margin-bottom:6px;border-radius:8px;}
+  .terms-label,.terms-value{font-size:10px;}
+  .rcpt-mrz{padding:8px 14px 10px;}
+  .mrz{font-size:7px;line-height:1.5;}
 }
 @media(max-width:580px){
   .account-container{padding:0 14px 60px;}
+  .header-section{padding:90px 0 10px;margin-bottom:24px;}
+  .header-section > div{width:100%;}
+  .header-eyebrow{font-size:9px;letter-spacing:.16em;gap:7px;margin-bottom:8px;}
+  .header-section .header-eyebrow::before,
+  .header-section .header-eyebrow::after{width:16px;}
+  .account-title{font-size:30px;letter-spacing:-1.3px;}
+  .left-section{width:100%;}
+  .form-group{margin-bottom:20px;}
+  .form-label{margin-bottom:10px;font-size:8px;}
+  .payment-method-selector{gap:8px;}
+  .payment-method-option{padding:10px 12px;min-height:60px;border-radius:12px;}
+  .payment-icon{max-width:60px;height:auto;}
+  .account-type{font-size:9px;padding:4px 8px;}
+  .account-number{font-size:15px;}
+  .account-balance{font-size:14px;}
+  .amount-field-label{font-size:11px;}
+  .amount-input-wrapper{gap:8px;}
+  .amount-input-wrapper input{font-size:32px;letter-spacing:-1.2px;padding-bottom:8px;}
+  .currency-label{font-size:12px;padding-bottom:8px;}
+  .amount-range{font-size:10px;}
+  .deposit-summary{padding:12px 12px 12px 14px;margin:16px 0 20px;align-items:flex-start;}
+  .deposit-summary-label{font-size:9px;letter-spacing:.08em;}
+  .deposit-amount{font-size:22px;line-height:1.1;}
+  .fee-info-icon{width:18px;height:18px;font-size:9px;}
+  .fee-tooltip{right:-6px;width:176px;padding:10px 12px;}
+  .tooltip-row{font-size:11px;}
+  .continue-button{padding:14px 18px;font-size:13px;gap:8px;}
+  .right-section{margin-top:8px;}
+  .receipt-card{
+    border-radius:14px;
+    box-shadow:0 8px 22px rgba(26,21,16,.14),0 2px 6px rgba(26,21,16,.07);
+  }
+  .rcpt-issuer{font-size:8px;letter-spacing:.14em;}
+  .rcpt-live{font-size:8px;}
+  .rcpt-section-label,.rcpt-total-label{font-size:8px;}
+  .rcpt-to-account{font-size:16px;}
+  .rcpt-account-type{font-size:9px;margin-bottom:10px;}
+  .rcpt-total-amount{font-size:26px;letter-spacing:-.8px;}
+  .rcpt-total-currency{font-size:11px;}
+  .rcpt-breakdown{padding-top:10px;gap:7px;}
+  .rcpt-row-label{font-size:9px;}
+  .rcpt-row-value{font-size:10px;}
+  .rcpt-row.total .rcpt-row-value{font-size:14px;}
+  .terms-item{padding:7px 9px;border-radius:8px;}
+  .terms-label,.terms-value{font-size:9px;}
+  .mrz{font-size:6px;letter-spacing:.04em;}
   .back-button{top:16px;left:14px;}
   .auth-buttons{top:16px;right:14px;}
-  .account-title{font-size:32px;letter-spacing:-1.5px;}
-  .amount-input-wrapper input{font-size:34px;letter-spacing:-1.5px;}
   .qr-code-image{width:260px;height:260px;}
   .qr-modal-content{max-height:96vh;}
   .modal-header,.qr-amount-display,.modal-body{padding-left:20px;padding-right:20px;}
