@@ -39,10 +39,9 @@
 
 <!-- Mobile Nav Overlay -->
 <div class="mobile-nav" id="mobileNav">
-  <a href="#features" onclick="closeMobileNav()">Invest</a>
-  <a href="#security" onclick="closeMobileNav()">Security</a>
-  <a href="#testimonials" onclick="closeMobileNav()">Testimonials</a>
-  <a href="#faq" onclick="closeMobileNav()">FAQ</a>
+  <a href="/my-accounts" onclick="closeMobileNav()">My Accounts</a>
+  <a href="/accounts" onclick="closeMobileNav()">Open Account</a>
+  <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
     {% if user %}
     <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>

@@ -14,6 +14,16 @@ function updateTime() {
 updateTime();
 setInterval(updateTime, 1000);
 
+function closeMobileNav() {
+    const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
+    const mobileNav = document.getElementById('mobileNav');
+
+    if (hamburger) hamburger.classList.remove('open');
+    if (hamburgerMobile) hamburgerMobile.classList.remove('open');
+    if (mobileNav) mobileNav.classList.remove('open');
+}
+
 /* ══════════════════════════════════════════════════════
    THEMED TOAST  (replaces all alert() calls)
 ══════════════════════════════════════════════════════ */
@@ -107,6 +117,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
     const depositCurrency    = accountCurrency === 'USD' ? 'INR' : accountCurrency;
+
+    const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
+    const mobileNav = document.getElementById('mobileNav');
+
+    if (hamburger && mobileNav) {
+        hamburger.addEventListener('click', () => {
+            const isOpen = hamburger.classList.toggle('open');
+            if (hamburgerMobile) hamburgerMobile.classList.toggle('open', isOpen);
+            mobileNav.classList.toggle('open', isOpen);
+        });
+    }
+
+    if (hamburgerMobile && mobileNav) {
+        hamburgerMobile.addEventListener('click', () => {
+            const isOpen = hamburgerMobile.classList.toggle('open');
+            if (hamburger) hamburger.classList.toggle('open', isOpen);
+            mobileNav.classList.toggle('open', isOpen);
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMobileNav();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!mobileNav || !mobileNav.classList.contains('open')) return;
+        if (e.target.closest('#mobileNav')) return;
+        if (e.target.closest('#hamburger') || e.target.closest('#hamburger-mobile')) return;
+        closeMobileNav();
+    });
 
     const minAmount = accountType === 'standard' ? 1000 : 50000;
     const maxAmount = 100000;

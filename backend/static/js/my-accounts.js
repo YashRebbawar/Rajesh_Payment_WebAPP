@@ -1,3 +1,13 @@
+function closeMobileNav() {
+    const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
+    const mobileNav = document.getElementById('mobileNav');
+
+    if (hamburger) hamburger.classList.remove('open');
+    if (hamburgerMobile) hamburgerMobile.classList.remove('open');
+    if (mobileNav) mobileNav.classList.remove('open');
+}
+
 // Pending Dropdown Functions
 document.addEventListener('DOMContentLoaded', function() {
     const pendingToggle = document.getElementById('pending-toggle');
@@ -79,15 +89,37 @@ document.addEventListener('DOMContentLoaded', function() {
     pollUserUnreadMessages();
     setInterval(pollUserUnreadMessages, 3000);
 
-    // Existing code continues...
-    const navToggle = document.getElementById('nav-toggle');
-    const navMenu = document.getElementById('nav-menu');
-    
-    if (navToggle) {
-        navToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
+    // Mobile navigation
+    const hamburger = document.getElementById('hamburger');
+    const hamburgerMobile = document.getElementById('hamburger-mobile');
+    const mobileNav = document.getElementById('mobileNav');
+
+    if (hamburger && mobileNav) {
+        hamburger.addEventListener('click', function() {
+            const isOpen = hamburger.classList.toggle('open');
+            if (hamburgerMobile) hamburgerMobile.classList.toggle('open', isOpen);
+            mobileNav.classList.toggle('open', isOpen);
         });
     }
+
+    if (hamburgerMobile && mobileNav) {
+        hamburgerMobile.addEventListener('click', function() {
+            const isOpen = hamburgerMobile.classList.toggle('open');
+            if (hamburger) hamburger.classList.toggle('open', isOpen);
+            mobileNav.classList.toggle('open', isOpen);
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMobileNav();
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!mobileNav || !mobileNav.classList.contains('open')) return;
+        if (e.target.closest('#mobileNav')) return;
+        if (e.target.closest('#hamburger') || e.target.closest('#hamburger-mobile')) return;
+        closeMobileNav();
+    });
 
     const profileToggle = document.getElementById('profile-toggle');
     const profileDropdown = document.getElementById('profile-dropdown');

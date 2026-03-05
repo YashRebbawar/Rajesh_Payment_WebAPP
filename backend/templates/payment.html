@@ -57,8 +57,27 @@
       </div>
     </div>
     {% endif %}
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <button class="hamburger hamburger-mobile" id="hamburger-mobile" aria-label="Toggle menu" style="display:none;">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="/my-accounts" onclick="closeMobileNav()">My Accounts</a>
+  <a href="/accounts" onclick="closeMobileNav()">Open Account</a>
+  <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
+  <div class="mobile-nav-cta">
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='/logout'; closeMobileNav()">Logout →</button>
+    {% else %}
+    <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
+    {% endif %}
+  </div>
+</div>
 
 <!-- ── PROFILE ── -->
 

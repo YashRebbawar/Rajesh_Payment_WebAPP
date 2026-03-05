@@ -50,17 +50,29 @@ body::after{
 /* ── Page header (full width) ── */
 .header-section{
   grid-column:1/-1;
-  padding:100px 0 44px;
-  display:flex;align-items:flex-end;justify-content:space-between;
-  border-bottom:1px solid var(--border);margin-bottom:52px;
+  width:100%;
+  max-width:none;
+  padding:108px 0 44px;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;
+  border-bottom:1px solid var(--border);margin-bottom:56px;
   animation:hdrIn .65s cubic-bezier(.22,1,.36,1) both;
+}
+.header-section > div{
+  max-width:640px;
+  display:flex;flex-direction:column;align-items:center;
 }
 @keyframes hdrIn{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:none;}}
 .header-eyebrow{
   font-family:'Cabinet Grotesk',sans-serif;font-size:10px;font-weight:800;
   letter-spacing:.20em;text-transform:uppercase;color:var(--green);
-  display:flex;align-items:center;gap:9px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px;
 }
+.header-section .header-eyebrow::before,
+.header-section .header-eyebrow::after{
+  content:'';display:inline-block;width:24px;height:1.5px;background:var(--green);opacity:.45;border-radius:2px;
+}
+.header-section .header-eyebrow .eyebrow-line{display:none;}
 .eyebrow-line{display:inline-block;width:24px;height:1.5px;background:var(--green);opacity:.45;border-radius:2px;}
 .account-title{
   font-family:'Fraunces',serif;
@@ -473,7 +485,7 @@ body::after{
 /* ══ RESPONSIVE ══ */
 @media(max-width:860px){
   .account-container{grid-template-columns:1fr;padding:0 20px 60px;}
-  .header-section{flex-direction:column;align-items:flex-start;gap:16px;padding:76px 0 36px;}
+  .header-section{flex-direction:column;align-items:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;}
   .right-section{order:-1;position:static;}
   .rcpt-total-amount{font-size:36px;}
 }

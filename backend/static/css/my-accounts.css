@@ -82,6 +82,44 @@ body.my-accounts-page::after{
 .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);}
 
 .nav-cta{display:flex;align-items:center;gap:10px;}
+.nav-cta .hamburger{display:flex;}
+
+/* Mobile nav */
+.hamburger{
+  display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;z-index:600;
+}
+.hamburger span{
+  display:block;width:22px;height:2px;background:var(--ink);border-radius:2px;transition:all .3s ease;transform-origin:center;
+}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+.mobile-nav{
+  display:none;position:fixed;inset:0;background:rgba(247,246,242,.98);backdrop-filter:blur(24px);z-index:499;
+  flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .3s ease;
+}
+.mobile-nav.open{display:flex;opacity:1;}
+.mobile-nav a{
+  font-family:'Fraunces',serif;font-size:36px;font-weight:900;color:var(--ink);
+  text-decoration:none;letter-spacing:-1.5px;padding:8px 24px;transition:color .2s;
+  opacity:0;transform:translateY(20px);animation:mobileNavIn .4s ease forwards;
+}
+.mobile-nav a:nth-child(1){animation-delay:.05s;}
+.mobile-nav a:nth-child(2){animation-delay:.1s;}
+.mobile-nav a:nth-child(3){animation-delay:.15s;}
+.mobile-nav a:nth-child(4){animation-delay:.2s;}
+.mobile-nav a:hover{color:var(--green);}
+@keyframes mobileNavIn{to{opacity:1;transform:translateY(0);}}
+.mobile-nav-cta{
+  display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:24px;opacity:0;
+  animation:mobileNavIn .4s .25s ease forwards;
+}
+.btn-pill{
+  font-size:15px;font-weight:700;color:#fff;background:var(--green);border:none;cursor:pointer;padding:14px 36px;
+  border-radius:100px;transition:all .25s;font-family:'Cabinet Grotesk',sans-serif;box-shadow:0 4px 16px rgba(45,122,79,.3);
+}
+.btn-pill:hover{background:var(--green-lt);transform:translateY(-1px);box-shadow:0 8px 24px rgba(45,122,79,.35);}
 
 /* Bell */
 .notification-bell-wrapper{position:relative;}
@@ -508,6 +546,8 @@ body.my-accounts-page::after{
 @media(max-width:900px){
   .my-accounts-nav{top:22px;width:calc(100% - 32px);padding:12px 20px;}
   .nav-links{display:none;}
+  .hamburger-mobile{display:flex !important;}
+  .nav-cta .hamburger{display:none !important;}
   .my-accounts-container{padding:100px 20px 80px;}
   .account-card{grid-template-columns:1fr;}
   .card-left{min-height:200px;}
