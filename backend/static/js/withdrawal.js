@@ -27,15 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const amountInput = document.getElementById('amount');
     const upiIdInput = document.getElementById('upi-id');
     const continueButton = document.getElementById('continue-button');
-    const withdrawalValue = document.getElementById('withdrawal-value');
     const confirmationModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
     const confirmBtn = document.getElementById('confirm-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const confirmationClose = document.querySelector('.confirmation-close');
     const slipLiveAmount = document.getElementById('s-live-amount');
-    const slipRequested = document.getElementById('s-requested');
-    const slipReceive = document.getElementById('s-receive');
     const slipUpi = document.getElementById('s-upi-val');
 
     const hamburger = document.getElementById('hamburger');
@@ -118,14 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
             slipLiveAmount.classList.toggle('ticking', amount > 0);
         }
 
-        if (slipRequested) {
-            slipRequested.textContent = amount > 0 ? `${amount.toFixed(2)} ${currency}` : '-';
-        }
-
-        if (slipReceive) {
-            slipReceive.textContent = amount > 0 ? `${amount.toFixed(2)} ${currency}` : '-';
-        }
-
         if (slipUpi) {
             const upiValid = validateUpiId(upiId);
             slipUpi.textContent = upiId || '-';
@@ -147,9 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     amountInput.addEventListener('input', () => {
-        const amount = parseFloat(amountInput.value) || 0;
-        withdrawalValue.textContent = amount.toFixed(2);
-
         syncSettlementSlip();
         updateButtonState();
     });

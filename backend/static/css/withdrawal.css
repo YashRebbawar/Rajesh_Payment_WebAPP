@@ -95,7 +95,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .tooltip-total span:last-child{color:var(--green);}
 
 /* Continue btn */
-.continue-button{width:100%;padding:17px 32px;border-radius:100px;border:none;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:800;letter-spacing:.04em;background:var(--ink);color:var(--bg);box-shadow:0 6px 22px rgba(26,21,16,.18);transition:all .3s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;}
+.continue-button{width:100%;padding:17px 32px;border-radius:100px;border:none;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:800;letter-spacing:.04em;background:var(--ink);color:var(--bg);box-shadow:0 6px 22px rgba(26,21,16,.18);transition:all .3s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:32px;}
 .continue-button::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.09),transparent);pointer-events:none;}
 .continue-button .btn-arrow{font-size:17px;transition:transform .3s cubic-bezier(.22,1,.36,1);}
 .continue-button:hover:not(:disabled){background:var(--blue);transform:translateY(-2px);box-shadow:0 12px 36px rgba(45,122,79,.20);}
@@ -205,20 +205,75 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
 /* Responsive */
 @media(max-width:860px){
-  .account-container{grid-template-columns:1fr;padding:0 20px 60px;}
+  .account-container{grid-template-columns:1fr;padding:0 20px 60px;gap:0;}
   .header-section{flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;}
-  .right-section{order:-1;position:static;}
+  .right-section{grid-row:3;margin:32px 0 24px;}
+  .left-section{grid-row:2;}
   .s-total-amount{font-size:36px;}
 }
 @media(max-width:580px){
-  .account-container{padding:0 14px 60px;}
-  .header-section{padding:90px 0 10px;margin-bottom:24px;}
+  .account-container{padding:0 14px 40px;}
+  .header-section{padding:90px 0 10px;margin-bottom:20px;}
   .header-section>div{width:100%;}
-  .header-eyebrow{font-size:9px;letter-spacing:.16em;gap:7px;margin-bottom:8px;}
-  .header-section .header-eyebrow::before,.header-section .header-eyebrow::after{width:16px;}
-  .account-title{font-size:32px;letter-spacing:-1.5px;}
-  .amount-input-wrapper input{font-size:40px;letter-spacing:-2px;}
-  .confirm-amount-value{font-size:34px;}
-  .modal-top-bar,.confirm-amount-hero,.confirmation-details,.confirmation-actions{padding-left:20px;padding-right:20px;}
+  .header-eyebrow{font-size:8px;letter-spacing:.14em;gap:6px;margin-bottom:6px;}
+  .header-section .header-eyebrow::before,.header-section .header-eyebrow::after{width:14px;}
+  .account-title{font-size:26px;letter-spacing:-1.2px;}
+  .form-group{margin-bottom:24px;}
+  .form-label{font-size:8px;margin-bottom:10px;}
+  .payment-method-select{padding:10px 16px;font-size:11px;gap:8px;}
+  .payment-method-select img{width:24px!important;}
+  .float-field{padding-top:12px;}
+  .float-field input{font-size:15px;padding:8px 0 9px;}
+  .float-label{font-size:12px;top:22px;}
+  .float-field:focus-within .float-label,.float-field.filled .float-label{transform:translateY(-16px) scale(.75);}
+  .account-select{padding:12px 0;}
+  .account-type{font-size:9px;padding:3px 8px;}
+  .account-number{font-size:15px;}
+  .account-balance{font-size:14px;}
+  .amount-field{padding-top:12px;}
+  .amount-field-label{font-size:12px;top:12px;}
+  .amount-field:focus-within .amount-field-label,.amount-field.filled .amount-field-label{transform:translateY(-15px) scale(.75);}
+  .amount-input-wrapper input{font-size:32px;letter-spacing:-1.6px;padding:6px 0 8px;}
+  .currency-label{font-size:14px;padding-bottom:9px;}
+  .continue-button{padding:14px 24px;font-size:13px;margin-top:24px;}
+  .right-section{margin:24px 0 20px;}
+  .settlement-card{border-radius:18px;}
+  .settle-top{padding:14px 18px 12px;}
+  .settle-issuer,.settle-zero-fee{font-size:8px;}
+  .settle-body{padding:18px 18px 6px;}
+  .s-label{font-size:8px;margin-bottom:5px;}
+  .s-account-name{font-size:17px;margin-bottom:3px;}
+  .s-account-sub{font-size:10px;margin-bottom:16px;}
+  .s-total-section{margin-bottom:16px;}
+  .s-total-amount{font-size:32px;letter-spacing:-1.8px;}
+  .s-total-currency{font-size:12px;margin-top:3px;}
+  .s-upi-preview{margin:0 18px 12px;padding:10px 14px;border-radius:10px;}
+  .s-upi-label{font-size:8px;}
+  .s-upi-value{font-size:12px;}
+  .settle-terms{padding:0 18px 18px;}
+  .terms-item{padding:9px 12px;border-radius:8px;margin-bottom:6px;}
+  .terms-label,.terms-value{font-size:10px;}
+  .settle-mrz{padding:10px 18px 14px;}
+  .mrz{font-size:7px;}
+  .confirm-amount-value{font-size:32px;letter-spacing:-1.6px;}
+  .confirm-currency-val{font-size:14px;}
+  .modal-top-bar{padding:20px 20px 16px;}
+  .modal-eyebrow{font-size:8px;margin-bottom:5px;}
+  .modal-top-bar h2{font-size:22px;}
+  .confirmation-close{width:32px;height:32px;font-size:18px;}
+  .confirm-amount-hero{padding:18px 20px;gap:6px;}
+  .confirm-amount-label{font-size:10px;}
+  .confirmation-details{padding:20px 20px 0;gap:6px;}
+  .detail-row{padding:10px 14px;border-radius:10px;}
+  .detail-label{font-size:9px;}
+  .detail-value{font-size:12px;}
+  .confirmation-actions{padding:20px 20px 0;gap:10px;}
+  .cancel-btn,.confirm-btn{padding:12px;font-size:12px;}
+  .success-modal-content{padding:32px 24px;width:90%;max-width:360px;border-radius:20px;}
+  .success-icon{width:56px;height:56px;font-size:22px;margin-bottom:16px;}
+  .success-modal-content h2{font-size:22px;margin-bottom:8px;}
+  .success-modal-content p{font-size:12px;}
+  .success-note{font-size:10px!important;}
+  .success-btn{padding:12px;font-size:13px;margin-top:20px;}
 }
 

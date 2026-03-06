@@ -541,13 +541,8 @@ body::after{
   .amount-input-wrapper input{font-size:32px;letter-spacing:-1.2px;padding-bottom:8px;}
   .currency-label{font-size:12px;padding-bottom:8px;}
   .amount-range{font-size:10px;}
-  .deposit-summary{padding:12px 12px 12px 14px;margin:16px 0 20px;align-items:flex-start;}
-  .deposit-summary-label{font-size:9px;letter-spacing:.08em;}
-  .deposit-amount{font-size:22px;line-height:1.1;}
-  .fee-info-icon{width:18px;height:18px;font-size:9px;}
-  .fee-tooltip{right:-6px;width:176px;padding:10px 12px;}
-  .tooltip-row{font-size:11px;}
-  .continue-button{padding:14px 18px;font-size:13px;gap:8px;}
+  .deposit-summary{display:none;}
+  .continue-button{padding:14px 18px;font-size:13px;gap:8px;margin-top:24px;}
   .right-section{margin-top:8px;}
   .receipt-card{
     border-radius:14px;
