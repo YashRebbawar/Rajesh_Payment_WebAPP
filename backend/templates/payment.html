@@ -74,7 +74,7 @@
                         <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width: 70px; height: auto;">
                     </div>
                     <div class="payment-method-option" data-method="imps">
-                        <img src="{{ url_for('static', filename='images/imps_logo.png') }}" alt="IMPS" class="payment-icon" style="width: 70px; height: auto;">
+                        <span style="font-weight: 600; font-size: 14px;">Bank Transfer</span>
                     </div>
                     <div class="payment-method-option" data-method="usdt">
                         <span style="font-weight: 600; font-size: 14px;">USDT</span>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="terms-item">
                     <span class="terms-label">For deposits > ₹50,000</span>
-                    <span class="terms-value">Use IMPS</span>
+                    <span class="terms-value">Use Bank Transfer</span>
                 </div>
             </div>
 
@@ -228,7 +228,7 @@
             <span class="ref-label">Payment Reference:</span>
             <span class="ref-code" id="imps-payment-ref">-</span>
         </div>
-        <p class="qr-instruction">Transfer the amount using IMPS and include the reference code in payment notes</p>
+        <p class="qr-instruction">Transfer the amount using Bank Transfer (IMPS/NEFT/RTGS) and include the reference code in payment notes</p>
         
         <div class="screenshot-upload-section">
             <input type="file" id="imps-screenshot-input" accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp,image/webp,image/svg+xml,image/heic,image/heif" style="display: none;">
