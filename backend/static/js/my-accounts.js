@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="support-widget-container">
                 <div class="support-widget-text">Chat Support</div>
                 <button class="support-widget-icon-btn" onclick="openUserChatModalWithBadge()">
-                    <img src="/static/images/support-icon.png" alt="Support" class="support-icon-img">
+                    <img src="/static/images/online-support.png" alt="Support" class="support-icon-img">
                     <span class="support-badge" style="display: none;"></span>
                 </button>
             </div>

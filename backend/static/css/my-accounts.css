@@ -508,7 +508,7 @@ body.my-accounts-page::after{
 .support-widget-text{font-family:'Cabinet Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--ink-45);background:var(--white);border:1px solid var(--border);padding:6px 13px;border-radius:20px;white-space:nowrap;box-shadow:var(--shadow);}
 .support-widget-icon-btn{width:50px;height:50px;border-radius:14px;background:var(--ink);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,21,16,.22);transition:all .25s;position:relative;}
 .support-widget-icon-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 32px rgba(26,21,16,.28);}
-.support-icon-img{width:24px;height:24px;object-fit:contain;filter:brightness(10);}
+.support-icon-img{width:24px;height:24px;object-fit:contain;}
 .support-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--bg);font-family:'Cabinet Grotesk',sans-serif;}
 
 /* Footer */
