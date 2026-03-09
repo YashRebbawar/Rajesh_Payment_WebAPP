@@ -303,7 +303,7 @@
     flex: 1;
 }
 
-.profile-icon {
+.admin-user-info .profile-icon {
     width: 44px;
     height: 44px;
     background: linear-gradient(135deg, var(--exness-gold), #FFC107);
@@ -1183,7 +1183,7 @@
         align-items: flex-start;
     }
     
-    .profile-icon {
+    .admin-user-info .profile-icon {
         width: 40px;
         height: 40px;
         font-size: 16px;

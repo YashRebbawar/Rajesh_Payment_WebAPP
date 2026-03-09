@@ -167,7 +167,6 @@ async function saveName() {
         if (data.success) {
             document.getElementById('profile-name-text').textContent = newName;
             document.querySelector('.profile-card-avatar').textContent = newName[0].toUpperCase();
-            document.querySelector('.profile-icon').textContent = newName[0].toUpperCase();
             cancelEdit();
         }
     } catch (error) {

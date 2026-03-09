@@ -35,7 +35,7 @@ body {
   position: fixed; top: 0; left: 0;
   pointer-events: none;
   z-index: 9999;
-  transition: transform 0.1s;
+  will-change: transform;
 }
 .cursor-ring {
   width: 32px; height: 32px;
@@ -45,7 +45,8 @@ body {
   pointer-events: none;
   z-index: 9998;
   opacity: 0.5;
-  transition: transform 0.12s, width 0.2s, height 0.2s, opacity 0.2s;
+  will-change: transform;
+  transition: width 0.15s ease, height 0.15s ease, opacity 0.15s ease;
 }
 
 /* ─── TICKER ────────────────────────────────────────────────── */

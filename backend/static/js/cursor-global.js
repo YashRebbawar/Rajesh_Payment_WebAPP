@@ -17,13 +17,13 @@
   let started = false;
 
   function tick() {
-    ringX += (mouseX - ringX) * 0.14;
-    ringY += (mouseY - ringY) * 0.14;
+    ringX += (mouseX - ringX) * 0.2;
+    ringY += (mouseY - ringY) * 0.2;
 
-    dot.style.transform = `translate(${mouseX - 4}px, ${mouseY - 4}px)`;
-    ring.style.transform = `translate(${ringX - 15}px, ${ringY - 15}px)`;
+    dot.style.transform = `translate3d(${mouseX - 4}px, ${mouseY - 4}px, 0)`;
+    ring.style.transform = `translate3d(${ringX - 15}px, ${ringY - 15}px, 0)`;
 
-    rafId = window.requestAnimationFrame(tick);
+    if (started) rafId = window.requestAnimationFrame(tick);
   }
 
   function start() {
@@ -31,6 +31,14 @@
     started = true;
     root.classList.add('pf-cursor-active');
     tick();
+  }
+
+  function stop() {
+    started = false;
+    if (rafId) {
+      window.cancelAnimationFrame(rafId);
+      rafId = null;
+    }
   }
 
   document.addEventListener('mousemove', function (e) {
@@ -56,14 +64,14 @@
   document.addEventListener('mouseleave', function () {
     root.classList.remove('pf-cursor-active');
     root.classList.remove('pf-cursor-hover');
+    stop();
   });
 
   window.addEventListener('blur', function () {
     root.classList.remove('pf-cursor-active');
     root.classList.remove('pf-cursor-hover');
+    stop();
   });
 
-  window.addEventListener('beforeunload', function () {
-    if (rafId) window.cancelAnimationFrame(rafId);
-  });
+  window.addEventListener('beforeunload', stop);
 })();

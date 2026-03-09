@@ -30,9 +30,9 @@ body::after {
   left: 0;
   pointer-events: none;
   opacity: 0;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   z-index: 9999;
-  will-change: transform, opacity, width, height;
+  will-change: transform;
 }
 
 .pf-cursor-dot {
@@ -41,7 +41,7 @@ body::after {
   border-radius: 50%;
   background: #2d7a4f;
   box-shadow: 0 0 18px rgba(45, 122, 79, 0.45);
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .pf-cursor-ring {
@@ -49,7 +49,7 @@ body::after {
   height: 30px;
   border-radius: 50%;
   border: 1.5px solid rgba(45, 122, 79, 0.75);
-  transition: width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+  transition: width 0.15s ease, height 0.15s ease, opacity 0.15s ease;
 }
 
 html.pf-cursor-active .pf-cursor-dot,

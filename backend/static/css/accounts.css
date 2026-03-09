@@ -219,62 +219,6 @@ body::before {
 .auth-buttons {
   position: fixed; top: 24px; right: 32px; z-index: 500;
 }
-.user-profile-wrapper { position: relative; }
-.profile-icon-btn {
-  background: var(--ink); border: none; border-radius: 12px;
-  width: 40px; height: 40px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 14px rgba(26,21,16,0.20);
-  transition: all 0.2s;
-}
-.profile-icon-btn:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(26,21,16,0.28); }
-.profile-icon {
-  font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 16px; font-weight: 800; color: var(--bg); letter-spacing: -0.5px;
-}
-.profile-dropdown {
-  position: absolute; top: calc(100% + 10px); right: 0;
-  display: none; z-index: 300;
-}
-.profile-dropdown.active { display: block; animation: dropIn 0.22s cubic-bezier(0.22,1,0.36,1); }
-@keyframes dropIn { from { opacity:0; transform:translateY(-8px) scale(0.97); } to { opacity:1; transform:none; } }
-.profile-card-wrapper {
-  background: var(--white); border: 1px solid var(--border);
-  border-radius: var(--radius); box-shadow: 0 16px 48px rgba(26,21,16,0.14);
-  width: 280px; overflow: hidden;
-}
-.profile-card-main { background: linear-gradient(145deg, var(--ink) 0%, #2a1e0f 100%); padding: 20px; }
-.profile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.profile-card-header-left {
-  font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-}
-.profile-card-header-right { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.4); }
-.profile-card-content { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-.profile-card-avatar {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--green); color: var(--bg);
-  font-family: 'Cabinet Grotesk', sans-serif; font-size: 18px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.profile-card-status-row { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.5); }
-.profile-status-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
-.profile-card-actions { display: flex; gap: 7px; }
-.profile-card-btn {
-  flex: 1; padding: 8px 10px; border-radius: 8px;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s; font-family: 'Cabinet Grotesk', sans-serif;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-}
-.profile-card-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-.profile-intensity-card {
-  padding: 12px 20px; display: flex; justify-content: space-between;
-  font-size: 11px; color: var(--ink-60); font-family: 'DM Sans', sans-serif;
-  border-top: 1px solid var(--border);
-}
-.profile-intensity-card span:last-child { font-weight: 700; color: var(--ink); }
 
 /* ── Back button ── */
 .back-button {
@@ -608,8 +552,9 @@ body::before {
     padding: 12px 20px;
   }
   .nav-links { display: none; }
-  .hamburger-mobile { display: flex !important; }
-  .nav-cta .hamburger { display: none !important; }
+  .hamburger-mobile { display: none !important; }
+  .nav-cta { gap: 6px; }
+  .nav-cta .hamburger { display: flex !important; }
 
   .account-container { padding: 100px 20px 60px; }
   .back-button { top: 80px; }

@@ -21,7 +21,12 @@
     {% if user %}
     <div class="user-profile-wrapper">
       <button class="profile-icon-btn" id="profile-toggle">
-        <div class="profile-icon">{{ user.email[0].upper() }}</div>
+        <div class="profile-icon">
+          <svg class="profile-icon-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+          </svg>
+        </div>
       </button>
       <div class="profile-dropdown" id="profile-dropdown">
         <div class="profile-card-wrapper">
@@ -38,7 +43,7 @@
             </div>
             <div class="profile-card-actions">
               <button class="profile-card-btn" onclick="window.location.href='/my-accounts'"><span>My Account</span></button>
-              <button class="profile-card-btn" onclick="window.location.href='/logout'"><span>&#9632;</span><span>Log out</span></button>
+              <button class="profile-card-btn" onclick="window.location.href='/logout'"><span>Log out</span></button>
             </div>
           </div>
           <div class="profile-intensity-card"><span>Member Since:</span><span id="member-since"></span></div>

@@ -589,8 +589,9 @@ body::before {
     padding: 12px 20px;
   }
   .nav-links { display: none; }
-  .hamburger-mobile { display: flex !important; }
-  .nav-cta .hamburger { display: none !important; }
+  .hamburger-mobile { display: none !important; }
+  .nav-cta { gap: 6px; }
+  .nav-cta .hamburger { display: flex !important; }
 
   .setup-container { 
     grid-template-columns: 1fr 340px; 
