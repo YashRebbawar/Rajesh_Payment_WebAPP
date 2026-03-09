@@ -21,14 +21,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upi);
     }
 
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#c0392b' : '#2d7a4f'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 13px;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
+
     function updateButtonState() {
         const amount = parseFloat(amountInput.value) || 0;
         const upiValid = validateUpiId(upiIdInput.value.trim());
+        const inRange = amount >= 10 && amount <= 50;
         
-        if (amount > 0 && upiValid) {
+        if (amount > 0 && upiValid && inRange) {
             continueButton.classList.add('active');
+            continueButton.disabled = false;
         } else {
             continueButton.classList.remove('active');
+            continueButton.disabled = true;
         }
     }
 
@@ -39,6 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tooltip-amount').textContent = amount.toFixed(2);
         document.getElementById('tooltip-fee').textContent = '0.00';
         document.getElementById('tooltip-total').textContent = amount.toFixed(2);
+        
+        if (amount > 0 && (amount < 10 || amount > 50)) {
+            showNotification('Withdrawal amount must be between $10 and $50', 'error');
+        }
         
         updateButtonState();
     });
@@ -51,6 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (amount <= 0) {
             alert('Please enter a valid amount');
+            return;
+        }
+        
+        if (amount < 10 || amount > 50) {
+            alert('Withdrawal amount must be between $10 and $50');
             return;
         }
         
