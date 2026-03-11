@@ -356,13 +356,14 @@ body::before {
 .char-count { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 700; color: var(--ink-20); text-align: right; margin-top: 3px; }
 
 /* Password */
-.pw-wrap { position: relative; display: block; }
-.pw-wrap input { padding-right: 38px; }
+.pw-wrap { position: relative; display: flex; align-items: center; }
+.pw-wrap input { padding-right: 38px; width: 100%; }
 .pw-wrap::after { display: none; }
 .toggle-password {
-  position: absolute; right: 0; top: 4px;
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
   background: none; border: none; cursor: pointer;
-  color: var(--ink-45); font-size: 15px; padding: 4px; border-radius: 4px; transition: color 0.2s;
+  color: var(--ink-45); font-size: 15px; padding: 4px 8px; border-radius: 4px; transition: color 0.2s;
+  flex-shrink: 0;
 }
 .toggle-password:hover { color: var(--ink); }
 

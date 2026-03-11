@@ -1207,6 +1207,7 @@ footer {
     border-radius: 20px;
   }
   .nav-logo { font-size: 19px; }
+  .nav-cta .btn-pill { display: none; }
 
   /* Hero */
   .hero {

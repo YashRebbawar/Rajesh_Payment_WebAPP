@@ -497,6 +497,15 @@ def initiate_withdrawal():
         if amount <= 0:
             return jsonify({'success': False, 'message': 'Invalid amount'})
         
+        payment_method = data.get('payment_method', 'upi')
+        
+        if payment_method == 'upi':
+            if amount < 10 or amount > 50:
+                return jsonify({'success': False, 'message': 'UPI withdrawal amount must be between $10 and $50'})
+        else:
+            if amount < 50:
+                return jsonify({'success': False, 'message': 'Bank transfer withdrawal amount must be at least $50'})
+        
         if amount > balance:
             return jsonify({'success': False, 'message': 'Insufficient balance'})
         
@@ -506,11 +515,18 @@ def initiate_withdrawal():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': data['currency'],
-            'upi_id': data.get('upi_id'),
+            'payment_method': payment_method,
             'type': 'withdrawal',
             'status': 'pending',
             'created_at': get_current_utc_time()
         }
+        
+        if payment_method == 'upi':
+            withdrawal_doc['upi_id'] = data.get('upi_id')
+        else:
+            withdrawal_doc['bank_account'] = data.get('bank_account')
+            withdrawal_doc['ifsc_code'] = data.get('ifsc_code')
+        
         result = payments_collection.insert_one(withdrawal_doc)
         
         # Create admin notification
@@ -522,10 +538,17 @@ def initiate_withdrawal():
             'account_nickname': account['nickname'],
             'amount': amount,
             'currency': data['currency'],
-            'upi_id': data.get('upi_id'),
+            'payment_method': payment_method,
             'status': 'pending_approval',
             'created_at': get_current_utc_time()
         }
+        
+        if payment_method == 'upi':
+            notification_doc['upi_id'] = data.get('upi_id')
+        else:
+            notification_doc['bank_account'] = data.get('bank_account')
+            notification_doc['ifsc_code'] = data.get('ifsc_code')
+        
         notifications_collection.insert_one(notification_doc)
         
         logger.info(f"Withdrawal initiated for user {user['email']}: {amount} {data['currency']}")
@@ -1001,31 +1024,51 @@ def delete_user(user_id):
     
 # Updated get_user_notifications to include MT credentials
 
-@app.route('/api/withdrawal/status/<withdrawal_id>', methods=['GET'])
-def get_withdrawal_status(withdrawal_id):
+@app.route('/api/withdrawal/saved-credentials', methods=['GET'])
+def get_saved_credentials():
     user = get_current_user()
     if not user:
         return jsonify({'success': False, 'message': 'Not authenticated'})
     
     try:
-        withdrawal = payments_collection.find_one({
-            '_id': ObjectId(withdrawal_id),
-            'user_id': user['_id'],
-            'upi_id': {'$exists': True}
-        })
-        
-        if not withdrawal:
-            return jsonify({'success': False, 'message': 'Withdrawal not found'})
-        
+        user_data = users_collection.find_one({'_id': user['_id']})
         return jsonify({
             'success': True,
-            'status': withdrawal['status'],
-            'amount': withdrawal['amount'],
-            'currency': withdrawal['currency']
+            'upi_id': user_data.get('saved_upi_id'),
+            'bank_account': user_data.get('saved_bank_account'),
+            'ifsc_code': user_data.get('saved_ifsc_code')
         })
     except Exception as e:
-        logger.error(f"Withdrawal status error: {e}")
-        return jsonify({'success': False, 'message': 'Error checking status'})
+        logger.error(f"Error fetching saved credentials: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/withdrawal/save-credentials', methods=['POST'])
+def save_withdrawal_credentials():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'})
+    
+    try:
+        data = request.json
+        update_data = {}
+        if data.get('upi_id'):
+            update_data['saved_upi_id'] = data['upi_id']
+        else:
+            update_data['saved_upi_id'] = None
+        if data.get('bank_account'):
+            update_data['saved_bank_account'] = data['bank_account']
+            update_data['saved_ifsc_code'] = data.get('ifsc_code')
+        else:
+            update_data['saved_bank_account'] = None
+            update_data['saved_ifsc_code'] = None
+        
+        users_collection.update_one({'_id': user['_id']}, {'$set': update_data})
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error saving credentials: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
 
 
 @app.route('/test-payment')

@@ -194,6 +194,7 @@ body.my-accounts-page::after{
   margin-bottom:48px;gap:20px;flex-wrap:wrap;
   padding-bottom:36px;border-bottom:1px solid var(--border);
   animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+  position:relative;z-index:100;overflow:visible;
 }
 .my-accounts-header-copy{
   text-align:center;flex:1;
@@ -234,10 +235,10 @@ body.my-accounts-page::after{
 .pending-btn:hover{border-color:var(--border-md);background:var(--cream-dk);box-shadow:0 4px 14px rgba(26,21,16,.08);}
 
 .pending-status-dropdown{
-  position:absolute;top:calc(100% + 8px);left:0;
+  position:absolute;top:calc(100% + 8px);left:108%;transform:translateX(-50%);
   background:var(--white);border:1px solid var(--border);border-radius:var(--r);
   box-shadow:var(--shadow-lg);min-width:340px;max-height:440px;overflow-y:auto;
-  display:none;z-index:100;
+  display:none;z-index:9999;
 }
 .pending-status-dropdown.active{display:flex;flex-direction:column;animation:dropIn .22s cubic-bezier(.22,1,.36,1);}
 .status-item{padding:15px 18px;border-bottom:1px solid var(--ink-10);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;transition:background .15s;}
@@ -264,7 +265,7 @@ body.my-accounts-page::after{
 .open-account-btn:hover{background:var(--green);transform:translateY(-2px);box-shadow:0 10px 30px rgba(45,122,79,.24);}
 
 /* Pending cards section */
-.pending-details{display:none;margin-bottom:32px;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both;}
+.pending-details{display:none !important;margin-bottom:32px;animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both;}
 .pending-details.active{display:block;}
 .pending-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
 .pending-card{
@@ -294,6 +295,7 @@ body.my-accounts-page::after{
   display:flex;justify-content:space-between;align-items:center;
   margin-bottom:24px;gap:12px;flex-wrap:wrap;
   animation:fadeUp .6s .08s cubic-bezier(.22,1,.36,1) both;
+  position:relative;z-index:1;
 }
 .sort-dropdown{
   padding:10px 36px 10px 14px;border:1.5px solid var(--border);border-radius:100px;
@@ -465,13 +467,14 @@ body.my-accounts-page::after{
 .accounts-grid .card-right{border-left:none;border-top:1px solid var(--border);}
 
 /* Empty state */
-.empty-state{text-align:center;padding:80px 20px;animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both;}
+.empty-state{text-align:center;padding:80px 20px;animation:fadeUp .6s cubic-bezier(.22,1,.36,1) both;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;}
 .empty-icon{width:72px;height:72px;margin-bottom:16px;opacity:.7;}
 .empty-text{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink-45);margin-bottom:28px;letter-spacing:-.5px;}
 .open-account-btn-yellow{
   font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:800;
   background:var(--ink);color:var(--bg);border:none;padding:14px 36px;border-radius:100px;
   cursor:pointer;transition:all .28s;box-shadow:0 6px 20px rgba(26,21,16,.18);
+  display:none;
 }
 .open-account-btn-yellow:hover{background:var(--green);transform:translateY(-2px);box-shadow:0 10px 30px rgba(45,122,79,.24);}
 
@@ -535,9 +538,11 @@ body.my-accounts-page::after{
   .my-accounts-nav{top:15px;width:calc(100% - 24px);padding:11px 18px;border-radius:20px;}
   .nav-logo{font-size:19px;}
   .my-accounts-container{padding:90px 14px 60px;}
-  .my-accounts-header{flex-direction:column;align-items:flex-start;margin-bottom:28px;padding-bottom:22px;}
-  .header-actions{width:100%;}
-  .open-account-btn,.pending-btn{width:100%;justify-content:center;}
+  .my-accounts-header{flex-direction:column;align-items:center;margin-bottom:28px;padding-bottom:22px;}
+  .my-accounts-header-copy{width:100%;}
+  .header-actions{width:100%;gap:8px;}
+  .pending-btn{min-width:140px;}
+  .open-account-btn{min-width:140px;}
   .balance-amount{font-size:30px;}
   .chat-modal-content{width:calc(100vw - 24px);}
   .chat-modal{padding:12px;}

@@ -86,19 +86,48 @@
 
     <div class="form-group">
       <span class="form-label">Payment method</span>
-      <div class="payment-method-select">
-        <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" style="width:30px;height:auto;">
-        <span>UPI</span>
+      <div class="select-wrapper">
+        <select id="payment-method-select" class="payment-method-select">
+          <option value="upi">UPI ($10 - $50)</option>
+          <option value="bank">Bank Transfer ($50+)</option>
+        </select>
+        <span class="select-arrow">▼</span>
       </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group upi-field-group" id="upi-field-group">
       <span class="form-label">UPI ID</span>
       <div class="float-field" id="upi-field">
         <div class="float-label">e.g. yourname@upi</div>
         <input type="text" id="upi-id" autocomplete="off"
           oninput="document.getElementById('upi-field').classList.toggle('filled', this.value!='')">
       </div>
+      <label class="save-checkbox">
+        <input type="checkbox" id="save-upi-checkbox">
+        <span>Save UPI ID for future withdrawals</span>
+      </label>
+    </div>
+
+    <div class="form-group bank-field-group" id="bank-field-group" style="display:none;">
+      <span class="form-label">Bank Account Number</span>
+      <div class="float-field" id="bank-field">
+        <div class="float-label">e.g. 1234567890</div>
+        <input type="text" id="bank-account" autocomplete="off"
+          oninput="document.getElementById('bank-field').classList.toggle('filled', this.value!='')">
+      </div>
+    </div>
+
+    <div class="form-group bank-field-group" id="ifsc-field-group" style="display:none;">
+      <span class="form-label">IFSC Code</span>
+      <div class="float-field" id="ifsc-field">
+        <div class="float-label">e.g. SBIN0001234</div>
+        <input type="text" id="ifsc-code" autocomplete="off"
+          oninput="document.getElementById('ifsc-field').classList.toggle('filled', this.value!='')">
+      </div>
+      <label class="save-checkbox">
+        <input type="checkbox" id="save-bank-checkbox">
+        <span>Save bank details for future withdrawals</span>
+      </label>
     </div>
 
     <div class="form-group">
