@@ -105,10 +105,19 @@
       <span class="form-label">Payment method</span>
       <div class="payment-method-selector">
         <div class="payment-method-option active" data-method="upi">
-          <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width:70px;height:auto;">
+          <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width:50px;height:auto;">
         </div>
         <div class="payment-method-option" data-method="imps">
-          <img src="{{ url_for('static', filename='images/imps_logo.png') }}" alt="IMPS" class="payment-icon" style="width:70px;height:auto;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px;">
+            <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
+            <path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="6" cy="15" r="1" fill="currentColor"/>
+          </svg>
+          <span style="font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink);vertical-align:middle;">Bank Transfer</span>
+        </div>
+        <div class="payment-method-option" data-method="usdt">
+          <img src="{{ url_for('static', filename='images/USDT_Logo.png') }}" alt="USDT" class="payment-icon" style="width:24px;height:auto;display:inline-block;vertical-align:middle;margin-right:6px;">
+          <span style="font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink);vertical-align:middle;">USDT</span>
         </div>
       </div>
     </div>
@@ -227,7 +236,7 @@
           </div>
           <div class="terms-item">
             <span class="terms-label">Methods accepted</span>
-            <span class="terms-value">UPI · IMPS</span>
+            <span class="terms-value">UPI · IMPS · USDT</span>
           </div>
         </div>
         <div class="rcpt-mrz">
@@ -336,6 +345,59 @@
 
       <button class="confirm-payment-btn" id="imps-confirm-payment-btn" disabled>I've completed the payment</button>
       <div class="payment-status" id="imps-payment-status">
+        <div class="status-spinner"></div>
+        <span>Submitting your payment…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ USDT MODAL ════ -->
+<div id="usdt-modal" class="qr-modal">
+  <div class="qr-modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-eyebrow">USDT Payment</div>
+        <h2>Wallet Details</h2>
+      </div>
+      <span class="usdt-close">✕</span>
+    </div>
+    <div class="qr-amount-display">
+      <span class="qr-amount-label">Send exactly:</span>
+      <span class="qr-amount-value" id="usdt-amount">0.00</span>
+      <span class="qr-currency" id="usdt-currency">USDT</span>
+    </div>
+    <div class="modal-body">
+      <div class="bank-details-container">
+        <div class="bank-detail-item usdt-wallet-item">
+          <span class="bank-detail-label">Wallet Address</span>
+          <span class="bank-detail-value" style="font-family:'Courier New',monospace;font-size:13px;word-break:break-all;line-height:1.6;font-weight:700;">0x7e80db68b9b49782a233949feb2a2ded34e55642</span>
+        </div>
+        <div class="bank-detail-item"><span class="bank-detail-label">Network</span><span class="bank-detail-value">BEP20</span></div>
+      </div>
+      <div class="payment-reference" style="margin-bottom:8px;">
+        <span class="ref-label">Payment Reference</span>
+        <span class="ref-code" id="usdt-payment-ref">-</span>
+      </div>
+      <p class="qr-instruction" style="color:#c0392b;font-weight:600;margin-bottom:12px;">⚠️ Important: Only send USDT via BEP20 network. Other networks will result in loss of funds.</p>
+      <p class="qr-instruction">Send the exact USDT amount to the wallet address above and include the reference code in the transaction memo if possible.</p>
+
+      <div class="screenshot-upload-section">
+        <input type="file" id="usdt-screenshot-input" accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp,image/webp,image/svg+xml,image/heic,image/heif" style="display:none;">
+        <button class="upload-screenshot-btn" id="usdt-upload-screenshot-btn">
+          <span class="upload-icon">📎</span>
+          <span id="usdt-upload-text">Attach transaction screenshot</span>
+        </button>
+        <div class="screenshot-filename" id="usdt-screenshot-filename">
+          <span class="file-icon">📎</span>
+          <span class="filename-text" id="usdt-filename-text"></span>
+          <button class="remove-screenshot-btn" id="usdt-remove-screenshot-btn">✕</button>
+        </div>
+      </div>
+
+      <button class="confirm-payment-btn" id="usdt-confirm-payment-btn" disabled>I've completed the payment</button>
+      <div class="payment-status" id="usdt-payment-status">
         <div class="status-spinner"></div>
         <span>Submitting your payment…</span>
       </div>

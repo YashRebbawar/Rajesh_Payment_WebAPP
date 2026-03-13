@@ -114,6 +114,15 @@ def get_current_user():
             session.pop('user_id', None)
     return None
 
+@app.after_request
+def add_cache_control(response):
+    """Add cache control headers to prevent caching of authentication pages"""
+    if request.endpoint in ['signin', 'register', 'my_accounts', 'admin_dashboard']:
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    return response
+
 def validate_password_policy(password):
     """Validate password against shared policy and return (is_valid, message)."""
     if password is None:
@@ -150,12 +159,18 @@ def landing_page():
 @app.route('/signin')
 def signin():
     user = get_current_user()
-    return render_template('signin.html', user=user)
+    if user:
+        return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
+    response = render_template('signin.html', user=user)
+    return response
 
 @app.route('/register')
 def register():
     user = get_current_user()
-    return render_template('register.html', user=user)
+    if user:
+        return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
+    response = render_template('register.html', user=user)
+    return response
 
 @app.route('/my-accounts')
 def my_accounts():

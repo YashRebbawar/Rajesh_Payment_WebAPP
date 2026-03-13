@@ -109,12 +109,13 @@ body::after{
 
 .payment-method-selector{display:flex;gap:12px;}
 .payment-method-option{
-  flex:1;max-width:140px;
-  padding:16px 20px;border-radius:14px;
+  flex:1;max-width:none;
+  padding:14px 16px;border-radius:14px;
   border:1.5px solid var(--border);background:var(--white);
   cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;gap:8px;
   position:relative;overflow:hidden;
+  min-height:64px;
 }
 .payment-method-option::before{
   content:'';position:absolute;inset:0;
@@ -356,13 +357,13 @@ body::after{
 .modal-eyebrow{font-family:'Cabinet Grotesk',sans-serif;font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:7px;}
 .modal-eyebrow::before{content:'';width:14px;height:1.5px;background:var(--green);opacity:.5;border-radius:2px;}
 .modal-header h2{font-family:'Fraunces',serif;font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--ink);}
-.qr-close,.imps-close{
+.qr-close,.imps-close,.usdt-close{
   background:var(--cream);border:1.5px solid var(--border);border-radius:10px;
   width:36px;height:36px;cursor:pointer;color:var(--ink-45);font-size:20px;
   display:flex;align-items:center;justify-content:center;transition:all .2s;
   flex-shrink:0;line-height:1;
 }
-.qr-close:hover,.imps-close:hover{background:var(--cream-dk);border-color:var(--bdr-md);color:var(--ink);}
+.qr-close:hover,.imps-close:hover,.usdt-close:hover{background:var(--cream-dk);border-color:var(--bdr-md);color:var(--ink);}
 
 /* Amount hero in modal */
 .qr-amount-display{
@@ -397,8 +398,11 @@ body::after{
 .bank-details-container{margin-bottom:24px;background:var(--cream);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;}
 .bank-detail-item{display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid var(--border);}
 .bank-detail-item:last-child{border-bottom:none;}
+.bank-detail-item.usdt-wallet-item{align-items:flex-start;gap:12px;}
 .bank-detail-label{font-family:'Cabinet Grotesk',sans-serif;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-45);}
+.usdt-wallet-item .bank-detail-label{flex-shrink:0;padding-top:2px;}
 .bank-detail-value{font-size:13px;font-weight:600;color:var(--ink);font-family:'DM Sans',sans-serif;text-align:right;max-width:220px;}
+.usdt-wallet-item .bank-detail-value{max-width:none;flex:1;}
 
 .qr-instruction{font-size:12px;color:var(--ink-45);margin:16px 0 20px;line-height:1.55;font-family:'DM Sans',sans-serif;}
 
@@ -490,7 +494,7 @@ body::after{
   .left-section{order:1;}
   .form-group{margin-bottom:24px;}
   .payment-method-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .payment-method-option{max-width:none;min-height:68px;padding:12px 14px;}
+  .payment-method-option{max-width:none;min-height:60px;padding:10px 12px;}
   .account-select{padding:12px 0;}
   .amount-field{padding-top:20px;}
   .amount-input-wrapper input{font-size:40px;line-height:1.05;}
@@ -531,7 +535,7 @@ body::after{
   .form-group{margin-bottom:20px;}
   .form-label{margin-bottom:10px;font-size:8px;}
   .payment-method-selector{gap:8px;}
-  .payment-method-option{padding:10px 12px;min-height:60px;border-radius:12px;}
+  .payment-method-option{padding:8px 10px;min-height:56px;border-radius:12px;}
   .payment-icon{max-width:60px;height:auto;}
   .account-type{font-size:9px;padding:4px 8px;}
   .account-number{font-size:15px;}
@@ -567,4 +571,10 @@ body::after{
   .qr-code-image{width:260px;height:260px;}
   .qr-modal-content{max-height:96vh;}
   .modal-header,.qr-amount-display,.modal-body{padding-left:20px;padding-right:20px;}
+  .bank-detail-item{padding:11px 14px;flex-direction:column;align-items:flex-start;gap:6px;}
+  .bank-detail-label{font-size:9px;}
+  .bank-detail-value{font-size:11px;text-align:left;max-width:100%;}
+  .usdt-wallet-item{flex-direction:column;align-items:flex-start;gap:6px;}
+  .usdt-wallet-item .bank-detail-label{padding-top:0;}
+  .usdt-wallet-item .bank-detail-value{font-size:10px;line-height:1.5;}
 }
