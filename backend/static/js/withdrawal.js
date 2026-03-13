@@ -8,7 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmBtn = document.getElementById('confirm-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const confirmationClose = document.querySelector('.confirmation-close');
+    const paymentMethodBtns = document.querySelectorAll('.payment-method-btn');
+    const upiFields = document.getElementById('upi-fields');
+    const bankFields = document.getElementById('bank-fields');
+    const accountHolderInput = document.getElementById('account-holder');
+    const accountNumberInput = document.getElementById('account-number');
+    const ifscCodeInput = document.getElementById('ifsc-code');
 
+    let currentPaymentMethod = 'upi';
     let accountBalance = parseFloat(continueButton.dataset.accountBalance);
     if (isNaN(accountBalance) || accountBalance === 0) {
         accountBalance = 999999;
@@ -17,8 +24,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const currency = continueButton.dataset.currency;
     const accountId = continueButton.dataset.accountId;
 
+    // Payment method switching
+    paymentMethodBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            paymentMethodBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPaymentMethod = btn.dataset.method;
+            
+            if (currentPaymentMethod === 'upi') {
+                if (upiFields) upiFields.style.display = 'block';
+                if (bankFields) bankFields.style.display = 'none';
+            } else {
+                if (upiFields) upiFields.style.display = 'none';
+                if (bankFields) bankFields.style.display = 'block';
+            }
+            updateButtonState();
+        });
+    });
+
     function validateUpiId(upi) {
         return /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upi);
+    }
+
+    function validateBankDetails() {
+        if (!accountHolderInput || !accountNumberInput || !ifscCodeInput) {
+            return false;
+        }
+        const holder = accountHolderInput.value.trim();
+        const account = accountNumberInput.value.trim();
+        const ifsc = ifscCodeInput.value.trim();
+        
+        return holder.length > 0 && account.length >= 9 && /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
     }
 
     function showNotification(message, type) {
@@ -44,10 +81,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateButtonState() {
         const amount = parseFloat(amountInput.value) || 0;
-        const upiValid = validateUpiId(upiIdInput.value.trim());
-        const inRange = amount >= 10 && amount <= 50;
+        let isValid = false;
         
-        if (amount > 0 && upiValid && inRange) {
+        if (currentPaymentMethod === 'upi') {
+            const upiValid = validateUpiId(upiIdInput.value.trim());
+            const inRange = amount >= 10 && amount <= 50;
+            isValid = amount > 0 && upiValid && inRange;
+        } else {
+            const bankValid = validateBankDetails();
+            isValid = amount > 0 && bankValid;
+        }
+        
+        if (isValid) {
             continueButton.classList.add('active');
             continueButton.disabled = false;
         } else {
@@ -64,32 +109,41 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tooltip-fee').textContent = '0.00';
         document.getElementById('tooltip-total').textContent = amount.toFixed(2);
         
-        if (amount > 0 && (amount < 10 || amount > 50)) {
+        if (currentPaymentMethod === 'upi' && amount > 0 && (amount < 10 || amount > 50)) {
             showNotification('Withdrawal amount must be between $10 and $50', 'error');
         }
         
         updateButtonState();
     });
 
-    upiIdInput.addEventListener('input', updateButtonState);
+    if (upiIdInput) upiIdInput.addEventListener('input', updateButtonState);
+    if (accountHolderInput) accountHolderInput.addEventListener('input', updateButtonState);
+    if (accountNumberInput) accountNumberInput.addEventListener('input', updateButtonState);
+    if (ifscCodeInput) ifscCodeInput.addEventListener('input', updateButtonState);
 
     continueButton.addEventListener('click', () => {
         const amount = parseFloat(amountInput.value) || 0;
-        const upiId = upiIdInput.value.trim();
         
         if (amount <= 0) {
             alert('Please enter a valid amount');
             return;
         }
         
-        if (amount < 10 || amount > 50) {
-            alert('Withdrawal amount must be between $10 and $50');
-            return;
-        }
-        
-        if (!validateUpiId(upiId)) {
-            alert('Please enter a valid UPI ID (e.g., example@upi)');
-            return;
+        if (currentPaymentMethod === 'upi') {
+            if (amount < 10 || amount > 50) {
+                alert('Withdrawal amount must be between $10 and $50');
+                return;
+            }
+            const upiId = upiIdInput.value.trim();
+            if (!validateUpiId(upiId)) {
+                alert('Please enter a valid UPI ID (e.g., example@upi)');
+                return;
+            }
+        } else {
+            if (!validateBankDetails()) {
+                alert('Please enter valid bank details');
+                return;
+            }
         }
         
         document.getElementById('confirm-amount').textContent = amount.toFixed(2);
@@ -107,7 +161,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmBtn.addEventListener('click', async () => {
         const amount = parseFloat(amountInput.value);
-        const upiId = upiIdInput.value.trim();
+        
+        let payload = {
+            account_id: accountId,
+            amount: amount,
+            currency: currency,
+            payment_method: currentPaymentMethod
+        };
+        
+        if (currentPaymentMethod === 'upi') {
+            payload.upi_id = upiIdInput.value.trim();
+        } else {
+            payload.account_holder = accountHolderInput.value.trim();
+            payload.account_number = accountNumberInput.value.trim();
+            payload.ifsc_code = ifscCodeInput.value.trim();
+        }
         
         try {
             const response = await fetch('/api/withdrawal/initiate', {
@@ -115,12 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    account_id: accountId,
-                    amount: amount,
-                    currency: currency,
-                    upi_id: upiId
-                })
+                body: JSON.stringify(payload)
             });
             
             const data = await response.json();

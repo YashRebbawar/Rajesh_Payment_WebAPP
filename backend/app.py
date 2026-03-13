@@ -440,7 +440,11 @@ def initiate_withdrawal():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': data['currency'],
+            'payment_method': data.get('payment_method', 'upi'),
             'upi_id': data.get('upi_id'),
+            'account_holder': data.get('account_holder'),
+            'account_number': data.get('account_number'),
+            'ifsc_code': data.get('ifsc_code'),
             'type': 'withdrawal',
             'status': 'pending',
             'created_at': get_current_utc_time()
@@ -456,7 +460,11 @@ def initiate_withdrawal():
             'account_nickname': account['nickname'],
             'amount': amount,
             'currency': data['currency'],
+            'payment_method': data.get('payment_method', 'upi'),
             'upi_id': data.get('upi_id'),
+            'account_holder': data.get('account_holder'),
+            'account_number': data.get('account_number'),
+            'ifsc_code': data.get('ifsc_code'),
             'status': 'pending_approval',
             'created_at': get_current_utc_time()
         }
@@ -852,15 +860,23 @@ def admin_dashboard():
             payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
             payment['user_email'] = payment_user['email']
         
-        # Get account_id from payment record
+        # Get account_id and all payment details from payment record
         if 'payment_id' in payment:
             payment_record = payments_collection.find_one({'_id': payment['payment_id']})
             if payment_record:
                 payment['account_id'] = str(payment_record['account_id'])
+                payment['upi_id'] = payment_record.get('upi_id')
+                payment['account_holder'] = payment_record.get('account_holder')
+                payment['account_number'] = payment_record.get('account_number')
+                payment['ifsc_code'] = payment_record.get('ifsc_code')
         elif 'withdrawal_id' in payment:
             payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
             if payment_record:
                 payment['account_id'] = str(payment_record['account_id'])
+                payment['upi_id'] = payment_record.get('upi_id')
+                payment['account_holder'] = payment_record.get('account_holder')
+                payment['account_number'] = payment_record.get('account_number')
+                payment['ifsc_code'] = payment_record.get('ifsc_code')
     
     user_accounts_map = {}
     for account in all_accounts:

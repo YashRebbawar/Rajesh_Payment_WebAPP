@@ -283,6 +283,17 @@ function closeBalanceModal() {
     currentBalanceAccountId = null;
 }
 
+function openBankDetailsModal(accountHolder, accountNumber, ifscCode) {
+    document.getElementById('modal-account-holder').textContent = accountHolder;
+    document.getElementById('modal-account-number').textContent = accountNumber;
+    document.getElementById('modal-ifsc-code').textContent = ifscCode;
+    document.getElementById('bank-details-modal').style.display = 'flex';
+}
+
+function closeBankDetailsModal() {
+    document.getElementById('bank-details-modal').style.display = 'none';
+}
+
 async function submitBalanceForm(event) {
     event.preventDefault();
     const balance = parseFloat(document.getElementById('balance-input').value);
@@ -447,6 +458,26 @@ document.addEventListener('DOMContentLoaded', function() {
         unifiedEditModal.addEventListener('click', function(e) {
             if (e.target === this) {
                 closeUnifiedEditModal();
+            }
+        });
+    }
+    
+    // Close balance modal on outside click
+    const balanceModal = document.getElementById('balance-modal');
+    if (balanceModal) {
+        balanceModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBalanceModal();
+            }
+        });
+    }
+    
+    // Close bank details modal on outside click
+    const bankDetailsModal = document.getElementById('bank-details-modal');
+    if (bankDetailsModal) {
+        bankDetailsModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBankDetailsModal();
             }
         });
     }

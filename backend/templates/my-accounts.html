@@ -97,7 +97,7 @@
                 </button>
                 <div class="pending-status-dropdown" id="pending-status-dropdown">
                     {% for payment in pending_payments %}
-                    {% set is_withdrawal = payment.get('upi_id') %}
+                    {% set is_withdrawal = payment.get('upi_id') or payment.get('account_holder') %}
                     <div class="status-item {% if is_withdrawal %}withdrawal-item{% else %}deposit-item{% endif %}">
                         <div class="status-item-content">
                             <div class="status-item-header">
@@ -122,7 +122,7 @@
     <div class="pending-details" id="pending-details">
         <div class="pending-grid">
             {% for payment in pending_payments %}
-            {% set is_withdrawal = payment.get('upi_id') %}
+            {% set is_withdrawal = payment.get('upi_id') or payment.get('account_holder') %}
             <div class="pending-card {% if is_withdrawal %}withdrawal-card{% else %}deposit-card{% endif %}">
                 <div class="pending-card-header">
                     <div class="pending-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
@@ -142,10 +142,21 @@
                 </div>
                 <div class="pending-card-details">
                     {% if is_withdrawal %}
-                        <div class="detail-item">
-                            <span class="detail-label">UPI ID</span>
-                            <span class="detail-value">{{ payment.upi_id }}</span>
-                        </div>
+                        {% if payment.get('upi_id') %}
+                            <div class="detail-item">
+                                <span class="detail-label">UPI ID</span>
+                                <span class="detail-value">{{ payment.upi_id }}</span>
+                            </div>
+                        {% elif payment.get('account_holder') %}
+                            <div class="detail-item">
+                                <span class="detail-label">Account Holder</span>
+                                <span class="detail-value">{{ payment.account_holder }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Account Number</span>
+                                <span class="detail-value">{{ payment.account_number }}</span>
+                            </div>
+                        {% endif %}
                     {% else %}
                         <div class="detail-item">
                             <span class="detail-label">Reference</span>

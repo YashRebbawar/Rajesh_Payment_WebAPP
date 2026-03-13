@@ -108,6 +108,66 @@
 }
 
 /* Payment Method Select */
+.payment-method-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.payment-method-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 18px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.payment-method-btn:hover {
+    background: #f0f1f3;
+    border-color: #c0c0c0;
+}
+
+.payment-method-btn.active {
+    background: #fff;
+    border-color: #0066cc;
+    color: #000;
+    font-weight: 600;
+}
+
+.bank-icon {
+    font-size: 20px;
+}
+
+.payment-fields {
+    transition: all 0.3s ease;
+}
+
+.bank-input {
+    width: 100%;
+    padding: 16px 18px;
+    font-size: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    color: #000;
+}
+
+.bank-input:focus {
+    border-color: #0066cc;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,102,204,0.08);
+}
+
 .payment-method-select {
     display: flex;
     align-items: center;
