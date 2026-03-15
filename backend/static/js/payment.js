@@ -154,17 +154,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Payment method selection ── */
     let selectedPaymentMethod = 'upi';
+    const paymentMethodSelect = document.getElementById('payment-method-select');
     const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
+
+    function setSelectedPaymentMethod(method) {
+        selectedPaymentMethod = method;
+        paymentMethodOptions.forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.method === method);
+        });
+        if (paymentMethodSelect && paymentMethodSelect.value !== method) {
+            paymentMethodSelect.value = method;
+        }
+    }
 
     paymentMethodOptions.forEach(option => {
         option.addEventListener('click', function () {
-            paymentMethodOptions.forEach(opt => opt.classList.remove('active'));
-            this.classList.add('active');
-            selectedPaymentMethod = this.dataset.method;
+            setSelectedPaymentMethod(this.dataset.method);
         });
     });
 
+    if (paymentMethodSelect) {
+        paymentMethodSelect.addEventListener('change', function () {
+            setSelectedPaymentMethod(this.value);
+        });
+    }
+
     /* ── Amount input ── */
+    setSelectedPaymentMethod(selectedPaymentMethod);
+
     amountInput.addEventListener('input', function () {
         const value   = parseFloat(this.value) || 0;
         const isValid = value >= minAmount && value <= maxAmount;

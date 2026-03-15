@@ -122,7 +122,7 @@
         <button class="pending-btn" id="pending-toggle">Pending ({{ pending_payments|length }})</button>
         <div class="pending-status-dropdown" id="pending-status-dropdown">
           {% for payment in pending_payments %}
-          {% set is_withdrawal = payment.get('upi_id') %}
+          {% set is_withdrawal = payment.get('type') == 'withdrawal' %}
           <div class="status-item {% if is_withdrawal %}withdrawal-item{% else %}deposit-item{% endif %}">
             <div class="status-item-content">
               <div class="status-item-header">
@@ -145,7 +145,7 @@
   <div class="pending-details" id="pending-details">
     <div class="pending-grid">
       {% for payment in pending_payments %}
-      {% set is_withdrawal = payment.get('upi_id') %}
+      {% set is_withdrawal = payment.get('type') == 'withdrawal' %}
       <div class="pending-card {% if is_withdrawal %}withdrawal-card{% else %}deposit-card{% endif %}">
         <div class="pending-card-header">
           <div class="pending-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
@@ -159,8 +159,13 @@
           <span class="amount-currency">{{ payment.currency }}</span>
         </div>
         <div class="pending-card-details">
-          {% if is_withdrawal %}
+          {% if is_withdrawal and payment.upi_id %}
           <div class="detail-item"><span class="detail-label">UPI ID</span><span class="detail-value">{{ payment.upi_id }}</span></div>
+          {% elif is_withdrawal and payment.bank_account %}
+          <div class="detail-item"><span class="detail-label">Bank A/C</span><span class="detail-value">{{ payment.bank_account }}</span></div>
+          {% if payment.ifsc_code %}
+          <div class="detail-item"><span class="detail-label">IFSC</span><span class="detail-value">{{ payment.ifsc_code }}</span></div>
+          {% endif %}
           {% else %}
           <div class="detail-item"><span class="detail-label">Reference</span><span class="detail-value">{{ payment.reference or 'N/A' }}</span></div>
           {% endif %}

@@ -311,7 +311,7 @@
         <div class="pending-payments-section">
             <div class="pending-payments-list">
                 {% for payment in pending_payments %}
-                {% set is_withdrawal = payment.get('upi_id') %}
+                {% set is_withdrawal = payment.get('withdrawal_id') or payment.get('type') == 'withdrawal_requested' %}
                 <div class="pending-payment-card {% if is_withdrawal %}withdrawal-payment{% else %}deposit-payment{% endif %}" data-user-email="{{ payment.user_email }}" data-currency="{{ payment.currency }}" data-account-id="{{ payment.get('account_id', '') }}">
                     <div class="payment-header">
                         <div class="payment-user-info">
@@ -347,6 +347,18 @@
                         <div class="payment-upi">
                             <span class="upi-label">UPI ID:</span>
                             <span class="upi-value">{{ payment.upi_id }}</span>
+                        </div>
+                        {% endif %}
+                        {% if payment.bank_account %}
+                        <div class="payment-upi">
+                            <span class="upi-label">Bank A/C:</span>
+                            <span class="upi-value">{{ payment.bank_account }}</span>
+                        </div>
+                        {% endif %}
+                        {% if payment.ifsc_code %}
+                        <div class="payment-upi">
+                            <span class="upi-label">IFSC:</span>
+                            <span class="upi-value">{{ payment.ifsc_code }}</span>
                         </div>
                         {% endif %}
                     </div>

@@ -31,9 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const continueButton = document.getElementById('continue-button');
     const confirmationModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
+    const discardModal = document.getElementById('discard-modal');
     const confirmBtn = document.getElementById('confirm-btn');
     const cancelBtn = document.getElementById('cancel-btn');
     const confirmationClose = document.querySelector('.confirmation-close');
+    const confirmationModalContent = document.querySelector('#confirmation-modal .confirmation-modal-content');
+    const confirmationModalHandle = document.querySelector('#confirmation-modal .modal-handle');
+    const discardCancelBtn = document.getElementById('discard-cancel-btn');
+    const discardConfirmBtn = document.getElementById('discard-confirm-btn');
     const slipLiveAmount = document.getElementById('s-live-amount');
     const slipUpi = document.getElementById('s-upi-val');
     const paymentMethodSelect = document.getElementById('payment-method-select');
@@ -283,11 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     confirmationClose.addEventListener('click', () => {
-        confirmationModal.style.display = 'none';
+        discardModal.style.display = 'block';
     });
 
     cancelBtn.addEventListener('click', () => {
-        confirmationModal.style.display = 'none';
+        discardModal.style.display = 'block';
     });
 
     confirmBtn.addEventListener('click', async () => {
@@ -356,12 +361,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('click', (event) => {
         if (event.target === confirmationModal) {
-            confirmationModal.style.display = 'none';
+            discardModal.style.display = 'block';
+        }
+        if (event.target === discardModal) {
+            discardModal.style.display = 'none';
         }
         if (event.target === successModal) {
             successModal.style.display = 'none';
         }
     });
+
+    let swipeStartY = 0;
+    let swipeCurrentY = 0;
+    let isHandleSwipeActive = false;
+
+    if (confirmationModalHandle && confirmationModalContent) {
+        confirmationModalHandle.addEventListener('touchstart', (event) => {
+            isHandleSwipeActive = true;
+            swipeStartY = event.touches[0].clientY;
+            swipeCurrentY = swipeStartY;
+        });
+
+        confirmationModalContent.addEventListener('touchmove', (event) => {
+            if (!isHandleSwipeActive) return;
+            swipeCurrentY = event.touches[0].clientY;
+            const diff = swipeCurrentY - swipeStartY;
+            if (diff > 0) {
+                confirmationModalContent.style.transform = `translateY(${diff}px)`;
+            }
+        });
+
+        confirmationModalContent.addEventListener('touchend', () => {
+            if (!isHandleSwipeActive) return;
+            const diff = swipeCurrentY - swipeStartY;
+            if (diff > 100) {
+                discardModal.style.display = 'block';
+            }
+            confirmationModalContent.style.transform = '';
+            isHandleSwipeActive = false;
+            swipeStartY = 0;
+            swipeCurrentY = 0;
+        });
+    }
+
+    if (discardCancelBtn) {
+        discardCancelBtn.addEventListener('click', () => {
+            discardModal.style.display = 'none';
+        });
+    }
+
+    if (discardConfirmBtn) {
+        discardConfirmBtn.addEventListener('click', () => {
+            discardModal.style.display = 'none';
+            confirmationModal.style.display = 'none';
+        });
+    }
 
     window.addEventListener('scroll', () => {
         const navbar = document.getElementById('navbar');

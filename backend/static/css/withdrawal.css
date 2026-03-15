@@ -194,6 +194,18 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .btn-spinner{display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spin .7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* Discard modal */
+.discard-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(26,21,16,.55);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
+.discard-modal[style*="display: block"]{display:flex!important;}
+.discard-modal-content{background:var(--white);border-radius:20px;padding:32px;width:380px;box-shadow:var(--shd-lg);animation:popIn .3s cubic-bezier(.22,1,.36,1);}
+.discard-modal-content h3{font-family:'Fraunces',serif;font-size:22px;font-weight:900;letter-spacing:-.8px;color:var(--ink);margin-bottom:8px;}
+.discard-modal-content p{font-size:13px;color:var(--ink-45);margin-bottom:24px;line-height:1.5;}
+.discard-modal-buttons{display:flex;gap:10px;}
+.discard-cancel-btn{flex:1;padding:13px;border-radius:100px;background:var(--cream);border:1.5px solid var(--border);cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:800;color:var(--ink);transition:all .2s;}
+.discard-cancel-btn:hover{border-color:var(--bdr-md);background:var(--cream-dk);}
+.discard-confirm-btn{flex:1;padding:13px;border-radius:100px;background:var(--red);border:none;cursor:pointer;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:800;color:#fff;transition:all .2s;box-shadow:0 4px 14px rgba(192,57,43,.22);}
+.discard-confirm-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(192,57,43,.30);}
+
 /* Success modal */
 .success-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(26,21,16,.55);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 .success-modal[style*="display: block"]{display:flex!important;}
@@ -274,6 +286,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   .detail-value{font-size:12px;}
   .confirmation-actions{padding:20px 20px 0;gap:10px;}
   .cancel-btn,.confirm-btn{padding:12px;font-size:12px;}
+  .discard-modal{align-items:center;padding:16px;}
+  .discard-modal-content{width:min(100%, 340px);max-width:340px;padding:24px 18px 18px;border-radius:18px;}
+  .discard-modal-content h3{font-size:20px;margin-bottom:6px;}
+  .discard-modal-content p{font-size:12px;margin-bottom:18px;}
+  .discard-modal-buttons{flex-direction:column;gap:8px;}
+  .discard-cancel-btn,.discard-confirm-btn{width:100%;padding:12px;font-size:12px;}
   .success-modal-content{padding:32px 24px;width:90%;max-width:360px;border-radius:20px;}
   .success-icon{width:56px;height:56px;font-size:22px;margin-bottom:16px;}
   .success-modal-content h2{font-size:22px;margin-bottom:8px;}

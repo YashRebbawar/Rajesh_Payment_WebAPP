@@ -107,6 +107,51 @@ body::after{
   color:var(--ink-45);margin-bottom:14px;
 }
 
+.mobile-method-select.select-wrapper{display:none;}
+.select-wrapper{position:relative;display:block;}
+.payment-method-select{
+  width:100%;
+  padding:14px 18px;
+  padding-right:44px;
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--cream) 0%,rgba(240,237,230,.7) 100%);
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  cursor:pointer;
+  transition:all .3s cubic-bezier(.22,1,.36,1);
+  appearance:none;
+  box-shadow:0 2px 8px rgba(26,21,16,.06);
+}
+.payment-method-select:hover{
+  border-color:var(--green);
+  background:linear-gradient(135deg,var(--green-bg) 0%,rgba(45,122,79,.12) 100%);
+  box-shadow:0 4px 16px rgba(45,122,79,.12);
+}
+.payment-method-select:focus{
+  outline:none;
+  border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(45,122,79,.15),0 4px 16px rgba(45,122,79,.12);
+}
+.payment-method-select option{
+  background:var(--white);
+  color:var(--ink);
+  padding:12px;
+  font-weight:600;
+}
+.select-arrow{
+  position:absolute;
+  right:16px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:var(--green);
+  font-size:16px;
+  font-weight:700;
+}
+
 .payment-method-selector{display:flex;gap:12px;}
 .payment-method-option{
   flex:1;max-width:none;
@@ -534,8 +579,9 @@ body::after{
   .left-section{width:100%;}
   .form-group{margin-bottom:20px;}
   .form-label{margin-bottom:10px;font-size:8px;}
-  .payment-method-selector{gap:8px;}
-  .payment-method-option{padding:8px 10px;min-height:56px;border-radius:12px;}
+  .mobile-method-select.select-wrapper{display:block;}
+  .payment-method-selector{display:none;}
+  .payment-method-select{padding:10px 14px;padding-right:36px;font-size:12px;}
   .payment-icon{max-width:60px;height:auto;}
   .account-type{font-size:9px;padding:4px 8px;}
   .account-number{font-size:15px;}
@@ -547,6 +593,12 @@ body::after{
   .amount-range{font-size:10px;}
   .deposit-summary{display:none;}
   .continue-button{padding:14px 18px;font-size:13px;gap:8px;margin-top:24px;}
+  .discard-modal{align-items:center;padding:16px;}
+  .discard-modal-content{width:min(100%, 340px);max-width:340px;padding:24px 18px 18px;border-radius:18px;}
+  .discard-modal-content h3{font-size:20px;margin-bottom:6px;}
+  .discard-modal-content p{font-size:12px;margin-bottom:18px;}
+  .discard-modal-buttons{flex-direction:column;gap:8px;}
+  .discard-cancel-btn,.discard-confirm-btn{width:100%;padding:12px;font-size:12px;}
   .right-section{margin-top:8px;}
   .receipt-card{
     border-radius:14px;

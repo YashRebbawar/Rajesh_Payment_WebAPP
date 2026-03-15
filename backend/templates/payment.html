@@ -103,6 +103,14 @@
     <!-- Payment method -->
     <div class="form-group">
       <span class="form-label">Payment method</span>
+      <div class="select-wrapper mobile-method-select">
+        <select id="payment-method-select" class="payment-method-select">
+          <option value="upi">UPI</option>
+          <option value="imps">Bank Transfer</option>
+          <option value="usdt">USDT</option>
+        </select>
+        <span class="select-arrow">&#9660;</span>
+      </div>
       <div class="payment-method-selector">
         <div class="payment-method-option active" data-method="upi">
           <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width:50px;height:auto;">
