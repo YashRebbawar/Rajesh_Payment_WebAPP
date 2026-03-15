@@ -464,11 +464,22 @@ def initiate_payment():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
-        currency = data['currency']
-        
-        # For USD accounts, force currency to INR
-        if account['currency'] == 'USD':
-            currency = 'INR'
+        payment_method = (data.get('payment_method') or 'upi').lower()
+
+        if payment_method == 'usdt':
+            if amount < 100 or amount > 10000:
+                return jsonify({'success': False, 'message': 'USDT deposit amount must be between 100 and 10000'})
+            currency = 'USDT'
+            fee_rate = 0.019
+        elif payment_method in ['upi', 'imps']:
+            min_amount = 1000 if account.get('account_type') == 'standard' else 50000
+            max_amount = 100000
+            if amount < min_amount or amount > max_amount:
+                return jsonify({'success': False, 'message': f'{payment_method.upper()} deposit amount must be between {min_amount} and {max_amount}'})
+            currency = 'INR' if account['currency'] == 'USD' else account['currency']
+            fee_rate = 0.014
+        else:
+            return jsonify({'success': False, 'message': 'Invalid payment method'})
         
         # Create payment record
         payment_doc = {
@@ -476,6 +487,10 @@ def initiate_payment():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': currency,
+            'payment_method': payment_method,
+            'fee_rate': fee_rate,
+            'fee_amount': round(amount * fee_rate, 2),
+            'charged_amount': round(amount + (amount * fee_rate), 2),
             'reference': data.get('reference', ''),
             'type': 'deposit',
             'status': 'pending',
@@ -1406,12 +1421,23 @@ def get_stats():
 
 @app.route('/api/admin/commission-stats', methods=['GET'])
 def get_commission_stats():
-    """Get total platform fees (1.4% of all completed deposits)"""
+    """Get total platform fees across completed and pending deposits."""
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     try:
+        def resolve_fee(payment):
+            if 'fee_amount' in payment:
+                return float(payment.get('fee_amount', 0) or 0)
+
+            payment_method = payment.get('payment_method')
+            if payment_method == 'usdt' or payment.get('currency') == 'USDT':
+                fee_rate = 0.019
+            else:
+                fee_rate = 0.014
+            return float(payment.get('amount', 0) or 0) * fee_rate
+
         year = request.args.get('year', type=int)
         month = request.args.get('month', type=int)
         
@@ -1421,8 +1447,9 @@ def get_commission_stats():
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
-        platform_fee = total_amount * 0.014
-        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        completed_payments = list(payments_collection.find({'status': 'completed', 'type': 'deposit'}))
+        platform_fee = sum(resolve_fee(payment) for payment in completed_payments)
+        transaction_count = len(completed_payments)
         
         pending_deposits = list(payments_collection.aggregate([
             {'$match': {'status': 'pending', 'type': 'deposit'}},
@@ -1430,7 +1457,8 @@ def get_commission_stats():
         ]))
         
         pending_total = pending_deposits[0]['total'] if pending_deposits else 0
-        pending_fee = pending_total * 0.014
+        pending_payments = list(payments_collection.find({'status': 'pending', 'type': 'deposit'}))
+        pending_fee = sum(resolve_fee(payment) for payment in pending_payments)
         
         # Calculate monthly commission
         now = get_current_utc_time()
@@ -1454,7 +1482,8 @@ def get_commission_stats():
         ]))
         
         monthly_amount = monthly_deposits[0]['total'] if monthly_deposits else 0
-        monthly_fee = monthly_amount * 0.014
+        monthly_payments = list(payments_collection.find(match_query))
+        monthly_fee = sum(resolve_fee(payment) for payment in monthly_payments)
         
         return jsonify({
             'success': True,

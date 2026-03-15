@@ -70,8 +70,11 @@ function showToast(msg, type = 'error') {
 /* ══════════════════════════════════════════════════════
    RECEIPT CARD live sync helper
 ══════════════════════════════════════════════════════ */
+let activeFeeRate = 0.019;
+let activeDisplayCurrency = 'USDT';
+
 function syncReceipt(baseAmount) {
-    const fee   = baseAmount * 0.014;
+    const fee   = baseAmount * activeFeeRate;
     const total = baseAmount + fee;
 
     const liveEl = document.getElementById('rcpt-live-total');
@@ -99,6 +102,16 @@ function syncReceipt(baseAmount) {
         clearTimeout(depositEl._ut);
         depositEl._ut = setTimeout(() => depositEl.classList.remove('updated'), 600);
     }
+
+    const summaryCurrencyEl = document.getElementById('deposit-currency-label');
+    if (summaryCurrencyEl) {
+        summaryCurrencyEl.textContent = activeDisplayCurrency;
+    }
+
+    const totalCurrencyEl = document.querySelector('.rcpt-total-currency');
+    if (totalCurrencyEl) {
+        totalCurrencyEl.textContent = activeDisplayCurrency;
+    }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -109,14 +122,18 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ── Element refs ── */
     const amountInput        = document.getElementById('amount');
     const payButton          = document.getElementById('pay-button');
-    const depositValueEl     = document.getElementById('deposit-value');
+    const amountRangeEl      = document.querySelector('.amount-range');
+    const currencyLabelEl    = document.querySelector('.currency-label');
+    const termsValueEls      = document.querySelectorAll('.terms-value');
+    const receiptLabelEls    = document.querySelectorAll('.rcpt-row-label');
+    const tooltipFeeLabelEl  = document.querySelector('#tooltip-fee')?.parentElement?.querySelector('span');
 
     if (!payButton) return; // safety guard
 
     const accountCurrency    = payButton.dataset.currency;
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
-    const depositCurrency    = accountCurrency === 'USD' ? 'INR' : accountCurrency;
+    const fiatCurrency       = accountCurrency === 'USD' ? 'INR' : accountCurrency;
 
     const hamburger = document.getElementById('hamburger');
     const hamburgerMobile = document.getElementById('hamburger-mobile');
@@ -149,8 +166,67 @@ document.addEventListener('DOMContentLoaded', function () {
         closeMobileNav();
     });
 
-    const minAmount = accountType === 'standard' ? 1000 : 50000;
-    const maxAmount = 100000;
+    const methodConfigs = {
+        upi: {
+            currency: fiatCurrency,
+            minAmount: accountType === 'standard' ? 1000 : 50000,
+            maxAmount: 100000,
+            step: '1',
+            feeRate: 0.014,
+            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
+            feeLabel: '1.4%'
+        },
+        imps: {
+            currency: fiatCurrency,
+            minAmount: accountType === 'standard' ? 1000 : 50000,
+            maxAmount: 100000,
+            step: '1',
+            feeRate: 0.014,
+            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
+            feeLabel: '1.4%'
+        },
+        usdt: {
+            currency: 'USDT',
+            minAmount: 100,
+            maxAmount: 10000,
+            step: '0.01',
+            feeRate: 0.019,
+            rangeText: '100 - 10,000 USDT',
+            feeLabel: '1.9%'
+        }
+    };
+
+    function getMethodConfig(method) {
+        return methodConfigs[method] || methodConfigs.usdt;
+    }
+
+    function applyMethodConfig(method) {
+        const config = getMethodConfig(method);
+        activeFeeRate = config.feeRate;
+        activeDisplayCurrency = config.currency;
+
+        amountInput.min = String(config.minAmount);
+        amountInput.max = String(config.maxAmount);
+        amountInput.step = config.step;
+
+        if (currencyLabelEl) {
+            currencyLabelEl.textContent = config.currency;
+        }
+        if (amountRangeEl) {
+            amountRangeEl.textContent = config.rangeText;
+        }
+        if (termsValueEls.length >= 2) {
+            termsValueEls[1].textContent = config.feeLabel;
+        }
+        if (receiptLabelEls.length >= 2) {
+            receiptLabelEls[1].textContent = `Platform fee (${config.feeLabel})`;
+        }
+        if (tooltipFeeLabelEl) {
+            tooltipFeeLabelEl.textContent = `Fee (${config.feeLabel}):`;
+        }
+
+        syncReceipt(parseFloat(amountInput.value) || 0);
+    }
 
     /* ── Payment method selection ── */
     let selectedPaymentMethod = 'upi';
@@ -165,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paymentMethodSelect && paymentMethodSelect.value !== method) {
             paymentMethodSelect.value = method;
         }
+        applyMethodConfig(method);
     }
 
     paymentMethodOptions.forEach(option => {
@@ -184,7 +261,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     amountInput.addEventListener('input', function () {
         const value   = parseFloat(this.value) || 0;
-        const isValid = value >= minAmount && value <= maxAmount;
+        const config  = getMethodConfig(selectedPaymentMethod);
+        const isValid = value >= config.minAmount && value <= config.maxAmount;
 
         // sync receipt card + summary
         syncReceipt(value);
@@ -201,23 +279,24 @@ document.addEventListener('DOMContentLoaded', function () {
     payButton.addEventListener('click', async function (e) {
         e.preventDefault();
         const amount = parseFloat(amountInput.value);
+        const config = getMethodConfig(selectedPaymentMethod);
 
-        if (!amount || amount < minAmount) {
-            showToast(`Minimum deposit is ${minAmount.toLocaleString()} ${depositCurrency}`, 'error');
+        if (!amount || amount < config.minAmount) {
+            showToast(`Minimum deposit is ${config.minAmount.toLocaleString()} ${config.currency}`, 'error');
             return;
         }
 
-        if (amount > maxAmount) {
-            showToast(`Maximum deposit is ${maxAmount.toLocaleString()} ${depositCurrency}`, 'error');
+        if (amount > config.maxAmount) {
+            showToast(`Maximum deposit is ${config.maxAmount.toLocaleString()} ${config.currency}`, 'error');
             return;
         }
 
         if (selectedPaymentMethod === 'upi') {
-            showQRModal(amount, depositCurrency, accountId);
+            showQRModal(amount, config.currency, accountId);
         } else if (selectedPaymentMethod === 'imps') {
-            showIMPSModal(amount, depositCurrency, accountId);
+            showIMPSModal(amount, config.currency, accountId);
         } else if (selectedPaymentMethod === 'usdt') {
-            showUSDTModal(amount, depositCurrency, accountId);
+            showUSDTModal(amount, config.currency, accountId);
         }
     });
 
@@ -241,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ═══════════════════════════════════════════ */
     function showQRModal(amount, currency, accountId) {
         const modal = document.getElementById('qr-modal');
-        const fee   = amount * 0.014;
+        const fee   = amount * activeFeeRate;
         const total = amount + fee;
         document.getElementById('qr-amount').textContent   = total.toFixed(2);
         document.getElementById('qr-currency').textContent = currency;
@@ -298,7 +377,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 body:    JSON.stringify({
                     account_id: pendingPaymentData.accountId,
                     amount:     pendingPaymentData.amount,
-                    currency:   depositCurrency,
+                    currency:   pendingPaymentData.currency,
+                    payment_method: 'upi',
                     reference:  pendingPaymentData.reference,
                 })
             });
@@ -379,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ═══════════════════════════════════════════ */
     function showIMPSModal(amount, currency, accountId) {
         const modal = document.getElementById('imps-modal');
-        const fee   = amount * 0.014;
+        const fee   = amount * activeFeeRate;
         const total = amount + fee;
         document.getElementById('imps-amount').textContent   = total.toFixed(2);
         document.getElementById('imps-currency').textContent = currency;
@@ -436,7 +516,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 body:    JSON.stringify({
                     account_id: pendingIMPSPaymentData.accountId,
                     amount:     pendingIMPSPaymentData.amount,
-                    currency:   depositCurrency,
+                    currency:   pendingIMPSPaymentData.currency,
+                    payment_method: 'imps',
                     reference:  pendingIMPSPaymentData.reference,
                 })
             });
@@ -517,10 +598,9 @@ document.addEventListener('DOMContentLoaded', function () {
     ═══════════════════════════════════════════ */
     function showUSDTModal(amount, currency, accountId) {
         const modal = document.getElementById('usdt-modal');
-        const fee   = amount * 0.014;
+        const fee   = amount * activeFeeRate;
         const total = amount + fee;
-        // Convert to USDT (assuming 1 INR = ~0.012 USDT, adjust as needed)
-        const usdtAmount = currency === 'INR' ? (total / 83).toFixed(2) : total.toFixed(2);
+        const usdtAmount = total.toFixed(2);
         document.getElementById('usdt-amount').textContent   = usdtAmount;
         document.getElementById('usdt-currency').textContent = 'USDT';
         modal.style.display = 'block';
@@ -576,7 +656,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 body:    JSON.stringify({
                     account_id: pendingUSDTPaymentData.accountId,
                     amount:     pendingUSDTPaymentData.amount,
-                    currency:   depositCurrency,
+                    currency:   pendingUSDTPaymentData.currency,
+                    payment_method: 'usdt',
                     reference:  pendingUSDTPaymentData.reference,
                 })
             });

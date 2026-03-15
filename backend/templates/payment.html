@@ -149,6 +149,7 @@
         <div class="amount-input-wrapper">
           <input type="number" id="amount" placeholder="0"
             min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}"
+            max="100000"
             step="1"
             oninput="document.getElementById('amount-field').classList.toggle('filled', this.value !== '')">
           <span class="currency-label">{% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</span>
@@ -166,7 +167,7 @@
       <div class="deposit-amount-row">
         <span class="deposit-amount" id="deposit-display">
           <span id="deposit-value">0</span>
-          {% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}
+          <span id="deposit-currency-label">{% if account.currency == 'USD' %}INR{% else %}{{ account.currency }}{% endif %}</span>
         </span>
         <div class="fee-info-icon" id="fee-info-icon">i
           <div class="fee-tooltip">
