@@ -109,6 +109,24 @@ function toggleFaq(el) {
 const modal     = document.getElementById('demoModal');
 const demoBtn   = document.getElementById('demoBtn');
 const demoClose = document.getElementById('demoClose');
-demoBtn.addEventListener('click',  () => modal.classList.add('active'));
-demoClose.addEventListener('click', () => modal.classList.remove('active'));
-modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+if (modal && demoBtn && demoClose) {
+  demoBtn.addEventListener('click', () => modal.classList.add('active'));
+  demoClose.addEventListener('click', () => modal.classList.remove('active'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+}
+
+// ─── Testimonials modal ──────────────────────────────────────
+const testimonialsModal = document.getElementById('testimonialsModal');
+const moreTestimonialsBtn = document.getElementById('moreTestimonialsBtn');
+const testimonialsModalClose = document.getElementById('testimonialsModalClose');
+if (testimonialsModal && moreTestimonialsBtn && testimonialsModalClose) {
+  const closeTestimonialsModal = () => testimonialsModal.classList.remove('active');
+  moreTestimonialsBtn.addEventListener('click', () => testimonialsModal.classList.add('active'));
+  testimonialsModalClose.addEventListener('click', closeTestimonialsModal);
+  testimonialsModal.addEventListener('click', e => {
+    if (e.target === testimonialsModal) closeTestimonialsModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeTestimonialsModal();
+  });
+}

@@ -794,6 +794,33 @@ nav.scrolled {
   gap: 20px;
   margin-top: 60px;
 }
+.testimonials-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+.btn-testimonials-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(45,122,79,0.18);
+  background: var(--white);
+  color: var(--green);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  box-shadow: 0 10px 30px rgba(45,122,79,0.08);
+}
+.btn-testimonials-more:hover {
+  transform: translateY(-2px);
+  border-color: rgba(45,122,79,0.35);
+  box-shadow: 0 16px 40px rgba(45,122,79,0.14);
+}
 .testi-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -1032,6 +1059,14 @@ footer {
   margin-bottom: 10px;
 }
 .modal-sub { font-size: 14px; color: var(--ink-60); margin-bottom: 28px; }
+.testimonials-modal-box {
+  max-width: 1080px;
+}
+.testimonials-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
 .demo-placeholder {
   background: #000;
   border-radius: 14px;
@@ -1186,6 +1221,9 @@ footer {
   .testimonials-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .testimonials-modal-grid {
+    grid-template-columns: 1fr;
+  }
 
   /* Footer */
   .footer-inner {
@@ -1301,6 +1339,8 @@ footer {
   .testimonials-inner { padding: 0 20px; }
   .testimonials-grid { grid-template-columns: 1fr; gap: 14px; }
   .testi-card { padding: 22px 20px; }
+  .btn-testimonials-more { width: 100%; min-width: 0; }
+  .testimonials-modal-grid { grid-template-columns: 1fr; gap: 14px; }
 
   /* FAQ */
   .faq-section { padding: 56px 20px; }
@@ -1337,6 +1377,9 @@ footer {
     padding: 32px 20px 24px; 
     width: 95%;
     max-height: 85vh;
+  }
+  .testimonials-modal-box {
+    width: calc(100% - 24px);
   }
   .modal-title { font-size: 20px; margin-bottom: 8px; }
   .modal-sub { font-size: 13px; margin-bottom: 20px; }
