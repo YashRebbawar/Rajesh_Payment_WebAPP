@@ -47,8 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const ifscFieldGroup = document.getElementById('ifsc-field-group');
     const saveUpiCheckbox = document.getElementById('save-upi-checkbox');
     const saveBankCheckbox = document.getElementById('save-bank-checkbox');
+    const amountField = document.getElementById('amount-field');
+    const upiField = document.getElementById('upi-field');
+    const bankField = document.getElementById('bank-field');
+    const ifscField = document.getElementById('ifsc-field');
+    const amountError = document.getElementById('amount-error');
+    const upiError = document.getElementById('upi-error');
+    const bankAccountError = document.getElementById('bank-account-error');
+    const ifscError = document.getElementById('ifsc-error');
 
     let selectedPaymentMethod = 'upi';
+    const touchedFields = {
+        amount: false,
+        upi: false,
+        bankAccount: false,
+        ifsc: false
+    };
 
     async function loadSavedCredentials() {
         try {
@@ -57,16 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 if (data.upi_id) {
                     upiIdInput.value = data.upi_id;
-                    document.getElementById('upi-field').classList.add('filled');
+                    upiField.classList.add('filled');
                     saveUpiCheckbox.checked = true;
                 }
                 if (data.bank_account) {
                     bankAccountInput.value = data.bank_account;
-                    document.getElementById('bank-field').classList.add('filled');
+                    bankField.classList.add('filled');
                 }
                 if (data.ifsc_code) {
-                    ifscCodeInput.value = data.ifsc_code;
-                    document.getElementById('ifsc-field').classList.add('filled');
+                    ifscCodeInput.value = data.ifsc_code.toUpperCase();
+                    ifscField.classList.add('filled');
                     saveBankCheckbox.checked = true;
                 }
             }
@@ -81,9 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    upi_id: saveUpiCheckbox.checked ? upiIdInput.value : null,
-                    bank_account: saveBankCheckbox.checked ? bankAccountInput.value : null,
-                    ifsc_code: saveBankCheckbox.checked ? ifscCodeInput.value : null
+                    upi_id: saveUpiCheckbox.checked ? upiIdInput.value.trim() : null,
+                    bank_account: saveBankCheckbox.checked ? bankAccountInput.value.trim() : null,
+                    ifsc_code: saveBankCheckbox.checked ? ifscCodeInput.value.trim().toUpperCase() : null
                 })
             });
         } catch (error) {
@@ -91,14 +105,130 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    loadSavedCredentials();
+    function validateUpiId(upi) {
+        return /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upi);
+    }
+
+    function validateBankAccount(accountNumber) {
+        return /^\d{9,18}$/.test(accountNumber);
+    }
+
+    function validateIfscCode(ifscCode) {
+        return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode);
+    }
+
+    function setFieldError(fieldWrapper, errorElement, message) {
+        if (!fieldWrapper || !errorElement) return;
+        fieldWrapper.classList.toggle('has-error', Boolean(message));
+        errorElement.textContent = message || '';
+    }
+
+    function getValidationErrors() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const upiId = upiIdInput.value.trim();
+        const bankAccount = bankAccountInput.value.trim();
+        const ifscCode = ifscCodeInput.value.trim().toUpperCase();
+        const errors = {
+            amount: '',
+            upi: '',
+            bankAccount: '',
+            ifsc: ''
+        };
+
+        if (amount <= 0) {
+            errors.amount = 'Enter a valid withdrawal amount.';
+        } else if (selectedPaymentMethod === 'upi' && (amount < 10 || amount > 50)) {
+            errors.amount = 'UPI withdrawals must be between $10 and $50.';
+        } else if (selectedPaymentMethod === 'bank' && amount < 50) {
+            errors.amount = 'Bank transfer withdrawals must be at least $50.';
+        } else if (amount > accountBalance) {
+            errors.amount = `Amount exceeds available balance of ${accountBalance} ${currency}.`;
+        }
+
+        if (selectedPaymentMethod === 'upi') {
+            if (!upiId) {
+                errors.upi = 'Enter your UPI ID.';
+            } else if (!validateUpiId(upiId)) {
+                errors.upi = 'Enter a valid UPI ID like name@upi.';
+            }
+        } else {
+            if (!bankAccount) {
+                errors.bankAccount = 'Enter your bank account number.';
+            } else if (!validateBankAccount(bankAccount)) {
+                errors.bankAccount = 'Use 9 to 18 digits for the account number.';
+            }
+
+            if (!ifscCode) {
+                errors.ifsc = 'Enter your IFSC code.';
+            } else if (!validateIfscCode(ifscCode)) {
+                errors.ifsc = 'Enter a valid IFSC code like SBIN0001234.';
+            }
+        }
+
+        return errors;
+    }
+
+    function renderValidationState(showErrors = false) {
+        const errors = getValidationErrors();
+        const showAmountError = showErrors || touchedFields.amount;
+        const showUpiError = showErrors || touchedFields.upi;
+        const showBankAccountError = showErrors || touchedFields.bankAccount;
+        const showIfscError = showErrors || touchedFields.ifsc;
+
+        setFieldError(amountField, amountError, showAmountError ? errors.amount : '');
+        setFieldError(upiField, upiError, selectedPaymentMethod === 'upi' && showUpiError ? errors.upi : '');
+        setFieldError(bankField, bankAccountError, selectedPaymentMethod === 'bank' && showBankAccountError ? errors.bankAccount : '');
+        setFieldError(ifscField, ifscError, selectedPaymentMethod === 'bank' && showIfscError ? errors.ifsc : '');
+
+        if (selectedPaymentMethod === 'upi') {
+            setFieldError(bankField, bankAccountError, '');
+            setFieldError(ifscField, ifscError, '');
+        } else {
+            setFieldError(upiField, upiError, '');
+        }
+
+        return errors;
+    }
+
+    function syncSettlementSlip() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const destination = selectedPaymentMethod === 'upi'
+            ? upiIdInput.value.trim()
+            : bankAccountInput.value.trim();
+        const destinationValid = selectedPaymentMethod === 'upi'
+            ? validateUpiId(destination)
+            : validateBankAccount(destination);
+
+        if (slipLiveAmount) {
+            slipLiveAmount.textContent = amount > 0 ? amount.toFixed(2) : '0';
+            slipLiveAmount.classList.toggle('ticking', amount > 0);
+        }
+
+        if (slipUpi) {
+            slipUpi.textContent = destination || '-';
+            slipUpi.classList.toggle('valid', destinationValid);
+        }
+    }
+
+    function updateButtonState() {
+        const errors = getValidationErrors();
+        const isValid = !errors.amount && !errors.upi && !errors.bankAccount && !errors.ifsc;
+
+        continueButton.classList.toggle('active', isValid);
+        continueButton.disabled = !isValid;
+    }
+
+    loadSavedCredentials().finally(() => {
+        syncSettlementSlip();
+        updateButtonState();
+    });
 
     saveUpiCheckbox.addEventListener('change', saveCredentials);
     saveBankCheckbox.addEventListener('change', saveCredentials);
 
     paymentMethodSelect.addEventListener('change', () => {
         selectedPaymentMethod = paymentMethodSelect.value;
-        
+
         if (selectedPaymentMethod === 'upi') {
             upiFieldGroup.style.display = 'block';
             bankFieldGroup.style.display = 'none';
@@ -108,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
             bankFieldGroup.style.display = 'block';
             ifscFieldGroup.style.display = 'block';
         }
+
+        renderValidationState(false);
+        syncSettlementSlip();
         updateButtonState();
     });
 
@@ -178,102 +311,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const currency = continueButton.dataset.currency;
     const accountId = continueButton.dataset.accountId;
 
-    function validateUpiId(upi) {
-        return /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upi);
-    }
-
-    function syncSettlementSlip() {
-        const amount = parseFloat(amountInput.value) || 0;
-        const upiId = upiIdInput.value.trim();
-
-        if (slipLiveAmount) {
-            slipLiveAmount.textContent = amount > 0 ? amount.toFixed(2) : '0';
-            slipLiveAmount.classList.toggle('ticking', amount > 0);
-        }
-
-        if (slipUpi) {
-            const upiValid = validateUpiId(upiId);
-            slipUpi.textContent = upiId || '-';
-            slipUpi.classList.toggle('valid', upiValid);
-        }
-    }
-
-    function updateButtonState() {
-        const amount = parseFloat(amountInput.value) || 0;
-        const upiValid = selectedPaymentMethod === 'upi' ? validateUpiId(upiIdInput.value.trim()) : true;
-        const bankValid = selectedPaymentMethod === 'bank' ? (bankAccountInput.value.trim() && ifscCodeInput.value.trim()) : true;
-        
-        let amountValid = false;
-        if (selectedPaymentMethod === 'upi') {
-            amountValid = amount >= 10 && amount <= 50 && amount <= accountBalance;
-        } else {
-            amountValid = amount >= 50 && amount <= accountBalance;
-        }
-
-        if (amountValid && upiValid && bankValid) {
-            continueButton.classList.add('active');
-            continueButton.disabled = false;
-        } else {
-            continueButton.classList.remove('active');
-            continueButton.disabled = true;
-        }
-    }
-
     amountInput.addEventListener('input', () => {
         syncSettlementSlip();
+        renderValidationState();
         updateButtonState();
     });
 
     upiIdInput.addEventListener('input', () => {
         syncSettlementSlip();
+        renderValidationState();
         updateButtonState();
     });
 
-    bankAccountInput.addEventListener('input', updateButtonState);
-    ifscCodeInput.addEventListener('input', updateButtonState);
+    bankAccountInput.addEventListener('input', () => {
+        bankAccountInput.value = bankAccountInput.value.replace(/\D/g, '');
+        syncSettlementSlip();
+        renderValidationState();
+        updateButtonState();
+    });
+
+    ifscCodeInput.addEventListener('input', () => {
+        ifscCodeInput.value = ifscCodeInput.value.toUpperCase();
+        renderValidationState();
+        updateButtonState();
+    });
+
+    amountInput.addEventListener('blur', () => {
+        touchedFields.amount = true;
+        renderValidationState();
+    });
+
+    upiIdInput.addEventListener('blur', () => {
+        touchedFields.upi = true;
+        renderValidationState();
+    });
+
+    bankAccountInput.addEventListener('blur', () => {
+        touchedFields.bankAccount = true;
+        renderValidationState();
+    });
+
+    ifscCodeInput.addEventListener('blur', () => {
+        touchedFields.ifsc = true;
+        renderValidationState();
+    });
 
     continueButton.addEventListener('click', () => {
+        const errors = renderValidationState(true);
+        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc) return;
+
         const amount = parseFloat(amountInput.value) || 0;
         const upiId = upiIdInput.value.trim();
         const bankAccount = bankAccountInput.value.trim();
-        const ifscCode = ifscCodeInput.value.trim();
-
-        if (amount <= 0) {
-            alert('Please enter a valid amount');
-            return;
-        }
-
-        if (selectedPaymentMethod === 'upi') {
-            if (amount < 10 || amount > 50) {
-                alert('UPI withdrawal amount must be between $10 and $50');
-                return;
-            }
-            if (amount > accountBalance) {
-                alert('Insufficient balance. Your account balance is ' + accountBalance + ' ' + currency);
-                return;
-            }
-            if (!validateUpiId(upiId)) {
-                alert('Please enter a valid UPI ID (e.g., example@upi)');
-                return;
-            }
-        } else {
-            if (amount < 50) {
-                alert('Bank transfer withdrawal amount must be at least $50');
-                return;
-            }
-            if (amount > accountBalance) {
-                alert('Insufficient balance. Your account balance is ' + accountBalance + ' ' + currency);
-                return;
-            }
-            if (!bankAccount) {
-                alert('Please enter your bank account number');
-                return;
-            }
-            if (!ifscCode) {
-                alert('Please enter your IFSC code');
-                return;
-            }
-        }
+        const ifscCode = ifscCodeInput.value.trim().toUpperCase();
 
         document.getElementById('confirm-amount').textContent = amount.toFixed(2);
         document.getElementById('confirm-currency').textContent = currency;
@@ -281,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('confirm-upi').textContent = upiId;
             document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'UPI destination';
         } else {
-            document.getElementById('confirm-upi').textContent = bankAccount + ' (' + ifscCode + ')';
+            document.getElementById('confirm-upi').textContent = `${bankAccount} (${ifscCode})`;
             document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'Bank account';
         }
         confirmationModal.style.display = 'block';
@@ -296,10 +386,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     confirmBtn.addEventListener('click', async () => {
+        const errors = renderValidationState(true);
+        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc) {
+            confirmationModal.style.display = 'none';
+            return;
+        }
+
         const amount = parseFloat(amountInput.value);
         const upiId = upiIdInput.value.trim();
         const bankAccount = bankAccountInput.value.trim();
-        const ifscCode = ifscCodeInput.value.trim();
+        const ifscCode = ifscCodeInput.value.trim().toUpperCase();
 
         saveCredentials();
 
@@ -333,11 +429,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 successModal.style.display = 'block';
                 startWithdrawalStatusCheck(data.withdrawal_id);
             } else {
-                alert(data.message || 'Withdrawal failed');
+                confirmationModal.style.display = 'none';
+                setFieldError(amountField, amountError, data.message || 'Withdrawal failed');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+            confirmationModal.style.display = 'none';
+            setFieldError(amountField, amountError, 'An error occurred. Please try again.');
         }
     });
 
@@ -425,5 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     syncSettlementSlip();
+    renderValidationState(false);
     updateButtonState();
 });

@@ -529,12 +529,25 @@ def initiate_withdrawal():
         
         payment_method = data.get('payment_method', 'upi')
         
+        upi_pattern = re.compile(r'^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$')
+        bank_account_pattern = re.compile(r'^\d{9,18}$')
+        ifsc_pattern = re.compile(r'^[A-Z]{4}0[A-Z0-9]{6}$')
+
         if payment_method == 'upi':
             if amount < 10 or amount > 50:
                 return jsonify({'success': False, 'message': 'UPI withdrawal amount must be between $10 and $50'})
+            upi_id = (data.get('upi_id') or '').strip()
+            if not upi_pattern.match(upi_id):
+                return jsonify({'success': False, 'message': 'Please enter a valid UPI ID'})
         else:
             if amount < 50:
                 return jsonify({'success': False, 'message': 'Bank transfer withdrawal amount must be at least $50'})
+            bank_account = (data.get('bank_account') or '').strip()
+            ifsc_code = (data.get('ifsc_code') or '').strip().upper()
+            if not bank_account_pattern.match(bank_account):
+                return jsonify({'success': False, 'message': 'Please enter a valid bank account number'})
+            if not ifsc_pattern.match(ifsc_code):
+                return jsonify({'success': False, 'message': 'Please enter a valid IFSC code'})
         
         if amount > balance:
             return jsonify({'success': False, 'message': 'Insufficient balance'})
@@ -552,10 +565,10 @@ def initiate_withdrawal():
         }
         
         if payment_method == 'upi':
-            withdrawal_doc['upi_id'] = data.get('upi_id')
+            withdrawal_doc['upi_id'] = upi_id
         else:
-            withdrawal_doc['bank_account'] = data.get('bank_account')
-            withdrawal_doc['ifsc_code'] = data.get('ifsc_code')
+            withdrawal_doc['bank_account'] = bank_account
+            withdrawal_doc['ifsc_code'] = ifsc_code
         
         result = payments_collection.insert_one(withdrawal_doc)
         
@@ -574,10 +587,10 @@ def initiate_withdrawal():
         }
         
         if payment_method == 'upi':
-            notification_doc['upi_id'] = data.get('upi_id')
+            notification_doc['upi_id'] = upi_id
         else:
-            notification_doc['bank_account'] = data.get('bank_account')
-            notification_doc['ifsc_code'] = data.get('ifsc_code')
+            notification_doc['bank_account'] = bank_account
+            notification_doc['ifsc_code'] = ifsc_code
         
         notifications_collection.insert_one(notification_doc)
         

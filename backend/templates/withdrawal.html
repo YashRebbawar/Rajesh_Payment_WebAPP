@@ -102,6 +102,7 @@
         <input type="text" id="upi-id" autocomplete="off"
           oninput="document.getElementById('upi-field').classList.toggle('filled', this.value!='')">
       </div>
+      <p class="field-error" id="upi-error" aria-live="polite"></p>
       <label class="save-checkbox">
         <input type="checkbox" id="save-upi-checkbox">
         <span>Save UPI ID for future withdrawals</span>
@@ -112,9 +113,10 @@
       <span class="form-label">Bank Account Number</span>
       <div class="float-field" id="bank-field">
         <div class="float-label">e.g. 1234567890</div>
-        <input type="text" id="bank-account" autocomplete="off"
+        <input type="text" id="bank-account" autocomplete="off" inputmode="numeric" pattern="[0-9]*"
           oninput="document.getElementById('bank-field').classList.toggle('filled', this.value!='')">
       </div>
+      <p class="field-error" id="bank-account-error" aria-live="polite"></p>
     </div>
 
     <div class="form-group bank-field-group" id="ifsc-field-group" style="display:none;">
@@ -124,6 +126,7 @@
         <input type="text" id="ifsc-code" autocomplete="off"
           oninput="document.getElementById('ifsc-field').classList.toggle('filled', this.value!='')">
       </div>
+      <p class="field-error" id="ifsc-error" aria-live="polite"></p>
       <label class="save-checkbox">
         <input type="checkbox" id="save-bank-checkbox">
         <span>Save bank details for future withdrawals</span>
@@ -150,6 +153,7 @@
           <span class="currency-label" id="amount-currency">{{ account.currency }}</span>
         </div>
       </div>
+      <p class="field-error" id="amount-error" aria-live="polite"></p>
     </div>
 
     <button class="continue-button" id="continue-button" disabled
