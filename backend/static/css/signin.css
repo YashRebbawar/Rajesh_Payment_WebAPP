@@ -58,8 +58,24 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 }
 .pair-tab.active{background:var(--green);color:#fff;}
 .pair-tab:hover:not(.active){background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.6);}
+.terminal-disclaimer{
+  display:inline-block;
+  align-self:flex-start;
+  max-width:313px;
+  border:1px solid rgba(134,239,172,0.18);
+  border-radius:10px;
+  padding:10px 12px;
+  background:linear-gradient(135deg,rgba(45,122,79,0.14),rgba(255,255,255,0.04));
+  color:rgba(255,255,255,0.78);
+  font-size:10px;
+  line-height:1.5;
+  font-family:'Cabinet Grotesk',sans-serif;
+  letter-spacing:0.03em;
+}
 
 /* price display */
+.price-header{display:flex;flex-direction:column;gap:6px;}
+.price-header-row{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;}
 .price-row{display:flex;align-items:flex-end;gap:10px;}
 .price-main{
   font-family:'Fraunces',serif;font-size:36px;font-weight:900;
@@ -75,6 +91,10 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
 .price-badge.up{background:rgba(74,222,128,0.14);color:#4ade80;}
 .price-badge.down{background:rgba(248,113,113,0.14);color:#f87171;}
 .price-sub{font-size:9px;color:rgba(255,255,255,0.3);font-family:'Cabinet Grotesk',sans-serif;letter-spacing:0.06em;margin-bottom:3px;}
+@media(max-width:1200px){
+  .price-header-row{align-items:flex-start;flex-direction:column;}
+  .terminal-disclaimer{max-width:100%;}
+}
 
 /* live dot */
 .live-row{display:flex;align-items:center;justify-content:space-between;}

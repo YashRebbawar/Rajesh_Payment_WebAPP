@@ -48,11 +48,16 @@
         <button class="pair-tab active" data-pair="XAUUSD" onclick="switchPair(this,'XAUUSD')">XAU/USD</button>
         <button class="pair-tab" data-pair="BTCUSD" onclick="switchPair(this,'BTCUSD')">BTC/USD</button>
       </div>
-      <div>
+      <div class="price-header">
         <div class="price-sub" id="pairLabel">EUR / USD · SPOT</div>
-        <div class="price-row">
-          <div class="price-main" id="mainPrice">1.08452</div>
-          <div class="price-badge up" id="changeBadge">+0.12%</div>
+        <div class="price-header-row">
+          <div class="price-row">
+            <div class="price-main" id="mainPrice">1.08452</div>
+            <div class="price-badge up" id="changeBadge">+0.12%</div>
+          </div>
+          <div class="terminal-disclaimer" role="note">
+            Prices shown are indicative and not real-time trading quotes.
+          </div>
         </div>
       </div>
       <div class="chart-area">
@@ -82,7 +87,7 @@
       </div>
     </div>
 
-    <div class="lp-footer">© 2026 PrintFree. Dubai-based. All rights reserved. Prices shown are indicative and not real-time trading quotes.</div>
+    <div class="lp-footer">© 2026 PrintFree. Dubai-based. All rights reserved.</div>
   </div>
 
   <!-- ===== RIGHT: REGISTER FORM ===== -->
