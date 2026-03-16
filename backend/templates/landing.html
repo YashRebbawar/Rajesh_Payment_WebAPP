@@ -502,6 +502,40 @@
   </div>
 </div>
 
+<script>
+  window.printfreeTestimonials = {{ testimonials|tojson }};
+  (function renderDynamicTestimonials() {
+    const grid = document.querySelector('.testimonials-grid');
+    const testimonials = window.printfreeTestimonials;
+    if (!grid || !Array.isArray(testimonials) || !testimonials.length) return;
+
+    grid.innerHTML = testimonials.map((testimonial, index) => {
+      const rating = Math.max(1, Math.min(5, Number(testimonial.rating || 5)));
+      const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      const delay = Math.min(index + 1, 3);
+      const name = testimonial.name || 'PrintFree Trader';
+      const city = testimonial.city || 'Global';
+      const comment = testimonial.comment || '';
+
+      return `
+        <div class="testi-card reveal reveal-delay-${delay}">
+          <div class="testi-stars">${stars}</div>
+          <p class="testi-text"></p>
+          <div class="testi-name"></div>
+          <div class="testi-role"></div>
+        </div>
+      `;
+    }).join('');
+
+    const cards = grid.querySelectorAll('.testi-card');
+    cards.forEach((card, index) => {
+      const testimonial = testimonials[index] || {};
+      card.querySelector('.testi-text').textContent = testimonial.comment || '';
+      card.querySelector('.testi-name').textContent = testimonial.name || 'PrintFree Trader';
+      card.querySelector('.testi-role').textContent = `Trader, ${testimonial.city || 'Global'}`;
+    });
+  })();
+</script>
 <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
 </body>
 </html>

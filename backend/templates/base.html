@@ -13,16 +13,118 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/accounts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/account-setup.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-card.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/my-accounts.css') }}">
+	    <link rel="stylesheet" href="{{ url_for('static', filename='css/account-setup.css') }}">
+	    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile-card.css') }}">
+	    <link rel="stylesheet" href="{{ url_for('static', filename='css/my-accounts.css') }}">
+	    <link rel="stylesheet" href="{{ url_for('static', filename='css/testimonial-modal.css') }}">
 
-    {% block head %}{% endblock %}
-</head>
-<body class="bg-white text-gray-800">
-    <div class="pf-cursor-dot" id="pfCursorDot" aria-hidden="true"></div>
-    <div class="pf-cursor-ring" id="pfCursorRing" aria-hidden="true"></div>
-    {% block content %}{% endblock %}
-    <script src="{{ url_for('static', filename='js/cursor-global.js') }}"></script>
-</body>
-</html>
+	    {% block head %}{% endblock %}
+	</head>
+	<body class="bg-white text-gray-800"
+	      data-show-testimonial-prompt="{{ 'true' if show_testimonial_prompt else 'false' }}"
+	      data-user-authenticated="{{ 'true' if user and not user.get('is_admin') else 'false' }}">
+	    <div class="pf-cursor-dot" id="pfCursorDot" aria-hidden="true"></div>
+	    <div class="pf-cursor-ring" id="pfCursorRing" aria-hidden="true"></div>
+	    {% block content %}{% endblock %}
+	    {% if user and not user.get('is_admin') %}
+	    <div class="testimonial-modal-shell" id="testimonial-modal-shell" aria-hidden="true">
+	        <div class="testimonial-backdrop" data-close-testimonial></div>
+	        <section class="testimonial-modal-card" role="dialog" aria-modal="true" aria-labelledby="testimonial-modal-title">
+	            <button class="testimonial-close" type="button" data-close-testimonial aria-label="Close testimonial prompt">&times;</button>
+	            <div class="testimonial-modal-header">
+	                <h2 id="testimonial-modal-title">Share your experience with PrintFree</h2>
+	                <p>Tell us how you're liking PrintFree and our service so far. Your review helps us build stronger trust with future clients.</p>
+	            </div>
+	            <div class="testimonial-modal-body">
+	                <div class="testimonial-prompt-view" id="testimonial-prompt-view">
+		                    <div class="testimonial-art-panel">
+		                        <div class="testimonial-orb orb-one"></div>
+		                        <div class="testimonial-orb orb-two"></div>
+		                        <div class="testimonial-art-content">
+		                            <div class="testimonial-visual" aria-hidden="true">
+		                                <div class="testimonial-visual-card">
+		                                    <div class="testimonial-visual-stars">
+		                                        <i class="fa-solid fa-star"></i>
+		                                        <i class="fa-solid fa-star"></i>
+		                                        <i class="fa-solid fa-star"></i>
+		                                        <i class="fa-solid fa-star"></i>
+		                                        <i class="fa-solid fa-star"></i>
+		                                    </div>
+		                                    <div class="testimonial-visual-bubble">
+		                                        <span class="testimonial-visual-quote">"</span>
+		                                        <div class="testimonial-visual-lines">
+		                                            <span></span>
+		                                            <span></span>
+		                                            <span></span>
+		                                        </div>
+		                                    </div>
+		                                    <div class="testimonial-visual-chip">
+		                                        <i class="fa-regular fa-heart"></i>
+		                                        <span>Feedback</span>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                            <div class="testimonial-kicker"></div>
+		                            <h3>Your opinion matters</h3>
+		                            <p>Leave a short testimonial about your experience. We value your feedback!</p>
+		                        </div>
+		                    </div>
+	                    <div class="testimonial-actions-panel">
+	                        <button class="testimonial-primary-btn" id="open-testimonial-form" type="button">Submit Testimonial</button>
+	                        <button class="testimonial-secondary-btn" id="testimonial-later-btn" type="button">Later</button>
+	                    </div>
+	                </div>
+	                <div class="testimonial-form-view" id="testimonial-form-view" hidden>
+	                    <form id="testimonial-form" novalidate>
+	                        <div class="testimonial-form-grid">
+	                            <label class="testimonial-field">
+	                                <span>Name</span>
+	                                <input type="text" name="name" id="testimonial-name" maxlength="80" value="{{ user.get('name', '') or user.email.split('@')[0] }}">
+	                                <small class="testimonial-field-error" data-error-for="name"></small>
+	                            </label>
+	                            <label class="testimonial-field">
+	                                <span>City</span>
+	                                <input type="text" name="city" id="testimonial-city" maxlength="80" value="">
+	                                <small class="testimonial-field-error" data-error-for="city"></small>
+	                            </label>
+	                        </div>
+	                        <div class="testimonial-rating-block">
+	                            <span class="testimonial-field-label">Rating</span>
+	                            <div class="testimonial-stars" id="testimonial-stars" role="radiogroup" aria-label="Choose rating from 1 to 5">
+	                                {% for star in range(1, 6) %}
+	                                <button class="testimonial-star" type="button" data-rating="{{ star }}" aria-label="{{ star }} star{{ 's' if star > 1 else '' }}">
+	                                    <i class="fa-solid fa-star"></i>
+	                                </button>
+	                                {% endfor %}
+	                            </div>
+	                            <input type="hidden" name="rating" id="testimonial-rating" value="">
+	                            <small class="testimonial-field-error" data-error-for="rating"></small>
+	                        </div>
+	                        <label class="testimonial-field">
+	                            <span>Comment / Feedback</span>
+	                            <textarea name="comment" id="testimonial-comment" rows="4" maxlength="500" placeholder="What stood out in your experience with PrintFree?"></textarea>
+	                            <small class="testimonial-field-error" data-error-for="comment"></small>
+	                        </label>
+	                        <div class="testimonial-form-footer">
+	                            <button class="testimonial-secondary-btn" id="testimonial-back-btn" type="button">Back</button>
+	                            <button class="testimonial-primary-btn" id="testimonial-submit-btn" type="submit">
+	                                <span class="testimonial-submit-text">Send Review</span>
+	                                <span class="testimonial-submit-spinner" aria-hidden="true"></span>
+	                            </button>
+	                        </div>
+	                    </form>
+	                    <div class="testimonial-success-view" id="testimonial-success-view" hidden>
+	                        <div class="testimonial-success-icon"><i class="fa-solid fa-check"></i></div>
+	                        <h3>Thank you for the feedback</h3>
+	                        <p>Your testimonial has been saved successfully.</p>
+	                    </div>
+	                </div>
+	            </div>
+	        </section>
+	    </div>
+	    {% endif %}
+	    <script src="{{ url_for('static', filename='js/cursor-global.js') }}"></script>
+	    <script src="{{ url_for('static', filename='js/testimonial-modal.js') }}"></script>
+	    {% block scripts %}{% endblock %}
+	</body>
+	</html>

@@ -66,6 +66,7 @@ accounts_collection = db.trading_accounts
 payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
+testimonials_collection = db.testimonials
 
 PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
 
@@ -100,9 +101,32 @@ try:
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
     chats_collection.create_index('created_at')
+    testimonials_collection.create_index('user_id', unique=True)
+    testimonials_collection.create_index([('is_active', 1), ('created_at', -1)])
     logger.info("Database indexes created successfully")
 except Exception as e:
     logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
+
+DEFAULT_TESTIMONIALS = [
+    {
+        'name': 'Ahmed Al-Mansouri',
+        'city': 'Dubai',
+        'rating': 5,
+        'comment': "Finally, an MT5 provider without account freeze issues. I've been trading freely for over 2 years now - absolutely game-changing."
+    },
+    {
+        'name': 'Priya Sharma',
+        'city': 'Mumbai',
+        'rating': 5,
+        'comment': "Hassle-free setup, instant funding, and a professional MT5 platform. PrintFree is the best trading partner I've found. Highly recommended!"
+    },
+    {
+        'name': 'Mohammed Hassan',
+        'city': 'Cairo',
+        'rating': 5,
+        'comment': 'Best Dubai-based MT5 provider bar none. Reliable infrastructure, secure withdrawals, and excellent support team around the clock.'
+    }
+]
 
 def get_current_user():
     """Helper function to get current user from session"""
@@ -113,6 +137,37 @@ def get_current_user():
             logger.error(f"Error retrieving user from session: {e}")
             session.pop('user_id', None)
     return None
+
+def should_prompt_for_testimonial(user):
+    return bool(user and not user.get('is_admin') and not user.get('testimonial_submitted'))
+
+def get_active_testimonials(limit=6):
+    raw_testimonials = list(
+        testimonials_collection.find({'is_active': True})
+        .sort([('display_order', 1), ('created_at', -1)])
+        .limit(limit)
+    )
+    if not raw_testimonials:
+        return DEFAULT_TESTIMONIALS[:limit]
+
+    testimonials = []
+    for testimonial in raw_testimonials:
+        testimonials.append({
+            'name': testimonial.get('name', 'PrintFree Trader'),
+            'city': testimonial.get('city', 'Global'),
+            'rating': int(testimonial.get('rating', 5)),
+            'comment': testimonial.get('comment', '')
+        })
+    return testimonials
+
+@app.context_processor
+def inject_global_template_flags():
+    show_testimonial_prompt = bool(session.get('show_testimonial_prompt'))
+    if show_testimonial_prompt:
+        session['show_testimonial_prompt'] = False
+    return {
+        'show_testimonial_prompt': show_testimonial_prompt,
+    }
 
 @app.after_request
 def add_cache_control(response):
@@ -154,7 +209,8 @@ def landing_page():
     user = get_current_user()
     if user:
         logger.info(f"User logged in: {user['email']}")
-    return render_template('landing.html', user=user)
+    testimonials = get_active_testimonials()
+    return render_template('landing.html', user=user, testimonials=testimonials)
 
 @app.route('/signin')
 def signin():
@@ -218,7 +274,8 @@ def api_register():
         'email': data['email'],
         'password': generate_password_hash(data['password']),
         'country': country_map.get(data.get('country'), data.get('country')),
-        'created_at': get_current_utc_time()
+        'created_at': get_current_utc_time(),
+        'testimonial_submitted': False
     }
     result = users_collection.insert_one(user_doc)
     
@@ -232,6 +289,7 @@ def api_signin():
     
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
+        session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         logger.info(f"User signed in: {user['email']}")
         redirect_url = '/admin/dashboard' if user.get('is_admin') else '/my-accounts'
         return jsonify({'success': True, 'redirect': redirect_url})
@@ -327,7 +385,8 @@ def google_callback():
                     'email': user_info['email'],
                     'google_id': user_info['sub'],
                     'country': None,
-                    'created_at': get_current_utc_time()
+                    'created_at': get_current_utc_time(),
+                    'testimonial_submitted': False
                 }
                 result = users_collection.insert_one(user_doc)
                 user = users_collection.find_one({'_id': result.inserted_id})
@@ -335,6 +394,7 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
+        session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         logger.info(f"User session created, redirecting to {'admin dashboard' if user.get('is_admin') else 'my accounts page'}")
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
     except Exception as e:
@@ -362,6 +422,68 @@ def update_name():
     )
     logger.info(f"User {user['email']} updated name to: {new_name}")
     return jsonify({'success': True})
+
+@app.route('/api/testimonials', methods=['POST'])
+def submit_testimonial():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    if user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Admins cannot submit testimonials'}), 403
+
+    if user.get('testimonial_submitted'):
+        session['show_testimonial_prompt'] = False
+        return jsonify({'success': False, 'message': 'Testimonial already submitted'}), 409
+
+    data = request.json or {}
+    name = (data.get('name') or '').strip()
+    city = (data.get('city') or '').strip()
+    comment = (data.get('comment') or '').strip()
+    rating = data.get('rating')
+
+    if not name:
+        return jsonify({'success': False, 'message': 'Name is required'}), 400
+    if not city:
+        return jsonify({'success': False, 'message': 'City is required'}), 400
+    if not comment:
+        return jsonify({'success': False, 'message': 'Feedback is required'}), 400
+    if len(comment) < 15:
+        return jsonify({'success': False, 'message': 'Feedback must be at least 15 characters'}), 400
+
+    try:
+        rating = int(rating)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Rating is required'}), 400
+
+    if rating < 1 or rating > 5:
+        return jsonify({'success': False, 'message': 'Rating must be between 1 and 5'}), 400
+
+    testimonial_doc = {
+        'user_id': user['_id'],
+        'user_email': user['email'],
+        'name': name,
+        'city': city,
+        'rating': rating,
+        'comment': comment,
+        'is_active': True,
+        'display_order': 999,
+        'created_at': get_current_utc_time()
+    }
+
+    testimonials_collection.update_one(
+        {'user_id': user['_id']},
+        {'$set': testimonial_doc},
+        upsert=True
+    )
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$set': {'testimonial_submitted': True}}
+    )
+    session['show_testimonial_prompt'] = False
+
+    logger.info(f"Testimonial submitted by user {user['email']}")
+    return jsonify({'success': True, 'message': 'Testimonial submitted successfully'})
 
 @app.route('/api/account-count', methods=['GET'])
 def get_account_count():
@@ -1135,6 +1257,7 @@ def logout():
         except (ValueError, Exception) as e:
             logger.error(f"Error during logout: {e}")
     session.pop('user_id', None)
+    session.pop('show_testimonial_prompt', None)
     return redirect(url_for('landing_page', status='loggedout'))
 
 @app.route('/api/chat/send', methods=['POST'])
