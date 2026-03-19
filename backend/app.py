@@ -859,9 +859,9 @@ def admin_dashboard():
         if not user or not user.get('is_admin'):
             return redirect(url_for('signin'))
         
-        all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1).limit(100))
-        all_accounts = list(accounts_collection.find().sort('created_at', -1).limit(500))
-        pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1).limit(50))
+        all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
+        all_accounts = list(accounts_collection.find().sort('created_at', -1))
+        pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
         
         for payment in pending_payments:
             payment_user = users_collection.find_one({'_id': payment['user_id']})
