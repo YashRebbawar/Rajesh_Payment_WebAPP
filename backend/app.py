@@ -41,7 +41,6 @@ if not MONGO_URI or MONGO_URI.strip() == '':
     raise Exception("MongoDB connection required. Please configure MONGO_URI in .env file")
 
 try:
-    # Handle URL encoding for special characters in password
     if 'mongodb+srv://' in MONGO_URI and '@' in MONGO_URI:
         prefix = MONGO_URI.split('://')[0] + '://'
         rest = MONGO_URI.split('://', 1)[1]
@@ -51,13 +50,23 @@ try:
                 username, password = creds.split(':', 1)
                 MONGO_URI = f"{prefix}{quote_plus(username)}:{quote_plus(password)}@{host}"
     
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000, tlsAllowInvalidCertificates=True, retryWrites=False)
-    logger.info("MongoDB client initialized")
+    client = MongoClient(
+        MONGO_URI,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=5000,
+        maxPoolSize=10,
+        minPoolSize=2,
+        tlsAllowInvalidCertificates=True,
+        retryWrites=False
+    )
+    client.admin.command('ping')
+    logger.info("MongoDB client initialized and connected")
 except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
     logger.error("Please check your MONGO_URI in .env file")
     logger.error("Make sure username, password, and cluster address are correct")
-    raise Exception(f"Failed to initialize MongoDB client: {e}")
+    raise RuntimeError(f"Failed to initialize MongoDB client: {e}")
 
 db = client.printfree
 users_collection = db.users
@@ -845,47 +854,49 @@ def get_user_notifications():
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
-    user = get_current_user()
-    if not user or not user.get('is_admin'):
-        return redirect(url_for('signin'))
-    
-    all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
-    all_accounts = list(accounts_collection.find().sort('created_at', -1))
-    pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
-    
-    # Enrich pending payments with current user data and account_id
-    for payment in pending_payments:
-        payment_user = users_collection.find_one({'_id': payment['user_id']})
-        if payment_user:
-            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
-            payment['user_email'] = payment_user['email']
+    try:
+        user = get_current_user()
+        if not user or not user.get('is_admin'):
+            return redirect(url_for('signin'))
         
-        # Get account_id and all payment details from payment record
-        if 'payment_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-                payment['upi_id'] = payment_record.get('upi_id')
-                payment['account_holder'] = payment_record.get('account_holder')
-                payment['account_number'] = payment_record.get('account_number')
-                payment['ifsc_code'] = payment_record.get('ifsc_code')
-        elif 'withdrawal_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-                payment['upi_id'] = payment_record.get('upi_id')
-                payment['account_holder'] = payment_record.get('account_holder')
-                payment['account_number'] = payment_record.get('account_number')
-                payment['ifsc_code'] = payment_record.get('ifsc_code')
-    
-    user_accounts_map = {}
-    for account in all_accounts:
-        user_id = str(account['user_id'])
-        if user_id not in user_accounts_map:
-            user_accounts_map[user_id] = []
-        user_accounts_map[user_id].append(account)
-    
-    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+        all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1).limit(100))
+        all_accounts = list(accounts_collection.find().sort('created_at', -1).limit(500))
+        pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1).limit(50))
+        
+        for payment in pending_payments:
+            payment_user = users_collection.find_one({'_id': payment['user_id']})
+            if payment_user:
+                payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+                payment['user_email'] = payment_user['email']
+            
+            if 'payment_id' in payment:
+                payment_record = payments_collection.find_one({'_id': payment['payment_id']})
+                if payment_record:
+                    payment['account_id'] = str(payment_record['account_id'])
+                    payment['upi_id'] = payment_record.get('upi_id')
+                    payment['account_holder'] = payment_record.get('account_holder')
+                    payment['account_number'] = payment_record.get('account_number')
+                    payment['ifsc_code'] = payment_record.get('ifsc_code')
+            elif 'withdrawal_id' in payment:
+                payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
+                if payment_record:
+                    payment['account_id'] = str(payment_record['account_id'])
+                    payment['upi_id'] = payment_record.get('upi_id')
+                    payment['account_holder'] = payment_record.get('account_holder')
+                    payment['account_number'] = payment_record.get('account_number')
+                    payment['ifsc_code'] = payment_record.get('ifsc_code')
+        
+        user_accounts_map = {}
+        for account in all_accounts:
+            user_id = str(account['user_id'])
+            if user_id not in user_accounts_map:
+                user_accounts_map[user_id] = []
+            user_accounts_map[user_id].append(account)
+        
+        return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+    except Exception as e:
+        logger.error(f"Admin dashboard error: {e}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Dashboard error'}), 500
 
 @app.route('/api/admin/update-account-mt/<account_id>', methods=['POST'])
 def update_account_mt(account_id):
