@@ -576,7 +576,9 @@ body.admin-page::after {
 }
 @media (max-width: 768px) {
   .header-nav { padding: 0 14px; }
+  .user-profile-wrapper { display: none; }
   .hamburger-menu { display: flex; }
+  .view-toggle { display: none; }
   .mobile-menu { display: block; }
   .mobile-tabs { display: flex; }
   .admin-dashboard-wrapper { display: block; height: auto; }

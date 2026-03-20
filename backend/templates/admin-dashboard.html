@@ -76,9 +76,6 @@
 
   <div class="mobile-menu" id="mobile-menu">
     {% if user %}
-    <div class="mobile-search-section">
-      <input type="text" id="mobile-admin-user-search" class="mobile-admin-search-input" placeholder="Search users…">
-    </div>
     <div class="mobile-profile-section">
       <div class="mobile-profile-icon">{{ user.email[0].upper() }}</div>
       <div class="mobile-profile-info">
@@ -164,7 +161,7 @@
   {# ── LEFT: Users ── #}
   <div class="admin-users-section" id="users-tab">
     <div class="section-header">
-      <h2>All <em>users</em></h2>
+      <h2><em>Users</em> & <em>Accounts</em></h2>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="user-count">{{ all_users|length }} Users</span>
         <div class="view-toggle">
@@ -304,7 +301,7 @@
   {# ── RIGHT: Payments ── #}
   <div class="pending-payments-wrapper" id="payments-tab">
     <div class="section-header" style="padding:0 0 14px;">
-      <h2><em>Pending</em></h2>
+      <h2>Pending <em>Payment's</em></h2>
       {% if pending_payments %}<span class="notification-badge">{{ pending_payments|length }}</span>{% endif %}
     </div>
 
