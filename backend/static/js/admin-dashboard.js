@@ -25,7 +25,7 @@ const passwordRules = {
   upper:   v => /[A-Z]/.test(v),
   lower:   v => /[a-z]/.test(v),
   number:  v => /\d/.test(v),
-  special: v => /[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?]/.test(v)
+  special: v => /[!@#$%^&*()-_=+\[\]{};':"\\|,.<>/?]/.test(v)
 };
 function isPasswordValid(pw) {
   return Object.values(passwordRules).every(fn => fn(pw));
@@ -58,61 +58,99 @@ function measureBarHeight() {
   }
 }
 
-/* ══ COMMISSION STATS ══ */
+// Load commission stats
 async function loadCommissionStats(year = null, month = null) {
-  try {
-    let url = '/api/admin/commission-stats';
-    if (year && month) url += `?year=${year}&month=${month}`;
-    const data = await fetch(url).then(r => r.json());
-    if (!data.success) return;
-    const fmt = n => '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    s('total-platform-fee',   fmt(data.platform_fee));
-    s('total-deposits',       fmt(data.total_deposits));
-    s('transaction-count',    data.transaction_count);
-    s('monthly-deposits',     fmt(data.monthly_deposits));
-    s('monthly-fee',          fmt(data.monthly_fee));
-    s('pending-platform-fee', fmt(data.pending_fee));
-    s('pending-deposits',     fmt(data.pending_deposits));
-  } catch (e) { console.error(e); }
-}
-
-function populateMonthSelector() {
-  const sel = document.getElementById('month-selector');
-  if (!sel) return;
-  const now = new Date(), cy = now.getFullYear(), cm = now.getMonth() + 1;
-  const list = [];
-  for (let y = 2026; y <= cy; y++) {
-    for (let m = (y === 2026 ? 1 : 1); m <= (y === cy ? cm : 12); m++) list.push({ y, m });
-  }
-  list.reverse().forEach((it, i) => {
-    const label = new Date(it.y, it.m - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-    const opt = document.createElement('option');
-    opt.value = `${it.y}-${it.m}`;
-    opt.textContent = i === 0 ? `Current Month (${label})` : label;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener('change', function () {
-    if (this.value === 'current') { loadCommissionStats(); }
-    else { const [y, m] = this.value.split('-').map(Number); loadCommissionStats(y, m); }
-  });
-}
-
-async function loadUsersNoAccountType() {
-  try {
-    const data = await fetch('/api/admin/users-no-account-type').then(r => r.json());
-    if (!data.success) return;
-    const c = document.getElementById('no-account-type-count');
-    const l = document.getElementById('no-account-type-list');
-    if (c) c.textContent = data.count;
-    if (l) {
-      if (data.count > 0) {
-        const str = data.users.map(u => u.email).join(', ');
-        l.textContent = str.length > 50 ? str.slice(0, 50) + '…' : str;
-      } else { l.textContent = 'None'; }
+    try {
+        let url = '/api/admin/commission-stats';
+        if (year && month) {
+            url += `?year=${year}&month=${month}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('total-platform-fee').textContent = '₹' + data.platform_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('total-deposits').textContent = '₹' + data.total_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('transaction-count').textContent = data.transaction_count;
+            document.getElementById('monthly-deposits').textContent = '₹' + data.monthly_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('monthly-fee').textContent = '₹' + data.monthly_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('pending-platform-fee').textContent = '₹' + data.pending_fee.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('pending-deposits').textContent = '₹' + data.pending_deposits.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+    } catch (error) {
+        console.error('Error loading commission stats:', error);
     }
-  } catch (e) { console.error(e); }
 }
+
+// Populate month selector
+function populateMonthSelector() {
+    const selector = document.getElementById('month-selector');
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    const startYear = 2026;
+    const startMonth = 1;
+    
+    const months = [];
+    for (let year = startYear; year <= currentYear; year++) {
+        const monthStart = (year === startYear) ? startMonth : 1;
+        const monthEnd = (year === currentYear) ? currentMonth : 12;
+        
+        for (let month = monthStart; month <= monthEnd; month++) {
+            months.push({ year, month });
+        }
+    }
+    
+    months.reverse().forEach((item, index) => {
+        const monthName = new Date(item.year, item.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+        const option = document.createElement('option');
+        option.value = `${item.year}-${item.month}`;
+        option.textContent = index === 0 ? `Current Month (${monthName})` : monthName;
+        selector.appendChild(option);
+    });
+    
+    selector.addEventListener('change', function() {
+        if (this.value === 'current') {
+            loadCommissionStats();
+        } else {
+            const [year, month] = this.value.split('-');
+            loadCommissionStats(parseInt(year), parseInt(month));
+        }
+    });
+}
+
+// Load users with no account type
+async function loadUsersNoAccountType() {
+    try {
+        const response = await fetch('/api/admin/users-no-account-type');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('no-account-type-count').textContent = data.count;
+            if (data.count > 0) {
+                const userList = data.users.map(u => u.email).join(', ');
+                document.getElementById('no-account-type-list').textContent = userList.length > 50 ? userList.substring(0, 50) + '...' : userList;
+            } else {
+                document.getElementById('no-account-type-list').textContent = 'None';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading users with no account type:', error);
+    }
+}
+
+// Refresh commission stats every 30 seconds
+setInterval(() => {
+    const selector = document.getElementById('month-selector');
+    if (selector && selector.value === 'current') {
+        loadCommissionStats();
+    } else if (selector) {
+        const [year, month] = selector.value.split('-');
+        loadCommissionStats(parseInt(year), parseInt(month));
+    }
+    loadUsersNoAccountType();
+}, 30000);
 
 /* ══ USER CARD EXPAND / COLLAPSE ══ */
 function initUserCards() {
@@ -355,7 +393,7 @@ async function refreshMigrateList(el) {
     const data = await fetch('/api/admin/chat-users-with-pending').then(r => r.json());
     if (data.success && data.users.length > 0) {
       el.innerHTML = data.users.map(u => `
-        <div class="migrate-user-item" onclick="selectMigrateUser('${u.user_id}','${u.name.replace(/'/g,"\\'")}')">
+        <div class="migrate-user-item" onclick="selectMigrateUser('${u.user_id}','${u.name.replace(/'/g,"\\'")}'">
           <div><div class="migrate-item-name">${u.name}</div><div class="migrate-item-email">${u.email}</div></div>
           <div class="migrate-item-badge">${u.pending_count}</div>
         </div>`).join('');
@@ -397,13 +435,6 @@ document.addEventListener('DOMContentLoaded', function () {
   populateMonthSelector();
   loadCommissionStats();
   loadUsersNoAccountType();
-  setInterval(() => {
-    const sel = document.getElementById('month-selector');
-    if (!sel) return;
-    if (sel.value === 'current') loadCommissionStats();
-    else { const [y, m] = sel.value.split('-').map(Number); loadCommissionStats(y, m); }
-    loadUsersNoAccountType();
-  }, 30000);
 
   /* profile dropdown */
   const profileToggle   = document.getElementById('profile-toggle');

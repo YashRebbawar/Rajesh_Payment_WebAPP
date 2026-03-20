@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -8,7 +9,6 @@ from urllib.parse import quote_plus
 import os
 import logging
 import base64
-import re
 from datetime import datetime, timezone, timedelta
 
 def get_current_utc_time():
@@ -42,7 +42,6 @@ if not MONGO_URI or MONGO_URI.strip() == '':
     raise Exception("MongoDB connection required. Please configure MONGO_URI in .env file")
 
 try:
-    # Handle URL encoding for special characters in password
     if 'mongodb+srv://' in MONGO_URI and '@' in MONGO_URI:
         prefix = MONGO_URI.split('://')[0] + '://'
         rest = MONGO_URI.split('://', 1)[1]
@@ -54,22 +53,21 @@ try:
     
     client = MongoClient(
         MONGO_URI,
-        serverSelectionTimeoutMS=30000,
-        connectTimeoutMS=30000,
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000,
         socketTimeoutMS=30000,
         maxPoolSize=10,
         minPoolSize=2,
-        maxIdleTimeMS=45000,
-        retryWrites=False,
         tlsAllowInvalidCertificates=True,
-        retryReads=True
+        retryWrites=False
     )
-    logger.info("MongoDB client initialized")
+    client.admin.command('ping')
+    logger.info("MongoDB client initialized and connected")
 except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
     logger.error("Please check your MONGO_URI in .env file")
     logger.error("Make sure username, password, and cluster address are correct")
-    raise Exception(f"Failed to initialize MongoDB client: {e}")
+    raise RuntimeError(f"Failed to initialize MongoDB client: {e}")
 
 db = client.printfree
 users_collection = db.users
@@ -77,9 +75,7 @@ accounts_collection = db.trading_accounts
 payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
-testimonials_collection = db.testimonials
-
-PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
+maintenance_collection = db.maintenance
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
@@ -112,32 +108,9 @@ try:
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
     chats_collection.create_index('created_at')
-    testimonials_collection.create_index('user_id', unique=True)
-    testimonials_collection.create_index([('is_active', 1), ('created_at', -1)])
     logger.info("Database indexes created successfully")
 except Exception as e:
     logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
-
-DEFAULT_TESTIMONIALS = [
-    {
-        'name': 'Ahmed Al-Mansouri',
-        'city': 'Dubai',
-        'rating': 5,
-        'comment': "Finally, an MT5 provider without account freeze issues. I've been trading freely for over 2 years now - absolutely game-changing."
-    },
-    {
-        'name': 'Priya Sharma',
-        'city': 'Mumbai',
-        'rating': 5,
-        'comment': "Hassle-free setup, instant funding, and a professional MT5 platform. PrintFree is the best trading partner I've found. Highly recommended!"
-    },
-    {
-        'name': 'Mohammed Hassan',
-        'city': 'Cairo',
-        'rating': 5,
-        'comment': 'Best Dubai-based MT5 provider bar none. Reliable infrastructure, secure withdrawals, and excellent support team around the clock.'
-    }
-]
 
 def get_current_user():
     """Helper function to get current user from session"""
@@ -149,104 +122,22 @@ def get_current_user():
             session.pop('user_id', None)
     return None
 
-def check_db_connection():
-    """Check if database connection is alive"""
-    try:
-        client.admin.command('ping')
-        return True
-    except Exception as e:
-        logger.warning(f"Database connection check failed: {e}")
-        return False
-
-def should_prompt_for_testimonial(user):
-    return bool(user and not user.get('is_admin') and not user.get('testimonial_submitted'))
-
-def get_active_testimonials(limit=6):
-    raw_testimonials = list(
-        testimonials_collection.find({'is_active': True})
-        .sort([('display_order', 1), ('created_at', -1)])
-        .limit(limit)
-    )
-    if not raw_testimonials:
-        return DEFAULT_TESTIMONIALS[:limit]
-
-    testimonials = []
-    for testimonial in raw_testimonials:
-        testimonials.append({
-            'name': testimonial.get('name', 'PrintFree Trader'),
-            'city': testimonial.get('city', 'Global'),
-            'rating': int(testimonial.get('rating', 5)),
-            'comment': testimonial.get('comment', '')
-        })
-    return testimonials
-
-@app.context_processor
-def inject_global_template_flags():
-    show_testimonial_prompt = bool(session.get('show_testimonial_prompt'))
-    if show_testimonial_prompt:
-        session['show_testimonial_prompt'] = False
-    return {
-        'show_testimonial_prompt': show_testimonial_prompt,
-    }
-
-@app.after_request
-def add_cache_control(response):
-    """Add cache control headers to prevent caching of authentication pages"""
-    if request.endpoint in ['signin', 'register', 'my_accounts', 'admin_dashboard']:
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-    return response
-
-def validate_password_policy(password):
-    """Validate password against shared policy and return (is_valid, message)."""
-    if password is None:
-        return False, 'Password is required'
-
-    if not isinstance(password, str):
-        return False, 'Password must be a string'
-
-    if len(password) < 8 or len(password) > 15:
-        return False, 'Password must be between 8 and 15 characters'
-
-    has_lower = any(c.islower() for c in password)
-    has_upper = any(c.isupper() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-
-    has_special = re.search(PASSWORD_SPECIAL_RE, password) is not None
-
-    if not (has_lower and has_upper):
-        return False, 'Password must include at least one uppercase and one lowercase letter'
-    if not has_digit:
-        return False, 'Password must include at least one number'
-    if not has_special:
-        return False, 'Password must include at least one special character'
-
-    return True, None
-
 @app.route('/')
 def landing_page():
     user = get_current_user()
     if user:
         logger.info(f"User logged in: {user['email']}")
-    testimonials = get_active_testimonials()
-    return render_template('landing.html', user=user, testimonials=testimonials)
+    return render_template('landing.html', user=user)
 
 @app.route('/signin')
 def signin():
     user = get_current_user()
-    if user:
-        return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
-    response = render_template('signin.html', user=user)
-    return response
+    return render_template('signin.html', user=user)
 
 @app.route('/register')
 def register():
     user = get_current_user()
-    if user:
-        return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
-    response = render_template('register.html', user=user)
-    return response
+    return render_template('register.html', user=user)
 
 @app.route('/my-accounts')
 def my_accounts():
@@ -279,10 +170,6 @@ def account_setup(account_type):
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json
-
-    is_valid_password, password_error = validate_password_policy(data.get('password'))
-    if not is_valid_password:
-        return jsonify({'success': False, 'message': password_error}), 400
     
     if users_collection.find_one({'email': data['email']}):
         logger.warning(f"Registration attempt with existing email: {data['email']}")
@@ -294,8 +181,7 @@ def api_register():
         'email': data['email'],
         'password': generate_password_hash(data['password']),
         'country': country_map.get(data.get('country'), data.get('country')),
-        'created_at': get_current_utc_time(),
-        'testimonial_submitted': False
+        'created_at': get_current_utc_time()
     }
     result = users_collection.insert_one(user_doc)
     
@@ -309,42 +195,12 @@ def api_signin():
     
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
-        session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         logger.info(f"User signed in: {user['email']}")
         redirect_url = '/admin/dashboard' if user.get('is_admin') else '/my-accounts'
         return jsonify({'success': True, 'redirect': redirect_url})
     
     logger.warning(f"Failed sign in attempt for: {data['email']}")
     return jsonify({'success': False, 'message': 'Invalid credentials'})
-
-@app.route('/api/forgot-password', methods=['POST'])
-def api_forgot_password():
-    data = request.json or {}
-    email = (data.get('email') or '').strip().lower()
-    new_password = data.get('new_password')
-    confirm_password = data.get('confirm_password')
-
-    if not email:
-        return jsonify({'success': False, 'message': 'Email is required'}), 400
-
-    if new_password != confirm_password:
-        return jsonify({'success': False, 'message': 'Passwords do not match'}), 400
-
-    is_valid_password, password_error = validate_password_policy(new_password)
-    if not is_valid_password:
-        return jsonify({'success': False, 'message': password_error}), 400
-
-    user = users_collection.find_one({'email': email})
-    if not user:
-        logger.warning(f"Forgot-password attempt for non-existing email: {email}")
-        return jsonify({'success': False, 'message': 'Email is not registered'}), 404
-
-    users_collection.update_one(
-        {'_id': user['_id']},
-        {'$set': {'password': generate_password_hash(new_password)}}
-    )
-    logger.info(f"Password reset completed for: {email}")
-    return jsonify({'success': True, 'message': 'Password reset successful. Please sign in.'})
 
 @app.route('/auth/google')
 def google_login():
@@ -405,8 +261,7 @@ def google_callback():
                     'email': user_info['email'],
                     'google_id': user_info['sub'],
                     'country': None,
-                    'created_at': get_current_utc_time(),
-                    'testimonial_submitted': False
+                    'created_at': get_current_utc_time()
                 }
                 result = users_collection.insert_one(user_doc)
                 user = users_collection.find_one({'_id': result.inserted_id})
@@ -414,7 +269,6 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
-        session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         logger.info(f"User session created, redirecting to {'admin dashboard' if user.get('is_admin') else 'my accounts page'}")
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
     except Exception as e:
@@ -443,68 +297,6 @@ def update_name():
     logger.info(f"User {user['email']} updated name to: {new_name}")
     return jsonify({'success': True})
 
-@app.route('/api/testimonials', methods=['POST'])
-def submit_testimonial():
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
-
-    if user.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Admins cannot submit testimonials'}), 403
-
-    if user.get('testimonial_submitted'):
-        session['show_testimonial_prompt'] = False
-        return jsonify({'success': False, 'message': 'Testimonial already submitted'}), 409
-
-    data = request.json or {}
-    name = (data.get('name') or '').strip()
-    city = (data.get('city') or '').strip()
-    comment = (data.get('comment') or '').strip()
-    rating = data.get('rating')
-
-    if not name:
-        return jsonify({'success': False, 'message': 'Name is required'}), 400
-    if not city:
-        return jsonify({'success': False, 'message': 'City is required'}), 400
-    if not comment:
-        return jsonify({'success': False, 'message': 'Feedback is required'}), 400
-    if len(comment) < 15:
-        return jsonify({'success': False, 'message': 'Feedback must be at least 15 characters'}), 400
-
-    try:
-        rating = int(rating)
-    except (TypeError, ValueError):
-        return jsonify({'success': False, 'message': 'Rating is required'}), 400
-
-    if rating < 1 or rating > 5:
-        return jsonify({'success': False, 'message': 'Rating must be between 1 and 5'}), 400
-
-    testimonial_doc = {
-        'user_id': user['_id'],
-        'user_email': user['email'],
-        'name': name,
-        'city': city,
-        'rating': rating,
-        'comment': comment,
-        'is_active': True,
-        'display_order': 999,
-        'created_at': get_current_utc_time()
-    }
-
-    testimonials_collection.update_one(
-        {'user_id': user['_id']},
-        {'$set': testimonial_doc},
-        upsert=True
-    )
-    users_collection.update_one(
-        {'_id': user['_id']},
-        {'$set': {'testimonial_submitted': True}}
-    )
-    session['show_testimonial_prompt'] = False
-
-    logger.info(f"Testimonial submitted by user {user['email']}")
-    return jsonify({'success': True, 'message': 'Testimonial submitted successfully'})
-
 @app.route('/api/account-count', methods=['GET'])
 def get_account_count():
     user = get_current_user()
@@ -525,11 +317,6 @@ def account_setup_api():
         return jsonify({'success': False, 'message': 'You have reached the maximum limit of 3 accounts. Please delete an existing account to create a new one.'})
     
     data = request.json
-
-    is_valid_password, password_error = validate_password_policy(data.get('password'))
-    if not is_valid_password:
-        return jsonify({'success': False, 'message': password_error}), 400
-
     account_doc = {
         'user_id': user['_id'],
         'account_type': data['account_type'],
@@ -606,22 +393,11 @@ def initiate_payment():
             return jsonify({'success': False, 'message': 'Account not found'})
         
         amount = float(data['amount'])
-        payment_method = (data.get('payment_method') or 'upi').lower()
-
-        if payment_method == 'usdt':
-            if amount < 100 or amount > 10000:
-                return jsonify({'success': False, 'message': 'USDT deposit amount must be between 100 and 10000'})
-            currency = 'USDT'
-            fee_rate = 0.019
-        elif payment_method in ['upi', 'imps']:
-            min_amount = 1000 if account.get('account_type') == 'standard' else 50000
-            max_amount = 100000
-            if amount < min_amount or amount > max_amount:
-                return jsonify({'success': False, 'message': f'{payment_method.upper()} deposit amount must be between {min_amount} and {max_amount}'})
-            currency = 'INR' if account['currency'] == 'USD' else account['currency']
-            fee_rate = 0.014
-        else:
-            return jsonify({'success': False, 'message': 'Invalid payment method'})
+        currency = data['currency']
+        
+        # For USD accounts, force currency to INR
+        if account['currency'] == 'USD':
+            currency = 'INR'
         
         # Create payment record
         payment_doc = {
@@ -629,10 +405,6 @@ def initiate_payment():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': currency,
-            'payment_method': payment_method,
-            'fee_rate': fee_rate,
-            'fee_amount': round(amount * fee_rate, 2),
-            'charged_amount': round(amount + (amount * fee_rate), 2),
             'reference': data.get('reference', ''),
             'type': 'deposit',
             'status': 'pending',
@@ -669,28 +441,6 @@ def initiate_withdrawal():
         if amount <= 0:
             return jsonify({'success': False, 'message': 'Invalid amount'})
         
-        payment_method = data.get('payment_method', 'upi')
-        
-        upi_pattern = re.compile(r'^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$')
-        bank_account_pattern = re.compile(r'^\d{9,18}$')
-        ifsc_pattern = re.compile(r'^[A-Z]{4}0[A-Z0-9]{6}$')
-
-        if payment_method == 'upi':
-            if amount < 10 or amount > 50:
-                return jsonify({'success': False, 'message': 'UPI withdrawal amount must be between $10 and $50'})
-            upi_id = (data.get('upi_id') or '').strip()
-            if not upi_pattern.match(upi_id):
-                return jsonify({'success': False, 'message': 'Please enter a valid UPI ID'})
-        else:
-            if amount < 50:
-                return jsonify({'success': False, 'message': 'Bank transfer withdrawal amount must be at least $50'})
-            bank_account = (data.get('bank_account') or '').strip()
-            ifsc_code = (data.get('ifsc_code') or '').strip().upper()
-            if not bank_account_pattern.match(bank_account):
-                return jsonify({'success': False, 'message': 'Please enter a valid bank account number'})
-            if not ifsc_pattern.match(ifsc_code):
-                return jsonify({'success': False, 'message': 'Please enter a valid IFSC code'})
-        
         if amount > balance:
             return jsonify({'success': False, 'message': 'Insufficient balance'})
         
@@ -700,18 +450,15 @@ def initiate_withdrawal():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': data['currency'],
-            'payment_method': payment_method,
+            'payment_method': data.get('payment_method', 'upi'),
+            'upi_id': data.get('upi_id'),
+            'account_holder': data.get('account_holder'),
+            'account_number': data.get('account_number'),
+            'ifsc_code': data.get('ifsc_code'),
             'type': 'withdrawal',
             'status': 'pending',
             'created_at': get_current_utc_time()
         }
-        
-        if payment_method == 'upi':
-            withdrawal_doc['upi_id'] = upi_id
-        else:
-            withdrawal_doc['bank_account'] = bank_account
-            withdrawal_doc['ifsc_code'] = ifsc_code
-        
         result = payments_collection.insert_one(withdrawal_doc)
         
         # Create admin notification
@@ -723,17 +470,14 @@ def initiate_withdrawal():
             'account_nickname': account['nickname'],
             'amount': amount,
             'currency': data['currency'],
-            'payment_method': payment_method,
+            'payment_method': data.get('payment_method', 'upi'),
+            'upi_id': data.get('upi_id'),
+            'account_holder': data.get('account_holder'),
+            'account_number': data.get('account_number'),
+            'ifsc_code': data.get('ifsc_code'),
             'status': 'pending_approval',
             'created_at': get_current_utc_time()
         }
-        
-        if payment_method == 'upi':
-            notification_doc['upi_id'] = upi_id
-        else:
-            notification_doc['bank_account'] = bank_account
-            notification_doc['ifsc_code'] = ifsc_code
-        
         notifications_collection.insert_one(notification_doc)
         
         logger.info(f"Withdrawal initiated for user {user['email']}: {amount} {data['currency']}")
@@ -1115,35 +859,49 @@ def admin_dashboard():
     if not user or not user.get('is_admin'):
         return redirect(url_for('signin'))
     
-    all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
-    all_accounts = list(accounts_collection.find().sort('created_at', -1))
-    pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
-    
-    # Enrich pending payments with current user data and account_id
-    for payment in pending_payments:
-        payment_user = users_collection.find_one({'_id': payment['user_id']})
-        if payment_user:
-            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
-            payment['user_email'] = payment_user['email']
+    try:
+        all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
+        all_accounts = list(accounts_collection.find().sort('created_at', -1))
+        pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
         
-        # Get account_id from payment record
-        if 'payment_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-        elif 'withdrawal_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-    
-    user_accounts_map = {}
-    for account in all_accounts:
-        user_id = str(account['user_id'])
-        if user_id not in user_accounts_map:
-            user_accounts_map[user_id] = []
-        user_accounts_map[user_id].append(account)
-    
-    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+        for payment in pending_payments:
+            try:
+                payment_user = users_collection.find_one({'_id': payment['user_id']})
+                if payment_user:
+                    payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+                    payment['user_email'] = payment_user['email']
+                
+                if 'payment_id' in payment:
+                    payment_record = payments_collection.find_one({'_id': payment['payment_id']})
+                    if payment_record:
+                        payment['account_id'] = str(payment_record['account_id'])
+                        payment['upi_id'] = payment_record.get('upi_id')
+                        payment['account_holder'] = payment_record.get('account_holder')
+                        payment['account_number'] = payment_record.get('account_number')
+                        payment['ifsc_code'] = payment_record.get('ifsc_code')
+                elif 'withdrawal_id' in payment:
+                    payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
+                    if payment_record:
+                        payment['account_id'] = str(payment_record['account_id'])
+                        payment['upi_id'] = payment_record.get('upi_id')
+                        payment['account_holder'] = payment_record.get('account_holder')
+                        payment['account_number'] = payment_record.get('account_number')
+                        payment['ifsc_code'] = payment_record.get('ifsc_code')
+            except Exception as e:
+                logger.error(f"Error enriching payment: {e}")
+                continue
+        
+        user_accounts_map = {}
+        for account in all_accounts:
+            user_id = str(account['user_id'])
+            if user_id not in user_accounts_map:
+                user_accounts_map[user_id] = []
+            user_accounts_map[user_id].append(account)
+        
+        return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+    except Exception as e:
+        logger.error(f"Admin dashboard error: {e}", exc_info=True)
+        return f"Dashboard Error: {str(e)}", 500
 
 @app.route('/api/admin/update-account-mt/<account_id>', methods=['POST'])
 def update_account_mt(account_id):
@@ -1209,51 +967,31 @@ def delete_user(user_id):
     
 # Updated get_user_notifications to include MT credentials
 
-@app.route('/api/withdrawal/saved-credentials', methods=['GET'])
-def get_saved_credentials():
+@app.route('/api/withdrawal/status/<withdrawal_id>', methods=['GET'])
+def get_withdrawal_status(withdrawal_id):
     user = get_current_user()
     if not user:
         return jsonify({'success': False, 'message': 'Not authenticated'})
     
     try:
-        user_data = users_collection.find_one({'_id': user['_id']})
+        withdrawal = payments_collection.find_one({
+            '_id': ObjectId(withdrawal_id),
+            'user_id': user['_id'],
+            'upi_id': {'$exists': True}
+        })
+        
+        if not withdrawal:
+            return jsonify({'success': False, 'message': 'Withdrawal not found'})
+        
         return jsonify({
             'success': True,
-            'upi_id': user_data.get('saved_upi_id'),
-            'bank_account': user_data.get('saved_bank_account'),
-            'ifsc_code': user_data.get('saved_ifsc_code')
+            'status': withdrawal['status'],
+            'amount': withdrawal['amount'],
+            'currency': withdrawal['currency']
         })
     except Exception as e:
-        logger.error(f"Error fetching saved credentials: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/api/withdrawal/save-credentials', methods=['POST'])
-def save_withdrawal_credentials():
-    user = get_current_user()
-    if not user:
-        return jsonify({'success': False, 'message': 'Not authenticated'})
-    
-    try:
-        data = request.json
-        update_data = {}
-        if data.get('upi_id'):
-            update_data['saved_upi_id'] = data['upi_id']
-        else:
-            update_data['saved_upi_id'] = None
-        if data.get('bank_account'):
-            update_data['saved_bank_account'] = data['bank_account']
-            update_data['saved_ifsc_code'] = data.get('ifsc_code')
-        else:
-            update_data['saved_bank_account'] = None
-            update_data['saved_ifsc_code'] = None
-        
-        users_collection.update_one({'_id': user['_id']}, {'$set': update_data})
-        return jsonify({'success': True})
-    except Exception as e:
-        logger.error(f"Error saving credentials: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-
+        logger.error(f"Withdrawal status error: {e}")
+        return jsonify({'success': False, 'message': 'Error checking status'})
 
 
 @app.route('/test-payment')
@@ -1277,7 +1015,6 @@ def logout():
         except (ValueError, Exception) as e:
             logger.error(f"Error during logout: {e}")
     session.pop('user_id', None)
-    session.pop('show_testimonial_prompt', None)
     return redirect(url_for('landing_page', status='loggedout'))
 
 @app.route('/api/chat/send', methods=['POST'])
@@ -1532,9 +1269,6 @@ def update_account_details(account_id):
         
         update_data = {}
         if 'password' in data:
-            is_valid_password, password_error = validate_password_policy(data.get('password'))
-            if not is_valid_password:
-                return jsonify({'success': False, 'message': password_error}), 400
             update_data['trading_password'] = data['password']
         if 'leverage' in data:
             update_data['leverage'] = data['leverage']
@@ -1661,16 +1395,74 @@ def get_users_no_account_type():
         logger.error(f"Error fetching users with no account type: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/admin/maintenance/status', methods=['GET'])
+def get_maintenance_status():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        settings = maintenance_collection.find_one({'_id': 'payment_methods'})
+        if not settings:
+            settings = {'upi_maintenance': False, 'imps_maintenance': False}
+        return jsonify({
+            'success': True,
+            'upi_maintenance': settings.get('upi_maintenance', False),
+            'imps_maintenance': settings.get('imps_maintenance', False)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching maintenance status: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/maintenance/toggle', methods=['POST'])
+def toggle_maintenance():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json
+        method = data.get('method')
+        enabled = data.get('enabled')
+        
+        if method not in ['upi', 'imps']:
+            return jsonify({'success': False, 'message': 'Invalid method'}), 400
+        
+        field = f'{method}_maintenance'
+        maintenance_collection.update_one(
+            {'_id': 'payment_methods'},
+            {'$set': {field: enabled}},
+            upsert=True
+        )
+        
+        logger.info(f"Admin {user['email']} toggled {method} maintenance to {enabled}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error toggling maintenance: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/maintenance/status', methods=['GET'])
+def get_public_maintenance_status():
+    try:
+        settings = maintenance_collection.find_one({'_id': 'payment_methods'})
+        if not settings:
+            settings = {'upi_maintenance': False, 'imps_maintenance': False}
+        return jsonify({
+            'success': True,
+            'upi_maintenance': settings.get('upi_maintenance', False),
+            'imps_maintenance': settings.get('imps_maintenance', False)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching public maintenance status: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
-    db_status = 'ok' if check_db_connection() else 'unavailable'
-    status_code = 200 if db_status == 'ok' else 503
-    return jsonify({'status': 'ok', 'database': db_status}), status_code
+    return jsonify({'status': 'ok'}), 200
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
 
 
