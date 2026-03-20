@@ -111,8 +111,15 @@ try:
     accounts_collection.create_index('user_id')
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
-    chats_collection.create_index('created_at')
+    try:
+        chats_collection.drop_index('created_at_1')
+    except:
+        pass
     chats_collection.create_index('created_at', expireAfterSeconds=172800)
+    try:
+        notifications_collection.drop_index('created_at_1')
+    except:
+        pass
     notifications_collection.create_index('created_at', expireAfterSeconds=172800)
     testimonials_collection.create_index('user_id', unique=True)
     testimonials_collection.create_index([('is_active', 1), ('created_at', -1)])
