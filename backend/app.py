@@ -52,9 +52,9 @@ try:
     
     client = MongoClient(
         MONGO_URI,
-        serverSelectionTimeoutMS=5000,
-        connectTimeoutMS=5000,
-        socketTimeoutMS=5000,
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=30000,
         maxPoolSize=10,
         minPoolSize=2,
         tlsAllowInvalidCertificates=True,
@@ -854,37 +854,41 @@ def get_user_notifications():
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return redirect(url_for('signin'))
+    
     try:
-        user = get_current_user()
-        if not user or not user.get('is_admin'):
-            return redirect(url_for('signin'))
-        
         all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
         all_accounts = list(accounts_collection.find().sort('created_at', -1))
         pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
         
         for payment in pending_payments:
-            payment_user = users_collection.find_one({'_id': payment['user_id']})
-            if payment_user:
-                payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
-                payment['user_email'] = payment_user['email']
-            
-            if 'payment_id' in payment:
-                payment_record = payments_collection.find_one({'_id': payment['payment_id']})
-                if payment_record:
-                    payment['account_id'] = str(payment_record['account_id'])
-                    payment['upi_id'] = payment_record.get('upi_id')
-                    payment['account_holder'] = payment_record.get('account_holder')
-                    payment['account_number'] = payment_record.get('account_number')
-                    payment['ifsc_code'] = payment_record.get('ifsc_code')
-            elif 'withdrawal_id' in payment:
-                payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
-                if payment_record:
-                    payment['account_id'] = str(payment_record['account_id'])
-                    payment['upi_id'] = payment_record.get('upi_id')
-                    payment['account_holder'] = payment_record.get('account_holder')
-                    payment['account_number'] = payment_record.get('account_number')
-                    payment['ifsc_code'] = payment_record.get('ifsc_code')
+            try:
+                payment_user = users_collection.find_one({'_id': payment['user_id']})
+                if payment_user:
+                    payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+                    payment['user_email'] = payment_user['email']
+                
+                if 'payment_id' in payment:
+                    payment_record = payments_collection.find_one({'_id': payment['payment_id']})
+                    if payment_record:
+                        payment['account_id'] = str(payment_record['account_id'])
+                        payment['upi_id'] = payment_record.get('upi_id')
+                        payment['account_holder'] = payment_record.get('account_holder')
+                        payment['account_number'] = payment_record.get('account_number')
+                        payment['ifsc_code'] = payment_record.get('ifsc_code')
+                elif 'withdrawal_id' in payment:
+                    payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
+                    if payment_record:
+                        payment['account_id'] = str(payment_record['account_id'])
+                        payment['upi_id'] = payment_record.get('upi_id')
+                        payment['account_holder'] = payment_record.get('account_holder')
+                        payment['account_number'] = payment_record.get('account_number')
+                        payment['ifsc_code'] = payment_record.get('ifsc_code')
+            except Exception as e:
+                logger.error(f"Error enriching payment: {e}")
+                continue
         
         user_accounts_map = {}
         for account in all_accounts:
@@ -896,7 +900,7 @@ def admin_dashboard():
         return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
     except Exception as e:
         logger.error(f"Admin dashboard error: {e}", exc_info=True)
-        return jsonify({'success': False, 'message': 'Dashboard error'}), 500
+        return f"Dashboard Error: {str(e)}", 500
 
 @app.route('/api/admin/update-account-mt/<account_id>', methods=['POST'])
 def update_account_mt(account_id):
