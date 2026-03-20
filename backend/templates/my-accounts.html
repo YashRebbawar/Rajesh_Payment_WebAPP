@@ -282,8 +282,14 @@
 <div id="user-chat-modal" class="chat-modal">
   <div class="chat-modal-content">
     <div class="chat-header">
-      <h3>Support Chat</h3>
-      <button class="chat-close" onclick="closeUserChatModal()">&times;</button>
+      <div class="chat-header-left">
+        <div class="chat-header-eyebrow">Live support</div>
+        <h3>Support Chat</h3>
+      </div>
+      <div class="chat-header-right">
+        <div class="chat-online-dot"></div>
+        <button class="chat-close" onclick="closeUserChatModal()">&times;</button>
+      </div>
     </div>
     <div id="user-chat-messages" class="chat-messages"></div>
     <div class="chat-input-area">

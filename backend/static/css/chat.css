@@ -97,6 +97,7 @@
     width: 26px;
     height: 26px;
     object-fit: contain;
+    filter: brightness(10);
     border-radius: 0;
     padding: 0;
 }
@@ -143,6 +144,10 @@
     background: var(--ink);
     border-color: var(--ink);
     transform: scale(1.06);
+}
+
+.chat-icon-btn:hover img {
+    filter: brightness(10);
 }
 
 .chat-icon-btn img {
@@ -388,9 +393,10 @@
     padding: 18px 18px 8px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
     background: var(--bg);
     scroll-behavior: smooth;
+    align-items: stretch;            /* let each .chat-message control its own width */
 }
 
 .chat-messages::-webkit-scrollbar { width: 4px; }
@@ -406,7 +412,9 @@
 /* ── INDIVIDUAL MESSAGE ── */
 .chat-message {
     display: flex;
+    flex-direction: column;          /* stack bubble + time vertically */
     animation: msgIn .25s cubic-bezier(.22,1,.36,1) both;
+    max-width: 78%;                  /* constrain the whole row */
 }
 
 @keyframes msgIn {
@@ -414,19 +422,23 @@
     to   { opacity: 1; transform: translateY(0);   }
 }
 
-.chat-message.sent     { justify-content: flex-end; }
-.chat-message.received { justify-content: flex-start; }
+.chat-message.sent     { align-self: flex-end;  align-items: flex-end; }
+.chat-message.received { align-self: flex-start; align-items: flex-start; }
 
-/* Bubble */
+/* Bubble — shrinks to fit text, never forces full width */
 .message-bubble {
-    max-width: 78%;
-    padding: 10px 14px;
-    word-wrap: break-word;
+    display: inline-block;           /* key: shrink-wraps to content */
+    max-width: 100%;                 /* can't exceed parent .chat-message */
+    padding: 9px 13px;
+    word-break: break-word;          /* only break genuinely long words */
+    overflow-wrap: break-word;
+    white-space: normal;             /* allow natural line wrapping */
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
     line-height: 1.5;
     font-weight: 400;
     position: relative;
+    width: fit-content;              /* shrink to text width */
 }
 
 .message-bubble.sent {
@@ -444,18 +456,20 @@
     box-shadow: 0 2px 8px rgba(26,21,16,.05);
 }
 
+/* Time sits outside the bubble, aligned to its edge */
 .message-time {
     font-family: 'Cabinet Grotesk', sans-serif;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .04em;
     color: var(--ink-25);
-    margin-top: 4px;
+    margin-top: 3px;
     padding: 0 2px;
+    white-space: nowrap;
 }
 
-.chat-message.sent .message-time   { text-align: right; }
-.chat-message.received .message-time { text-align: left; }
+.chat-message.sent .message-time   { align-self: flex-end; }
+.chat-message.received .message-time { align-self: flex-start; }
 
 /* ── EMPTY / WELCOME STATE ── */
 .chat-empty {
@@ -659,7 +673,7 @@
         right: 14px;
     }
 
-    .support-widget-text {f
+    .support-widget-text {
         display: none;
     }
 
