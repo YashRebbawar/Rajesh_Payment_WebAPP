@@ -46,6 +46,12 @@ function measureBarHeight() {
   if (bar) document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px');
 }
 
+function resetCommissionWidgetScroll() {
+  const bar = document.querySelector('.commission-stats-widget');
+  if (!bar) return;
+  bar.scrollLeft = 0;
+}
+
 /* ══ COMMISSION STATS ══ */
 async function loadCommissionStats(year = null, month = null) {
   try {
@@ -352,7 +358,11 @@ setInterval(async () => { if (!migrateDropdownOpen) return; const el = document.
 /* ══ DOM READY ══ */
 document.addEventListener('DOMContentLoaded', function () {
   measureBarHeight();
-  window.addEventListener('resize', measureBarHeight);
+  resetCommissionWidgetScroll();
+  window.addEventListener('resize', () => {
+    measureBarHeight();
+    resetCommissionWidgetScroll();
+  });
   document.body.classList.add('admin-page');
 
   populateMonthSelector();
@@ -361,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadCommissionStats(year, month);
   }
   loadUsersNoAccountType();
+  requestAnimationFrame(resetCommissionWidgetScroll);
   setInterval(() => {
     const { year, month } = getSelectedCommissionPeriod();
     loadCommissionStats(year, month);
