@@ -112,6 +112,8 @@ try:
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
     chats_collection.create_index('created_at')
+    chats_collection.create_index('created_at', expireAfterSeconds=172800)
+    notifications_collection.create_index('created_at', expireAfterSeconds=172800)
     testimonials_collection.create_index('user_id', unique=True)
     testimonials_collection.create_index([('is_active', 1), ('created_at', -1)])
     logger.info("Database indexes created successfully")
@@ -1660,6 +1662,28 @@ def get_users_no_account_type():
     except Exception as e:
         logger.error(f"Error fetching users with no account type: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
+
+def cleanup_old_chats_and_notifications():
+    """Delete chats and notifications older than 2 days"""
+    try:
+        cutoff_time = get_current_utc_time() - timedelta(days=2)
+        chats_result = chats_collection.delete_many({'created_at': {'$lt': cutoff_time}})
+        notifications_result = notifications_collection.delete_many({'created_at': {'$lt': cutoff_time}})
+        if chats_result.deleted_count > 0 or notifications_result.deleted_count > 0:
+            logger.info(f"Cleanup: Deleted {chats_result.deleted_count} chats and {notifications_result.deleted_count} notifications")
+    except Exception as e:
+        logger.error(f"Cleanup error: {e}")
+
+@app.before_request
+def periodic_cleanup():
+    """Run cleanup on every request (lightweight check)"""
+    if not hasattr(app, 'last_cleanup'):
+        app.last_cleanup = get_current_utc_time()
+    
+    current_time = get_current_utc_time()
+    if (current_time - app.last_cleanup).total_seconds() > 3600:
+        cleanup_old_chats_and_notifications()
+        app.last_cleanup = current_time
 
 @app.route('/health')
 def health_check():
