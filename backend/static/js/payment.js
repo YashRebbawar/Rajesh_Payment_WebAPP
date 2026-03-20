@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Payment method selection ── */
-    let selectedPaymentMethod = 'upi';
+    let selectedPaymentMethod = 'imps';
     const paymentMethodSelect = document.getElementById('payment-method-select');
     const paymentMethodOptions = document.querySelectorAll('.payment-method-option');
 
@@ -291,9 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (selectedPaymentMethod === 'upi') {
-            showQRModal(amount, config.currency, accountId);
-        } else if (selectedPaymentMethod === 'imps') {
+        if (selectedPaymentMethod === 'imps') {
             showIMPSModal(amount, config.currency, accountId);
         } else if (selectedPaymentMethod === 'usdt') {
             showUSDTModal(amount, config.currency, accountId);

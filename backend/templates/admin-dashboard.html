@@ -28,6 +28,7 @@
 
   <div class="nav-cta">
     {% if user %}
+    <a class="admin-analytics-link" href="/admin/analytics">Analytics</a>
     <button class="quick-migrate-header-btn" onclick="toggleMigrateDropdown()" title="Pending chats">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </button>
@@ -82,6 +83,7 @@
         <h3>{{ user.email.split('@')[0] }}</h3>
         <p>{{ user.email }}</p>
       </div>
+      <a href="/admin/analytics" class="mobile-analytics-btn">Analytics</a>
       <button class="mobile-logout-btn" onclick="window.location.href='/logout'">Log out</button>
     </div>
     {% endif %}
@@ -99,54 +101,74 @@
 {# ═══ ANALYTICS BAR ═══ #}
 <div class="commission-stats-widget">
 
-  <div class="stats-card">
+  <div class="stats-card stats-card-hero">
+    <div class="stats-card-orbit"></div>
     <div class="stats-card-header">
-      <h3>Platform Fees</h3>
+      <div>
+        <span class="stats-card-tag">Revenue Core</span>
+        <h3>Platform Fees</h3>
+      </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M9 9h6"></path></svg>
     </div>
     <div class="stats-card-content">
       <div class="commission-amount" id="total-platform-fee">&#8377;0.00</div>
+      <p class="stats-card-note">The main platform earnings pulse across all completed deposits.</p>
       <div class="commission-meta">
         <span class="meta-item"><span class="meta-label">Total Deposits</span><span class="meta-value" id="total-deposits">&#8377;0.00</span></span>
         <span class="meta-item"><span class="meta-label">Transactions</span><span class="meta-value" id="transaction-count">0</span></span>
       </div>
-      <select id="month-selector" class="month-selector"><option value="current">Current Month</option></select>
     </div>
   </div>
 
-  <div class="stats-card">
+  <div class="stats-card stats-card-revenue">
+    <div class="stats-card-orbit"></div>
     <div class="stats-card-header">
-      <h3>Monthly Revenue</h3>
+      <div>
+        <span class="stats-card-tag">Current Runway</span>
+        <h3>Monthly Revenue</h3>
+      </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
     </div>
     <div class="stats-card-content">
       <div class="commission-amount" id="monthly-fee">&#8377;0.00</div>
+      <p class="stats-card-note">How the selected month is pacing right now.</p>
       <div class="commission-meta">
         <span class="meta-item"><span class="meta-label">Deposits</span><span class="meta-value" id="monthly-deposits">&#8377;0.00</span></span>
       </div>
+      <select id="month-selector" class="month-selector" aria-label="Select analytics month"></select>
     </div>
   </div>
 
-  <div class="stats-card">
+  <div class="stats-card stats-card-pending">
+    <div class="stats-card-orbit"></div>
     <div class="stats-card-header">
-      <h3>Pending Fees</h3>
+      <div>
+        <span class="stats-card-tag">Needs Attention</span>
+        <h3>Pending Fees</h3>
+      </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
     </div>
     <div class="stats-card-content">
       <div class="commission-amount" id="pending-platform-fee">&#8377;0.00</div>
+      <p class="stats-card-note">Revenue waiting on payment approval completion.</p>
       <div class="commission-meta">
         <span class="meta-item"><span class="meta-label">Pending Deposits</span><span class="meta-value" id="pending-deposits">&#8377;0.00</span></span>
       </div>
     </div>
   </div>
 
-  <div class="stats-card">
+  <div class="stats-card stats-card-users">
+    <div class="stats-card-orbit"></div>
     <div class="stats-card-header">
-      <h3>No Account Type</h3>
+      <div>
+        <span class="stats-card-tag">Data Cleanup</span>
+        <h3>No Account Type</h3>
+      </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
     </div>
     <div class="stats-card-content">
       <div class="commission-amount" id="no-account-type-count">0</div>
+      <p class="stats-card-note">Users who still need account-type mapping before they convert cleanly.</p>
       <div class="commission-meta">
         <span class="meta-item"><span class="meta-label">Users</span><span class="meta-value" id="no-account-type-list">&#8212;</span></span>
       </div>

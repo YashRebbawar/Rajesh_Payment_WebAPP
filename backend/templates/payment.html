@@ -105,17 +105,13 @@
       <span class="form-label">Payment method</span>
       <div class="select-wrapper mobile-method-select">
         <select id="payment-method-select" class="payment-method-select">
-          <option value="upi">UPI</option>
           <option value="imps">Bank Transfer</option>
           <option value="usdt">USDT</option>
         </select>
         <span class="select-arrow">&#9660;</span>
       </div>
       <div class="payment-method-selector">
-        <div class="payment-method-option active" data-method="upi">
-          <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width:50px;height:auto;">
-        </div>
-        <div class="payment-method-option" data-method="imps">
+        <div class="payment-method-option active" data-method="imps">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px;">
             <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
             <path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/>
@@ -245,7 +241,7 @@
           </div>
           <div class="terms-item">
             <span class="terms-label">Methods accepted</span>
-            <span class="terms-value">UPI · IMPS · USDT</span>
+            <span class="terms-value">IMPS · USDT</span>
           </div>
         </div>
         <div class="rcpt-mrz">

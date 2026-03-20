@@ -65,9 +65,18 @@ async function loadCommissionStats(year = null, month = null) {
   } catch (e) { console.error(e); }
 }
 
+function getSelectedCommissionPeriod() {
+  const sel = document.getElementById('month-selector');
+  if (!sel || !sel.value) return { year: null, month: null };
+  const [year, month] = sel.value.split('-').map(Number);
+  if (!year || !month) return { year: null, month: null };
+  return { year, month };
+}
+
 function populateMonthSelector() {
   const sel = document.getElementById('month-selector');
   if (!sel) return;
+  sel.innerHTML = '';
   const now = new Date(), cy = now.getFullYear(), cm = now.getMonth() + 1;
   const list = [];
   for (let y = 2026; y <= cy; y++)
@@ -76,12 +85,13 @@ function populateMonthSelector() {
     const label = new Date(it.y, it.m - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
     const opt = document.createElement('option');
     opt.value = `${it.y}-${it.m}`;
-    opt.textContent = i === 0 ? `Current Month (${label})` : label;
+    opt.textContent = i === 0 ? `${label} · Current` : label;
+    if (i === 0) opt.selected = true;
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function () {
-    if (this.value === 'current') loadCommissionStats();
-    else { const [y, m] = this.value.split('-').map(Number); loadCommissionStats(y, m); }
+    const { year, month } = getSelectedCommissionPeriod();
+    loadCommissionStats(year, month);
   });
 }
 
@@ -346,13 +356,14 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.classList.add('admin-page');
 
   populateMonthSelector();
-  loadCommissionStats();
+  {
+    const { year, month } = getSelectedCommissionPeriod();
+    loadCommissionStats(year, month);
+  }
   loadUsersNoAccountType();
   setInterval(() => {
-    const sel = document.getElementById('month-selector');
-    if (!sel) return;
-    if (sel.value === 'current') loadCommissionStats();
-    else { const [y, m] = sel.value.split('-').map(Number); loadCommissionStats(y, m); }
+    const { year, month } = getSelectedCommissionPeriod();
+    loadCommissionStats(year, month);
     loadUsersNoAccountType();
   }, 30000);
 

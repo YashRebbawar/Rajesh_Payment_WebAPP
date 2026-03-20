@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Admin Analytics - PrintFree{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Cabinet+Grotesk:wght@500;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+<script>document.body.classList.add('analytics-page');</script>
+
+<header class="analytics-header">
+  <a class="analytics-logo" href="/admin/dashboard">Print<span>Free</span></a>
+  <div class="analytics-header-actions">
+    <a class="analytics-header-link" href="/admin/dashboard">Operations Dashboard</a>
+    <a class="analytics-header-link active" href="/admin/analytics">Analytics</a>
+    <button class="analytics-logout-btn" onclick="window.location.href='/logout'">Log out</button>
+  </div>
+</header>
+
+<main class="analytics-shell">
+  <div class="analytics-loading-banner is-hidden" id="analytics-loading-banner" aria-live="polite">
+    <div class="analytics-loading-spinner"></div>
+    <div class="analytics-loading-copy">
+      <strong id="analytics-loading-title">Loading analytics</strong>
+      <span id="analytics-loading-text">Fetching live data and preparing charts...</span>
+    </div>
+  </div>
+
+  <section class="analytics-hero">
+    <div>
+      <div class="analytics-kicker">Live Admin Analytics</div>
+      <h1>Separate analytics page with real metrics, charts, and action queues.</h1>
+      <p>
+        This view pulls live data from the existing Mongo collections and surfaces both board-level health
+        signals and admin follow-up lists.
+      </p>
+    </div>
+    <div class="analytics-hero-meta">
+      <div class="hero-pill">
+        <span>Data Window</span>
+        <div class="window-switcher" id="analytics-window-switcher">
+          <button type="button" class="window-btn active" data-window="daily">Daily</button>
+          <button type="button" class="window-btn" data-window="weekly">Weekly</button>
+          <button type="button" class="window-btn" data-window="monthly">Monthly</button>
+        </div>
+        <strong id="analytics-window-label">Last 14 days</strong>
+      </div>
+      <div class="hero-pill">
+        <span>Refresh</span>
+        <button type="button" id="analytics-refresh-btn">Reload data</button>
+      </div>
+      <div class="hero-pill">
+        <span>Last Updated</span>
+        <strong id="analytics-generated-at">Loading...</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="cards-section">
+    <div class="section-copy">
+      <span class="section-kicker">Topline</span>
+      <h2>Core cards</h2>
+    </div>
+    <div class="cards-grid" id="analytics-cards">
+      {% for _ in range(6) %}
+      <article class="metric-card metric-card-skeleton">
+        <div class="skeleton-line skeleton-kicker"></div>
+        <div class="skeleton-line skeleton-value"></div>
+        <div class="skeleton-line skeleton-text"></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="fee-section">
+    <div class="section-copy">
+      <span class="section-kicker">Platform Fee</span>
+      <h2>Fee performance and revenue quality</h2>
+    </div>
+    <div class="fee-layout">
+      <div class="fee-cards-grid" id="analytics-fee-cards">
+        {% for _ in range(6) %}
+        <article class="metric-card metric-card-skeleton">
+          <div class="skeleton-line skeleton-kicker"></div>
+          <div class="skeleton-line skeleton-value"></div>
+          <div class="skeleton-line skeleton-text"></div>
+        </article>
+        {% endfor %}
+      </div>
+      <article class="chart-card fee-trend-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Revenue Trend</span>
+          <h3>Platform Fee Growth</h3>
+        </div>
+        <div class="trend-chart chart-loading" id="chart-fee-growth"></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="charts-section">
+    <div class="section-topbar">
+      <div class="section-copy">
+        <span class="section-kicker">Trends And Mixes</span>
+        <h2>Growth, account mix, deposits, and withdrawals</h2>
+      </div>
+      <div class="chart-mode-switcher">
+        <span class="chart-mode-label">Trend View</span>
+        <div class="mode-buttons" id="chart-mode-switcher">
+          <button type="button" class="mode-btn active" data-mode="bar">Bars</button>
+          <button type="button" class="mode-btn" data-mode="line">Line</button>
+        </div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Acquisition</span>
+          <h3>Daily User Signups</h3>
+        </div>
+        <div class="trend-chart chart-loading" id="chart-user-growth"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Geography</span>
+          <h3>Users by Country</h3>
+        </div>
+        <div class="rank-chart chart-loading" id="chart-users-country"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Product</span>
+          <h3>Accounts by Type</h3>
+        </div>
+        <div class="rank-chart chart-loading" id="chart-accounts-type"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Platform Mix</span>
+          <h3>Accounts by Platform / Currency</h3>
+        </div>
+        <div class="rank-chart chart-loading" id="chart-accounts-platform"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Money In</span>
+          <h3>Completed Deposit Volume Trend</h3>
+        </div>
+        <div class="trend-chart money-trend chart-loading" id="chart-deposit-volume"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Payment Rails</span>
+          <h3>Deposits by Method</h3>
+        </div>
+        <div class="rank-chart chart-loading" id="chart-deposits-method"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Money Out</span>
+          <h3>Completed Withdrawal Trend</h3>
+        </div>
+        <div class="trend-chart money-trend chart-loading" id="chart-withdrawal-volume"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Payout Rails</span>
+          <h3>Withdrawals by Method</h3>
+        </div>
+        <div class="rank-chart chart-loading" id="chart-withdrawals-method"></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="tables-section">
+    <div class="section-copy">
+      <span class="section-kicker">Action Queues</span>
+      <h2>Lists that admins can work from immediately</h2>
+    </div>
+    <div class="tables-grid">
+      <article class="table-card">
+        <div class="table-head">
+          <span class="chart-kicker">Recovery</span>
+          <h3>Users With No Account Yet</h3>
+        </div>
+        <div class="data-table chart-loading" id="table-users-no-account"></div>
+      </article>
+      <article class="table-card">
+        <div class="table-head">
+          <span class="chart-kicker">Provisioning</span>
+          <h3>Awaiting MT Setup Queue</h3>
+        </div>
+        <div class="data-table chart-loading" id="table-awaiting-mt"></div>
+      </article>
+      <article class="table-card">
+        <div class="table-head">
+          <span class="chart-kicker">SLA Risk</span>
+          <h3>Aging Pending Approvals</h3>
+        </div>
+        <div class="data-table chart-loading" id="table-aging-approvals"></div>
+      </article>
+      <article class="table-card">
+        <div class="table-head">
+          <span class="chart-kicker">Support</span>
+          <h3>Unread Support Threads</h3>
+        </div>
+        <div class="data-table chart-loading" id="table-unread-support"></div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='js/admin-analytics.js') }}"></script>
+{% endblock %}
