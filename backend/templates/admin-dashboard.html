@@ -162,8 +162,11 @@
   <div class="admin-users-section" id="users-tab">
     <div class="section-header">
       <h2><em>Users</em> & <em>Accounts</em></h2>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="user-count">{{ all_users|length }} Users</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="user-count-widget">
+          <div class="user-count-number">{{ all_users|length }}</div>
+          <div class="user-count-label">Active Users</div>
+        </div>
         <div class="view-toggle">
           <button class="view-btn active" data-view="list">&#9776;</button>
           <button class="view-btn" data-view="grid">&#9638;</button>
@@ -220,10 +223,6 @@
               <div class="card-left">
                 <div class="card-wm">{{ account.nickname[0].upper() if account.nickname else 'A' }}</div>
                 <div class="card-left-top">
-                  <div class="card-type-pill">
-                    <span class="card-type-dot"></span>
-                    {{ account.account_type|replace('-',' ')|title }}
-                  </div>
                   <div class="account-name">{{ account.nickname }}</div>
                   <div class="account-badges">
                     <span class="badge">{{ account.platform }}</span>
@@ -335,7 +334,6 @@
               <div class="payment-type-badge {% if is_withdrawal %}withdrawal-badge{% else %}deposit-badge{% endif %}">
                 {% if is_withdrawal %}&#8599; Withdrawal{% else %}&#8600; Deposit{% endif %}
               </div>
-              <div class="payment-time">{{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</div>
             </div>
           </div>
 

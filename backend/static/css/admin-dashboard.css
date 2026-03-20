@@ -14,7 +14,7 @@
   --white:     #ffffff;
   --ink:       #1a1510;
   --ink-70:    rgba(26,21,16,.70);
-  --ink-45:    rgba(26,21,16,.45);
+  --ink-45:    rgba(20, 16, 11, 0.45);
   --ink-25:    rgba(26,21,16,.25);
   --ink-10:    rgba(26,21,16,.10);
   --green:     #2d7a4f;
@@ -109,13 +109,14 @@ body.admin-page::after {
 /* profile */
 .user-profile-wrapper { position: relative; }
 .profile-icon-btn {
-  background: var(--ink); border: none; border-radius: 9px;
+  background: var(--cream); border: none; border-radius: 9px;
   width: 34px; height: 34px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 8px rgba(26,21,16,.18); transition: transform .18s;
+  box-shadow: 0 3px 8px rgba(26,21,16,.18); transition: all .22s;
 }
-.profile-icon-btn:hover { transform: scale(1.06); }
-.profile-icon { color: var(--bg); }
+.profile-icon-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(26,21,16,.24); background: var(--ink); }
+.profile-icon { color: var(--ink); }
+.profile-icon-btn:hover .profile-icon { color: var(--cream); }
 .profile-icon-svg { width: 16px; height: 16px; }
 
 .profile-dropdown { position: absolute; top: calc(100% + 8px); right: 0; display: none; z-index: 900; }
@@ -217,6 +218,7 @@ body.admin-page::after {
 .pending-payments-wrapper {
   display: flex; flex-direction: column; gap: 11px;
   background: var(--bg); padding: 18px 16px; overflow: hidden;
+  height: 100%;
 }
 
 /* shared section header */
@@ -225,10 +227,35 @@ body.admin-page::after {
   padding: 16px 22px 12px; flex-shrink: 0;
   border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap;
 }
-.section-header h2 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 900; letter-spacing: -1px; color: var(--ink); }
+.section-header h2 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 900; letter-spacing: -1px; color: var(--ink); }
 .section-header h2 em { font-style: italic; color: var(--green); }
 
 .user-count { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; background: var(--ink); color: var(--bg); padding: 5px 12px; border-radius: 100px; }
+
+/* user count widget */
+.user-count-widget {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-lt) 100%);
+  border-radius: 8px; padding: 4px 8px; min-width: 60px;
+  box-shadow: 0 2px 6px rgba(45,122,79,.12);
+  position: relative; overflow: hidden;
+}
+.user-count-widget::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(255,255,255,.05) 0%, transparent 50%);
+}
+.user-count-number {
+  font-family: 'Fraunces', serif; font-size: 16px; font-weight: 900;
+  letter-spacing: -0.5px; color: #fff; line-height: 1;
+  animation: countPulse 2s ease-in-out infinite;
+}
+.user-count-label {
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 6px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85);
+  margin-top: 1px;
+}
+@keyframes countPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 
 .notification-badge { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; background: var(--red); color: #fff; padding: 4px 10px; border-radius: 100px; flex-shrink: 0; animation: blink 2s infinite; }
 @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.65;} }
@@ -335,13 +362,6 @@ body.admin-page::after {
 
 .card-left-top { flex-shrink: 0; }
 
-.card-type-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800;
-  letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.38);
-  margin-bottom: 8px;
-}
-.card-type-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
 
 .account-name {
   font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700;
@@ -436,7 +456,7 @@ body.admin-page::after {
 .footer-info { display: flex; flex-direction: column; gap: 2px; }
 .footer-info span:first-child { font-family: 'Cabinet Grotesk', sans-serif; font-size: 7px; font-weight: 800; text-transform: uppercase; letter-spacing: .10em; color: var(--ink-45); }
 .footer-info span:last-child { font-size: 11px; font-weight: 600; color: var(--ink); font-family: 'DM Sans', sans-serif; }
-.mt-pending-status { display: flex; align-items: flex-start; gap: 5px; font-size: 10px; color: var(--ink-45); line-height: 1.4; }
+.mt-pending-status { display: flex; align-items: flex-start; gap: 5px; font-size: 11px; color: var(--ink-45); line-height: 1.4; font-weight: 600; }
 .mt-pending-status svg { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
 
 /* account-btn-group alias for backwards compat */
@@ -452,51 +472,51 @@ body.admin-page::after {
 .currency-filter { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 100px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 700; background: var(--cream); color: var(--ink); cursor: pointer; outline: none; appearance: none; min-width: 70px; text-align: center; }
 .currency-filter:focus { border-color: var(--green); }
 
-.pending-payments-section { flex: 1; overflow-y: auto; }
+.pending-payments-section { flex: 1; overflow-y: auto; padding-right: 4px; }
 .pending-payments-section::-webkit-scrollbar { width: 3px; }
 .pending-payments-section::-webkit-scrollbar-track { background: transparent; }
 .pending-payments-section::-webkit-scrollbar-thumb { background: var(--ink-10); border-radius: 2px; }
 .pending-payments-list { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── payment card ── */
-.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 13px; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; }
-.pending-payment-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
-.deposit-payment::before    { background: var(--green); }
-.withdrawal-payment::before { background: var(--gold); }
-.pending-payment-card:hover { border-color: var(--bdr-md); box-shadow: 0 4px 14px rgba(26,21,16,.08); transform: translateY(-1px); }
+.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 0; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; }
+.pending-payment-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.deposit-payment::before    { background: linear-gradient(180deg, var(--green) 0%, var(--green-lt) 100%); }
+.withdrawal-payment::before { background: linear-gradient(180deg, var(--gold) 0%, #d4af37 100%); }
+.pending-payment-card:hover { border-color: var(--bdr-md); box-shadow: 0 6px 20px rgba(26,21,16,.12); transform: translateY(-2px); }
 .pending-payment-card.hidden { display: none; }
 
-.payment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); gap: 7px; }
-.payment-user-info { display: flex; gap: 7px; align-items: center; flex: 1; min-width: 0; }
-.user-avatar { width: 28px; height: 28px; border-radius: 6px; background: var(--ink); color: var(--bg); font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.payment-username { font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 800; color: var(--ink); }
-.payment-account { font-size: 10px; color: var(--ink-45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.payment-header { display: flex; justify-content: flex-start; align-items: flex-start; padding: 16px 16px 12px 16px; gap: 10px; position: relative; }
+.payment-user-info { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; }
+.user-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--ink); color: var(--bg); font-family: 'Cabinet Grotesk', sans-serif; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(26,21,16,.15); }
+.payment-username { font-family: 'Cabinet Grotesk', sans-serif; font-size: 13px; font-weight: 800; color: var(--ink); }
+.payment-account { font-size: 11px; color: var(--ink-45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 .payment-time { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 700; color: var(--ink-25); white-space: nowrap; flex-shrink: 0; }
-.payment-type-badge { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.payment-type-badge { position: absolute; top: 12px; right: 12px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
 .deposit-badge    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
 .withdrawal-badge { background: rgba(184,148,74,.10); color: var(--gold); border: 1px solid rgba(184,148,74,.22); }
 
-.payment-details { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 7px; flex-wrap: wrap; }
-.payment-amount { display: flex; align-items: baseline; gap: 4px; }
-.payment-amount .amount { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 900; letter-spacing: -.7px; color: var(--ink); }
-.payment-amount .currency { font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 700; color: var(--ink-45); }
-.payment-reference { background: var(--cream); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; }
-.ref-value { font-family: 'Courier New', monospace; font-size: 10px; font-weight: 700; color: var(--ink); }
-.payment-upi { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
-.upi-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-25); }
-.upi-value { font-family: 'Courier New', monospace; font-size: 10px; color: var(--ink); }
+.payment-details { display: flex; justify-content: space-between; align-items: flex-start; padding: 0 16px 14px 16px; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.payment-amount { display: flex; align-items: baseline; gap: 5px; }
+.payment-amount .amount { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 900; letter-spacing: -.7px; color: var(--ink); }
+.payment-amount .currency { font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink-45); }
+.payment-reference { background: var(--cream); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; }
+.ref-value { font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: var(--ink); }
+.payment-upi { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 0 16px; margin-bottom: 12px; }
+.upi-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-45); min-width: 40px; }
+.upi-value { font-family: 'Courier New', monospace; font-size: 11px; color: var(--ink); font-weight: 600; }
 
-.payment-actions { display: flex; gap: 5px; flex-wrap: wrap; }
-.payment-actions button { padding: 7px 10px; border-radius: 100px; cursor: pointer; font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .18s; white-space: nowrap; }
+.payment-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 16px; background: linear-gradient(135deg, rgba(45,122,79,.03) 0%, rgba(45,122,79,.01) 100%); border-top: 1px solid var(--border); }
+.payment-actions button { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .18s; white-space: nowrap; }
 .view-screenshot-btn { flex: 0 0 auto; background: var(--cream); color: var(--ink-70); border: 1.5px solid var(--border); }
-.view-screenshot-btn:hover { background: var(--cream-dk); }
+.view-screenshot-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
 .edit-balance-btn { flex: 0 0 auto; background: var(--cream); color: var(--ink-70); border: 1.5px solid var(--border); }
 .edit-balance-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
 .reject-btn { flex: 1; background: var(--white); color: var(--red); border: 1.5px solid rgba(192,57,43,.25); }
 .reject-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
 .reject-btn:disabled { opacity: .4; cursor: not-allowed; }
-.approve-btn { flex: 1; background: var(--ink); color: var(--bg); border: 1.5px solid transparent; box-shadow: 0 3px 8px rgba(26,21,16,.14); }
-.approve-btn:hover { background: var(--green); box-shadow: 0 4px 14px rgba(45,122,79,.22); }
+.approve-btn { flex: 1; background: linear-gradient(135deg, var(--green) 0%, var(--green-lt) 100%); color: #fff; border: none; box-shadow: 0 3px 10px rgba(45,122,79,.18); font-weight: 800; }
+.approve-btn:hover { box-shadow: 0 5px 16px rgba(45,122,79,.28); transform: translateY(-1px); }
 .approve-btn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
 
 .no-payments-message { text-align: center; padding: 40px 16px; }
@@ -575,7 +595,10 @@ body.admin-page::after {
   .account-card { grid-template-columns: 180px 1fr; }
 }
 @media (max-width: 768px) {
-  .header-nav { padding: 0 14px; }
+  :root { --nav-h: 56px; --bar-h: 100px; }
+  .header-nav { padding: 0 12px; height: var(--nav-h); gap: 12px; }
+  .nav-logo { font-size: 18px; }
+  .admin-search-wrapper { display: flex; max-width: 150px; }
   .user-profile-wrapper { display: none; }
   .hamburger-menu { display: flex; }
   .view-toggle { display: none; }
@@ -585,16 +608,66 @@ body.admin-page::after {
   #users-tab { display: flex; flex-direction: column; }
   #payments-tab { display: none; }
   .admin-users-section { max-height: none; height: auto; overflow: visible; }
-  .admin-users-list, .admin-users-grid { overflow: visible; max-height: none; flex: none; }
-  .pending-payments-wrapper { max-height: none; }
-  .commission-stats-widget { display: flex; grid-template-columns: none; overflow-x: auto; padding: 12px; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-  .stats-card { flex: 0 0 220px; scroll-snap-align: start; border-right: none; }
-  /* account card goes single column on mobile */
-  .account-card { grid-template-columns: 1fr; }
-  .card-left { min-height: 150px; }
+  .admin-users-list, .admin-users-grid { overflow: visible; max-height: none; flex: none; padding: 8px 12px 10px; }
+  .pending-payments-wrapper { max-height: none; padding: 12px 10px; display: flex; flex-direction: column; height: calc(100vh - var(--nav-h) - var(--bar-h) - 44px); }
+  .commission-stats-widget { display: flex; grid-template-columns: none; overflow-x: auto; padding: 10px; gap: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .stats-card { flex: 0 0 180px; scroll-snap-align: start; border-right: none; padding: 14px 16px; }
+  .stats-card-header h3 { font-size: 7px; }
+  .commission-amount { font-size: 20px; }
+  .meta-label { font-size: 7px; }
+  .meta-value { font-size: 11px; }
+  .section-header { padding: 12px 14px 10px; }
+  .section-header h2 { font-size: 20px; }
+  .user-count-widget { min-width: 55px; padding: 3px 7px; }
+  .user-count-number { font-size: 14px; }
+  .user-count-label { font-size: 5px; margin-top: 1px; }
+  .admin-user-header { padding: 8px 10px; min-height: 48px; }
+  .admin-user-info .profile-icon { width: 28px; height: 28px; font-size: 11px; }
+  .user-details h3 { font-size: 12px; }
+  .user-email { font-size: 10px; }
+  .account-count-pill { font-size: 9px; padding: 2px 8px; }
+  .delete-btn { padding: 5px; }
+  .account-card { grid-template-columns: 1fr; margin-bottom: 6px; }
+  .card-left { min-height: 140px; padding: 12px; }
+  .account-name { font-size: 13px; margin-bottom: 4px; }
+  .balance-amount { font-size: 22px; }
   .card-right { border-left: none; border-top: 1px solid var(--border); }
+  .card-right-header { padding: 8px 10px; }
+  .card-action-btn { font-size: 9px; padding: 5px 10px; }
+  .card-right-body { padding: 8px 10px; }
+  .account-details { gap: 4px; }
+  .detail-row { padding: 6px 8px; font-size: 10px; }
+  .account-footer { padding: 6px 10px; gap: 12px; }
+  .payment-filters { gap: 6px; display: flex; margin-bottom: 12px; }
+  .payment-search-input { font-size: 11px; padding: 7px 11px; flex: 1; }
+  .currency-filter { font-size: 10px; padding: 7px 10px; }
+  .pending-payment-card { padding: 0; border-radius: 10px; margin-bottom: 10px; }
+  .payment-header { padding: 12px 12px 10px 12px; }
+  .payment-details { padding: 0 12px 10px 12px; }
+  .payment-upi { padding: 0 12px; margin-bottom: 10px; }
+  .payment-actions { padding: 10px 12px; gap: 6px; }
+  .payment-username { font-size: 11px; }
+  .payment-account { font-size: 9px; }
+  .payment-amount .amount { font-size: 18px; }
+  .payment-amount .currency { font-size: 10px; }
+  .payment-actions button { padding: 6px 9px; font-size: 9px; }
+  .pending-payments-section { flex: 1; overflow-y: auto; }
 }
 @media (max-width: 480px) {
-  .commission-amount { font-size: 24px; }
-  .account-details { grid-template-columns: 1fr; }
+  :root { --nav-h: 52px; }
+  .header-nav { padding: 0 10px; }
+  .nav-logo { font-size: 16px; }
+  .commission-amount { font-size: 18px; }
+  .stats-card { flex: 0 0 160px; padding: 12px 14px; }
+  .section-header h2 { font-size: 20px; }
+  .admin-user-header { padding: 6px 8px; }
+  .admin-user-info .profile-icon { width: 24px; height: 24px; font-size: 10px; }
+  .user-details h3 { font-size: 11px; }
+  .account-card { margin-bottom: 5px; }
+  .card-left { min-height: 130px; padding: 10px; }
+  .account-name { font-size: 12px; }
+  .balance-amount { font-size: 20px; }
+  .account-details { grid-template-columns: 1fr; gap: 3px; }
+  .detail-row { padding: 5px 7px; font-size: 9px; }
+  .payment-actions button { padding: 5px 8px; font-size: 8px; }
 }
