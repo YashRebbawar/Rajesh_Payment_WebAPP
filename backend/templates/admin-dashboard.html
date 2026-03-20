@@ -202,7 +202,7 @@
 
           {# account count + delete #}
           <div class="user-row-actions">
-            <span class="account-count-pill">{{ user_accounts|length }} acct{{ 's' if user_accounts|length != 1 else '' }}</span>
+            <span class="account-count-pill">{{ user_accounts|length }} <i class="fa-solid fa-id-card"></i></span>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteUser('{{ u._id }}')" title="Delete user">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>

@@ -303,7 +303,7 @@ function getMigrateEl() {
     el = document.createElement('div');
     el.id = 'migrate-dropdown'; el.className = 'migrate-dropdown';
     const mob = window.innerWidth <= 768;
-    Object.assign(el.style, { position: 'fixed', top: '74px', zIndex: '1000', display: 'none', right: mob ? '10px' : '12px', left: mob ? '10px' : 'auto', width: mob ? 'auto' : '288px', maxHeight: '360px', overflowY: 'auto' });
+    Object.assign(el.style, { position: 'fixed', top: '60px', zIndex: '1000', display: 'none', right: mob ? '45px' : '45px', left: mob ? '10px' : 'auto', width: mob ? 'auto' : '288px', maxHeight: '360px', overflowY: 'auto' });
     document.body.appendChild(el);
   }
   return el;
