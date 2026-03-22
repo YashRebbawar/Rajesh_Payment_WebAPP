@@ -20,6 +20,7 @@
   --red:         #c0392b;
   --border:      rgba(26,21,16,0.11);
   --border-md:   rgba(26,21,16,0.19);
+  --number-font: 'DM Sans', sans-serif;
 }
 
 html, body {
@@ -298,8 +299,9 @@ body::before {
 }
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .section-num {
-  font-family: 'Fraunces', serif; font-style: italic;
+  font-family: var(--number-font);
   font-size: 14px; font-weight: 700; color: var(--green); min-width: 18px;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ════════════════════════════════════
@@ -353,7 +355,15 @@ body::before {
 
 /* Char count & hint */
 .field-hint { font-size: 11px; color: var(--ink-45); margin-top: 7px; font-family: 'DM Sans', sans-serif; }
-.char-count { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 700; color: var(--ink-20); text-align: right; margin-top: 3px; }
+.char-count { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 700; color: var(--ink-20); text-align: right; margin-top: 3px; font-variant-numeric: tabular-nums lining-nums; }
+
+#nickname,
+#password,
+#currency,
+#leverage,
+#platform {
+  font-variant-numeric: tabular-nums lining-nums;
+}
 
 /* Password */
 .pw-wrap { position: relative; display: flex; align-items: center; }

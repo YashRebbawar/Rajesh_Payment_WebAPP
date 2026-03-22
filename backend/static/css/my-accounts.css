@@ -20,6 +20,7 @@
   --shadow:    0 4px 24px rgba(26,21,16,.07);
   --shadow-lg: 0 12px 48px rgba(26,21,16,.11);
   --r: 16px;
+  --number-font:'DM Sans',sans-serif;
 }
 
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -283,7 +284,7 @@ body.my-accounts-page::after{
 .badge-icon{font-size:13px;}
 .pending-status-badge{font-family:'Cabinet Grotesk',sans-serif;font-size:9px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;background:rgba(184,148,74,.14);color:var(--gold);padding:5px 11px;border-radius:20px;border:1px solid rgba(184,148,74,.25);}
 .pending-card-amount{display:flex;align-items:baseline;gap:7px;margin-bottom:16px;}
-.amount-value{font-family:'Fraunces',serif;font-size:34px;font-weight:900;letter-spacing:-1px;color:var(--ink);}
+.amount-value{font-family:var(--number-font);font-size:34px;font-weight:700;letter-spacing:-.03em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;}
 .amount-currency{font-size:14px;color:var(--ink-45);font-weight:500;}
 .pending-card-details{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--border);}
 .detail-item{display:flex;justify-content:space-between;}
@@ -398,8 +399,8 @@ body.my-accounts-page::after{
 }
 .account-balance{display:flex;align-items:baseline;gap:7px;margin-bottom:3px;}
 .balance-amount{
-  font-family:'Fraunces',serif;font-size:36px;font-weight:900;letter-spacing:-1.5px;
-  color:#fff;line-height:1;
+  font-family:var(--number-font);font-size:36px;font-weight:700;letter-spacing:-.04em;
+  color:#fff;line-height:1;font-variant-numeric:tabular-nums lining-nums;
 }
 .balance-currency{
   font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;

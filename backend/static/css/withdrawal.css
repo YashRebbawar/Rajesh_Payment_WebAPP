@@ -9,6 +9,7 @@
   --border:rgba(26,21,16,.11);--bdr-md:rgba(26,21,16,.18);
   --shadow:0 4px 24px rgba(26,21,16,.07);--shd-lg:0 16px 56px rgba(26,21,16,.13);
   --r:14px;
+  --number-font:'DM Sans',sans-serif;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
@@ -69,8 +70,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .account-select{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1.5px solid var(--bdr-md);}
 .account-info{display:flex;align-items:center;gap:10px;}
 .account-type{font-family:'Cabinet Grotesk',sans-serif;font-size:10px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(45,122,79,.20);padding:4px 10px;border-radius:20px;}
-.account-number{font-family:'Fraunces',serif;font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--ink);}
-.account-balance{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--ink-45);letter-spacing:-.3px;}
+.account-number{font-family:var(--number-font);font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;}
+.account-balance{font-family:var(--number-font);font-size:16px;font-weight:600;color:var(--ink-45);letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums;}
 
 /* Big amount */
 .amount-field{position:relative;padding-top:16px;margin-bottom:8px;}
@@ -79,7 +80,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .amount-field:focus-within::after{transform:scaleX(1);}
 .amount-field:focus-within .amount-field-label,.amount-field.filled .amount-field-label{transform:translateY(-18px) scale(.77);color:var(--blue-lt);}
 .amount-input-wrapper{display:flex;align-items:baseline;gap:10px;}
-.amount-input-wrapper input{flex:1;border:none;border-bottom:1.5px solid var(--bdr-md);border-radius:0;background:transparent;padding:8px 0 9px;font-family:'Fraunces',serif;font-size:44px;font-weight:900;letter-spacing:-2.2px;color:var(--ink);outline:none;transition:border-color .22s;width:100%;-moz-appearance:textfield;}
+.amount-input-wrapper input{flex:1;border:none;border-bottom:1.5px solid var(--bdr-md);border-radius:0;background:transparent;padding:8px 0 9px;font-family:var(--number-font);font-size:44px;font-weight:700;letter-spacing:-.04em;color:var(--ink);outline:none;transition:border-color .22s;width:100%;-moz-appearance:textfield;font-variant-numeric:tabular-nums lining-nums;}
+.float-field input[inputmode="numeric"]{font-family:var(--number-font);font-variant-numeric:tabular-nums lining-nums;}
 .amount-input-wrapper input::-webkit-outer-spin-button,.amount-input-wrapper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .amount-input-wrapper input::placeholder{color:rgba(26,21,16,.12);}
 .currency-label{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;color:var(--ink-45);letter-spacing:.04em;text-transform:uppercase;padding-bottom:11px;flex-shrink:0;}
@@ -92,7 +94,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .withdrawal-summary{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;margin:28px 0 32px;background:var(--cream);border:1.5px solid var(--border);border-radius:14px;position:relative;overflow:hidden;}
 .withdrawal-summary::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue-lt);border-radius:0 2px 2px 0;}
 .withdrawal-summary-label{font-family:'Cabinet Grotesk',sans-serif;font-size:11px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;color:var(--ink-45);}
-.withdrawal-amount{font-family:'Fraunces',serif;font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--ink);transition:color .3s;}
+.withdrawal-amount{font-family:var(--number-font);font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--ink);transition:color .3s;font-variant-numeric:tabular-nums lining-nums;}
 .withdrawal-amount.updated{color:var(--blue-lt);}
 
 /* Tooltip */
@@ -139,7 +141,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .s-account-sub{font-size:11px;color:rgba(255,255,255,.38);margin-bottom:22px;}
 
 .s-total-section{margin-bottom:20px;}
-.s-total-amount{font-family:'Fraunces',serif;font-size:50px;font-weight:900;letter-spacing:-2.5px;line-height:1;color:#fff;transition:all .4s cubic-bezier(.22,1,.36,1);}
+.s-total-amount{font-family:var(--number-font);font-size:50px;font-weight:700;letter-spacing:-.05em;line-height:1;color:#fff;transition:all .4s cubic-bezier(.22,1,.36,1);font-variant-numeric:tabular-nums lining-nums;}
 .s-total-amount.ticking{color:var(--blue-lt);}
 .s-total-currency{font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.38);letter-spacing:.04em;margin-top:4px;}
 
@@ -182,7 +184,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
 .confirm-amount-hero{padding:22px 32px;border-bottom:1px solid var(--border);background:var(--cream);display:flex;align-items:baseline;gap:8px;}
 .confirm-amount-label{font-family:'Cabinet Grotesk',sans-serif;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-45);margin-right:4px;}
-.confirm-amount-value{font-family:'Fraunces',serif;font-size:44px;font-weight:900;letter-spacing:-2px;color:var(--ink);}
+.confirm-amount-value{font-family:var(--number-font);font-size:44px;font-weight:700;letter-spacing:-.04em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums;}
 .confirm-currency-val{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--ink-45);}
 
 .confirmation-details{padding:24px 32px 0;display:flex;flex-direction:column;gap:8px;}

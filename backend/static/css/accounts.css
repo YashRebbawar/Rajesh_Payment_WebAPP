@@ -21,6 +21,7 @@
   --border-md: rgba(26,21,16,0.16);
   --white:     #ffffff;
   --radius:    16px;
+  --number-font: 'DM Sans', sans-serif;
 }
 
 html, body {
@@ -360,12 +361,13 @@ body::before {
 /* ── Large ordinal watermark ── */
 .card-number {
   position: absolute; top: -16px; right: -8px;
-  font-family: 'Fraunces', serif;
-  font-size: 120px; font-weight: 900; font-style: italic;
-  line-height: 1; letter-spacing: -6px;
+  font-family: var(--number-font);
+  font-size: 112px; font-weight: 700;
+  line-height: 1; letter-spacing: -0.06em;
   color: var(--ink); opacity: 0.04;
   pointer-events: none; user-select: none;
   transition: opacity 0.4s, transform 0.4s;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 .account-card:hover .card-number { opacity: 0.07; transform: scale(1.05) rotate(-3deg); }
 
@@ -449,9 +451,10 @@ body::before {
   color: var(--ink-35);
 }
 .value {
-  font-family: 'Fraunces', serif;
-  font-size: 15px; font-weight: 700; color: var(--ink);
-  letter-spacing: -0.3px;
+  font-family: var(--number-font);
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ── Card footer / CTA strip ── */
