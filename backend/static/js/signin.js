@@ -28,15 +28,54 @@ document.querySelectorAll('.pw-toggle').forEach(btn=>{
 // ── Sign in form ──
 document.getElementById('signin-form').addEventListener('submit',async function(e){
   e.preventDefault();
+  
+  const emailInput = document.querySelector('#signin-form input[name="email"]');
+  const passwordInput = document.querySelector('#signin-form input[name="password"]');
+  const emailField = emailInput.closest('.field');
+  const passwordField = passwordInput.closest('.field');
+  const emailErrorDiv = document.getElementById('email-error');
+  const passwordErrorDiv = document.getElementById('password-error');
+  
+  emailField.classList.remove('has-error');
+  passwordField.classList.remove('has-error');
+  emailErrorDiv.textContent = '';
+  passwordErrorDiv.textContent = '';
+  
+  const email = emailInput.value.trim().toLowerCase();
+  const emailDomain = email.split('@')[1];
+  const allowedDomains = ['gmail.com', 'company.com'];
+  
+  if(!emailDomain || !allowedDomains.includes(emailDomain)){
+    const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
+    emailField.classList.add('has-error');
+    emailErrorDiv.textContent = errorMsg;
+    showToast(errorMsg, 'error');
+    return;
+  }
+  
   const btn=document.getElementById('signin-btn');
   btn.classList.add('loading');btn.disabled=true;
   const data=Object.fromEntries(new FormData(this));
+  data.email = email;
   try{
     const res=await fetch('/api/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const result=await res.json();
-    if(result.success){showToast('Signed in! Redirecting…');setTimeout(()=>window.location.href=result.redirect||'/my-accounts',1200);}
-    else{showToast(result.message||'Sign in failed.','error');btn.classList.remove('loading');btn.disabled=false;}
-  }catch{showToast('Connection error. Please try again.','error');btn.classList.remove('loading');btn.disabled=false;}
+    if(result.success){
+      showToast('Signed in! Redirecting…');
+      setTimeout(()=>window.location.href=result.redirect||'/my-accounts',1200);
+    }
+    else{
+      if(result.message.toLowerCase().includes('credential')){
+        passwordField.classList.add('has-error');
+        passwordErrorDiv.textContent = result.message;
+      }
+      showToast(result.message||'Sign in failed.','error');
+      btn.classList.remove('loading');btn.disabled=false;
+    }
+  }catch{
+    showToast('Connection error. Please try again.','error');
+    btn.classList.remove('loading');btn.disabled=false;
+  }
 });
 
 // ── Google ──
@@ -45,6 +84,34 @@ document.getElementById('google-signin').addEventListener('click',function(){
   this.innerHTML='<span style="width:18px;height:18px;border:2px solid rgba(26,21,16,0.2);border-top-color:var(--ink);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;"></span> Connecting…';
   setTimeout(()=>window.location.href='/auth/google',800);
 });
+
+// Email domain validation on blur
+const signinEmailInput = document.querySelector('#signin-form input[name="email"]');
+if(signinEmailInput){
+  signinEmailInput.addEventListener('blur', function(){
+    const email = this.value.trim().toLowerCase();
+    const emailField = this.closest('.field');
+    const emailErrorDiv = document.getElementById('email-error');
+    
+    if(!email){
+      emailField.classList.remove('has-error');
+      emailErrorDiv.textContent = '';
+      return;
+    }
+    
+    const emailDomain = email.split('@')[1];
+    const allowedDomains = ['gmail.com', 'company.com'];
+    
+    if(!emailDomain || !allowedDomains.includes(emailDomain)){
+      const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
+      emailField.classList.add('has-error');
+      emailErrorDiv.textContent = errorMsg;
+    } else {
+      emailField.classList.remove('has-error');
+      emailErrorDiv.textContent = '';
+    }
+  });
+}
 
 const forgotModal=document.getElementById('forgot-password-modal');
 const forgotLink=document.getElementById('forgot-password-link');

@@ -31,23 +31,80 @@ document.getElementById('close-modal').addEventListener('click',()=>document.get
 document.getElementById('terms-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');});
 document.getElementById('register-form').addEventListener('submit',async function(e){
   e.preventDefault();
+  const emailInput = document.querySelector('input[name="email"]');
+  const emailField = emailInput.closest('.field');
+  const emailErrorDiv = document.getElementById('email-error');
+  const email = emailInput.value.trim().toLowerCase();
   const pw=pwInput.value;
+  
+  emailField.classList.remove('has-error');
+  emailErrorDiv.textContent = '';
+  
   if(!Object.values(rules).every(fn=>fn(pw))){showToast('Password does not meet all requirements.','error');return;}
+  
+  const emailDomain = email.split('@')[1];
+  const allowedDomains = ['gmail.com', 'company.com'];
+  if(!emailDomain || !allowedDomains.includes(emailDomain)){
+    const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
+    emailField.classList.add('has-error');
+    emailErrorDiv.textContent = errorMsg;
+    showToast(errorMsg, 'error');
+    return;
+  }
+  
   const btn=document.getElementById('register-btn');
   btn.classList.add('loading');btn.disabled=true;
   const data=Object.fromEntries(new FormData(this));
+  data.email = email;
   try{
     const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const result=await res.json();
     if(result.success){showToast('Account created! Redirecting…');setTimeout(()=>window.location.href=result.redirect||'/signin',1500);}
-    else{showToast(result.message||'Registration failed.','error');btn.classList.remove('loading');btn.disabled=false;}
-  }catch{showToast('Connection error. Please try again.','error');btn.classList.remove('loading');btn.disabled=false;}
+    else{
+      if(result.message.includes('domain')){
+        emailField.classList.add('has-error');
+        emailErrorDiv.textContent = result.message;
+      }
+      showToast(result.message||'Registration failed.','error');
+      btn.classList.remove('loading');btn.disabled=false;
+    }
+  }catch{
+    showToast('Connection error. Please try again.','error');
+    btn.classList.remove('loading');btn.disabled=false;
+  }
 });
 document.getElementById('google-register').addEventListener('click',function(){
   this.disabled=true;
   this.innerHTML='<span style="width:18px;height:18px;border:2px solid rgba(26,21,16,0.2);border-top-color:var(--ink);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;"></span> Connecting…';
   setTimeout(()=>window.location.href='/auth/google',800);
 });
+
+const emailInput = document.querySelector('input[name="email"]');
+if(emailInput){
+  emailInput.addEventListener('blur', function(){
+    const email = this.value.trim().toLowerCase();
+    const emailField = this.closest('.field');
+    const emailErrorDiv = document.getElementById('email-error');
+    
+    if(!email){
+      emailField.classList.remove('has-error');
+      emailErrorDiv.textContent = '';
+      return;
+    }
+    
+    const emailDomain = email.split('@')[1];
+    const allowedDomains = ['gmail.com', 'company.com'];
+    
+    if(!emailDomain || !allowedDomains.includes(emailDomain)){
+      const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
+      emailField.classList.add('has-error');
+      emailErrorDiv.textContent = errorMsg;
+    } else {
+      emailField.classList.remove('has-error');
+      emailErrorDiv.textContent = '';
+    }
+  });
+}
 
 // ======================================================
 // ===== LIVE TRADING TERMINAL ENGINE ==================
