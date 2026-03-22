@@ -1936,10 +1936,6 @@ def admin_analytics():
 
     return render_template('admin-analytics.html', user=user)
 
-@app.route('/admin/analytics-spec')
-def admin_analytics_spec():
-    return redirect(url_for('admin_analytics'))
-
 @app.route('/api/admin/analytics/summary', methods=['GET'])
 def get_admin_analytics_summary():
     user = get_current_user()

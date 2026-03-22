@@ -110,9 +110,14 @@ const modal     = document.getElementById('demoModal');
 const demoBtn   = document.getElementById('demoBtn');
 const demoClose = document.getElementById('demoClose');
 if (modal && demoBtn && demoClose) {
+  const video = modal.querySelector('video');
+  const closeDemo = () => {
+    modal.classList.remove('active');
+    if (video) video.pause();
+  };
   demoBtn.addEventListener('click', () => modal.classList.add('active'));
-  demoClose.addEventListener('click', () => modal.classList.remove('active'));
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
+  demoClose.addEventListener('click', closeDemo);
+  modal.addEventListener('click', e => { if (e.target === modal) closeDemo(); });
 }
 
 // ─── Testimonials modal ──────────────────────────────────────

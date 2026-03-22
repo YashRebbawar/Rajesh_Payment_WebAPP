@@ -233,10 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
             upiFieldGroup.style.display = 'block';
             bankFieldGroup.style.display = 'none';
             ifscFieldGroup.style.display = 'none';
+            document.getElementById('processing-time').textContent = '~15 minutes';
+            document.getElementById('method-display').textContent = 'UPI';
         } else {
             upiFieldGroup.style.display = 'none';
             bankFieldGroup.style.display = 'block';
             ifscFieldGroup.style.display = 'block';
+            document.getElementById('processing-time').textContent = '~30 minutes';
+            document.getElementById('method-display').textContent = 'Bank Transfer';
         }
 
         renderValidationState(false);

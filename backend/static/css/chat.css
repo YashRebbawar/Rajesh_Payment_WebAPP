@@ -97,7 +97,6 @@
     width: 26px;
     height: 26px;
     object-fit: contain;
-    filter: brightness(10);
     border-radius: 0;
     padding: 0;
 }
