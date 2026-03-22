@@ -22,16 +22,66 @@
 <header class="analytics-header">
   <a class="analytics-logo" href="/admin/dashboard">Print<span>Free</span></a>
   <div class="analytics-header-actions">
-    <a class="analytics-header-link" href="/admin/dashboard">&#8592; Operations</a>
-    <a class="analytics-header-link active" href="/admin/analytics">Analytics</a>
-
     <!-- Theme toggle -->
     <button class="theme-toggle-btn" id="theme-toggle" title="Toggle light / dark">
       <span class="tog-track"><span class="tog-thumb"></span></span>
       <span class="tog-label" id="tog-label">DARK</span>
     </button>
 
-    <button class="analytics-logout-btn" onclick="window.location.href='/logout'">Log out</button>
+    {% if user %}
+    <div class="user-profile-wrapper">
+      <button class="profile-icon-btn" id="profile-toggle">
+        <div class="profile-icon">
+          <svg class="profile-icon-svg" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+          </svg>
+        </div>
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-card-wrapper">
+          <div class="profile-card-main">
+            <div class="profile-card-header">
+              <div class="profile-card-header-left">Admin Account</div>
+            </div>
+            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
+              <div class="profile-card-avatar">{{ user.email[0].upper() }}</div>
+              <div class="profile-card-name-block">
+                <h2>{{ user.email.split('@')[0] }}</h2>
+                <div class="profile-card-status-row">
+                  <span class="profile-status-dot"></span>
+                  <span>{{ user.email }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="profile-card-actions">
+              <button class="profile-card-btn" onclick="window.location.href='/logout'">Log out</button>
+            </div>
+          </div>
+          <div class="profile-intensity-card">
+            <span>Member Since:</span><span id="member-since"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <button class="hamburger-menu" id="hamburger-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu">
+    {% if user %}
+    <div class="mobile-profile-section">
+      <div class="mobile-profile-icon">{{ user.email[0].upper() }}</div>
+      <div class="mobile-profile-info">
+        <h3>{{ user.email.split('@')[0] }}</h3>
+        <p>{{ user.email }}</p>
+      </div>
+      <button class="mobile-logout-btn" onclick="window.location.href='/logout'">Log out</button>
+    </div>
+    {% endif %}
   </div>
 </header>
 
@@ -242,6 +292,55 @@
       applyTheme(next);
     });
   }
+})();
+
+(function () {
+  var toggle = document.getElementById('hamburger-toggle');
+  var menu = document.getElementById('mobile-menu');
+
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener('click', function () {
+    toggle.classList.toggle('active');
+    menu.classList.toggle('active');
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!menu.classList.contains('active')) return;
+    if (menu.contains(event.target) || toggle.contains(event.target)) return;
+    toggle.classList.remove('active');
+    menu.classList.remove('active');
+  });
+})();
+
+(function () {
+  var toggle = document.getElementById('profile-toggle');
+  var dropdown = document.getElementById('profile-dropdown');
+  var memberSince = document.getElementById('member-since');
+  var profileContent = document.querySelector('.profile-card-content[data-user-created-at]');
+
+  if (profileContent && memberSince) {
+    var createdAt = profileContent.getAttribute('data-user-created-at');
+    if (createdAt) {
+      var date = new Date(createdAt);
+      if (!isNaN(date.getTime())) {
+        memberSince.textContent = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+      }
+    }
+  }
+
+  if (!toggle || !dropdown) return;
+
+  toggle.addEventListener('click', function (event) {
+    event.stopPropagation();
+    dropdown.classList.toggle('active');
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!dropdown.classList.contains('active')) return;
+    if (dropdown.contains(event.target) || toggle.contains(event.target)) return;
+    dropdown.classList.remove('active');
+  });
 })();
 
 /* ════ TICKER DATA UPDATE ════ */
