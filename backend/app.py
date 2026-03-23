@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from authlib.integrations.flask_client import OAuth
@@ -40,6 +42,14 @@ app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 
+# Initialize rate limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
 if not MONGO_URI or MONGO_URI.strip() == '':
@@ -68,7 +78,6 @@ try:
         minPoolSize=2,
         maxIdleTimeMS=45000,
         retryWrites=False,
-        tlsAllowInvalidCertificates=True,
         retryReads=True
     )
     logger.info("MongoDB client initialized")
@@ -1192,6 +1201,8 @@ def enforce_admin_pin_guard():
         '/api/admin/pin/status',
         '/api/admin/pin/verify',
         '/api/admin/pin/lock',
+        '/api/admin/analytics/summary',
+        '/api/admin/analytics/tables',
         '/logout'
     }
     protected_prefixes = (
@@ -1303,6 +1314,7 @@ def validate_email_domain(email):
     return domain in ALLOWED_EMAIL_DOMAINS
 
 @app.route('/api/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_register():
     data = request.json
     email = (data.get('email') or '').strip().lower()
@@ -1334,6 +1346,7 @@ def api_register():
     return jsonify({'success': True, 'redirect': '/signin'})
 
 @app.route('/api/signin', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_signin():
     data = request.json
     email = (data.get('email') or '').strip().lower()
@@ -1359,6 +1372,7 @@ def api_signin():
     return jsonify({'success': False, 'message': 'Invalid credentials'})
 
 @app.route('/api/forgot-password', methods=['POST'])
+@limiter.limit("3 per minute")
 def api_forgot_password():
     data = request.json or {}
     email = (data.get('email') or '').strip().lower()
