@@ -522,6 +522,37 @@ function closeBankDetailsModal() {
   document.getElementById('bank-details-modal').classList.remove('active');
 }
 
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 2000);
+    showToast('Copied to clipboard!', 'success');
+  }).catch(() => showToast('Failed to copy', 'error'));
+}
+
+function copyDetailField(elementId, btn) {
+  const text = document.getElementById(elementId)?.textContent || '';
+  if (!text) { showToast('Nothing to copy', 'error'); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 2000);
+    showToast('Copied!', 'success');
+  }).catch(() => showToast('Failed to copy', 'error'));
+}
+
+function copyBankDetails(account, ifsc, btn) {
+  const text = `Account: ${account}\nIFSC: ${ifsc}`;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Copy';
+    }, 2000);
+    showToast('Bank details copied!', 'success');
+  }).catch(() => showToast('Failed to copy', 'error'));
+}
+
 document.getElementById('bank-details-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeBankDetailsModal();
 });

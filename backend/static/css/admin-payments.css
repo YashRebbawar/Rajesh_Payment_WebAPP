@@ -78,6 +78,34 @@
     color: #1e3a8a;
     font-family: 'Courier New', monospace;
     word-break: break-all;
+    flex: 1;
+}
+
+.copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: #dbeafe;
+    border: 1px solid #2563eb;
+    border-radius: 4px;
+    color: #1e3a8a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    background: #bfdbfe;
+    border-color: #1e40af;
+}
+
+.copy-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
 }
 
 @media (max-width: 768px) {
@@ -116,11 +144,48 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex: 1;
 }
 
 .bank-details-view-btn:hover {
     background: #e0f2fe;
     border-color: #1e40af;
+}
+
+.copy-bank-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    color: #1e3a8a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.copy-bank-btn:hover {
+    background: #e0f2fe;
+    border-color: #1e40af;
+}
+
+.copy-bank-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
+}
+
+.copy-bank-btn.copied svg {
+    display: none;
+}
+
+.copy-bank-btn.copied::after {
+    content: '✓';
+    font-weight: 700;
 }
 
 .bank-details-modal {
@@ -209,12 +274,45 @@
     margin-bottom: 0;
 }
 
+.detail-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .detail-label {
     font-size: 12px;
     font-weight: 700;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.detail-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.detail-copy-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.detail-copy-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
 }
 
 .detail-value {
