@@ -86,6 +86,17 @@ chats_collection = db.chats
 testimonials_collection = db.testimonials
 
 PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
+ADMIN_SECURITY_PIN_HASH = os.getenv('ADMIN_SECURITY_PIN_HASH')
+ADMIN_SECURITY_PIN = os.getenv('ADMIN_SECURITY_PIN')
+if not ADMIN_SECURITY_PIN_HASH and ADMIN_SECURITY_PIN:
+    ADMIN_SECURITY_PIN_HASH = generate_password_hash(ADMIN_SECURITY_PIN)
+
+ADMIN_PIN_MAX_ATTEMPTS = max(int(os.getenv('ADMIN_PIN_MAX_ATTEMPTS', '5')), 1)
+ADMIN_PIN_WINDOW_SECONDS = max(int(os.getenv('ADMIN_PIN_WINDOW_SECONDS', '300')), 60)
+ADMIN_PIN_LOCKOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_LOCKOUT_SECONDS', '300')), 60)
+ADMIN_PIN_IDLE_TIMEOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_IDLE_TIMEOUT_SECONDS', '180')), 60)
+
+admin_pin_attempt_store = {}
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
@@ -797,6 +808,126 @@ def get_current_user():
             session.pop('user_id', None)
     return None
 
+def get_request_ip():
+    forwarded_for = request.headers.get('X-Forwarded-For', '')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.remote_addr or 'unknown'
+
+def get_admin_pin_hash_for_user(user):
+    if not user:
+        return None
+    return user.get('security_pin_hash') or ADMIN_SECURITY_PIN_HASH
+
+def is_admin_pin_configured(user):
+    return bool(get_admin_pin_hash_for_user(user))
+
+def is_admin_pin_verified():
+    return bool(session.get('admin_pin_verified'))
+
+def clear_admin_pin_state():
+    session.pop('admin_pin_verified', None)
+    session.pop('admin_pin_verified_at', None)
+    session.pop('admin_pin_lock_reason', None)
+
+def mark_admin_pin_verified():
+    session['admin_pin_verified'] = True
+    session['admin_pin_verified_at'] = get_current_utc_time().isoformat()
+    session.pop('admin_pin_lock_reason', None)
+
+def lock_admin_pin(reason='manual'):
+    clear_admin_pin_state()
+    session['admin_pin_lock_reason'] = reason
+
+def get_admin_pin_rate_limit_key(user):
+    user_key = str(user.get('_id')) if user else 'anonymous'
+    return f"{get_request_ip()}:{user_key}"
+
+def get_admin_pin_rate_limit_entry(user):
+    key = get_admin_pin_rate_limit_key(user)
+    now = get_current_utc_time()
+    entry = admin_pin_attempt_store.get(key)
+
+    if not entry:
+        entry = {'attempts': 0, 'window_started_at': now, 'locked_until': None}
+        admin_pin_attempt_store[key] = entry
+        return key, entry
+
+    locked_until = entry.get('locked_until')
+    if locked_until and locked_until <= now:
+        entry = {'attempts': 0, 'window_started_at': now, 'locked_until': None}
+        admin_pin_attempt_store[key] = entry
+        return key, entry
+
+    window_started_at = entry.get('window_started_at') or now
+    if window_started_at + timedelta(seconds=ADMIN_PIN_WINDOW_SECONDS) <= now and not locked_until:
+        entry = {'attempts': 0, 'window_started_at': now, 'locked_until': None}
+        admin_pin_attempt_store[key] = entry
+        return key, entry
+
+    return key, entry
+
+def record_admin_pin_failure(user):
+    key, entry = get_admin_pin_rate_limit_entry(user)
+    now = get_current_utc_time()
+    attempts = int(entry.get('attempts', 0)) + 1
+    locked_until = None
+    if attempts >= ADMIN_PIN_MAX_ATTEMPTS:
+        locked_until = now + timedelta(seconds=ADMIN_PIN_LOCKOUT_SECONDS)
+    admin_pin_attempt_store[key] = {
+        'attempts': attempts,
+        'window_started_at': entry.get('window_started_at') or now,
+        'locked_until': locked_until
+    }
+    return admin_pin_attempt_store[key]
+
+def clear_admin_pin_failures(user):
+    admin_pin_attempt_store.pop(get_admin_pin_rate_limit_key(user), None)
+
+def get_admin_pin_lockout(user):
+    _, entry = get_admin_pin_rate_limit_entry(user)
+    locked_until = entry.get('locked_until')
+    if not locked_until:
+        return None
+    retry_after_seconds = max(int((locked_until - get_current_utc_time()).total_seconds()), 0)
+    return {
+        'locked_until': locked_until,
+        'retry_after_seconds': retry_after_seconds
+    }
+
+def build_admin_dashboard_context():
+    all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
+    all_accounts = list(accounts_collection.find().sort('created_at', -1))
+    pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
+
+    for payment in pending_payments:
+        payment_user = users_collection.find_one({'_id': payment['user_id']})
+        if payment_user:
+            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
+            payment['user_email'] = payment_user['email']
+
+        if 'payment_id' in payment:
+            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
+            if payment_record:
+                payment['account_id'] = str(payment_record['account_id'])
+        elif 'withdrawal_id' in payment:
+            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
+            if payment_record:
+                payment['account_id'] = str(payment_record['account_id'])
+
+    user_accounts_map = {}
+    for account in all_accounts:
+        user_id = str(account['user_id'])
+        if user_id not in user_accounts_map:
+            user_accounts_map[user_id] = []
+        user_accounts_map[user_id].append(account)
+
+    return {
+        'all_users': all_users,
+        'user_accounts_map': user_accounts_map,
+        'pending_payments': pending_payments
+    }
+
 def check_db_connection():
     """Check if database connection is alive"""
     try:
@@ -981,11 +1112,43 @@ def calculate_platform_fee(payment):
 @app.after_request
 def add_cache_control(response):
     """Add cache control headers to prevent caching of authentication pages"""
-    if request.endpoint in ['signin', 'register', 'my_accounts', 'admin_dashboard']:
+    if request.endpoint in ['signin', 'register', 'my_accounts', 'admin_dashboard', 'admin_analytics']:
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, private, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
     return response
+
+@app.before_request
+def enforce_admin_pin_guard():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return None
+
+    allowed_paths = {
+        '/api/admin/pin/status',
+        '/api/admin/pin/verify',
+        '/api/admin/pin/lock',
+        '/logout'
+    }
+    protected_prefixes = (
+        '/api/admin/',
+        '/api/chat/send',
+        '/api/chat/messages/',
+        '/api/chat/admin-users',
+        '/api/chat/unread-count'
+    )
+
+    if request.path in allowed_paths:
+        return None
+
+    if any(request.path.startswith(prefix) for prefix in protected_prefixes) and not is_admin_pin_verified():
+        return jsonify({
+            'success': False,
+            'pin_required': True,
+            'message': 'Security PIN verification required'
+        }), 423
+
+    return None
 
 def validate_password_policy(password):
     """Validate password against shared policy and return (is_valid, message)."""
@@ -1120,6 +1283,10 @@ def api_signin():
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
+        if user.get('is_admin'):
+            lock_admin_pin('signin')
+        else:
+            clear_admin_pin_state()
         logger.info(f"User signed in: {user['email']}")
         redirect_url = '/admin/dashboard' if user.get('is_admin') else '/my-accounts'
         return jsonify({'success': True, 'redirect': redirect_url})
@@ -1155,6 +1322,81 @@ def api_forgot_password():
     )
     logger.info(f"Password reset completed for: {email}")
     return jsonify({'success': True, 'message': 'Password reset successful. Please sign in.'})
+
+@app.route('/api/admin/pin/status', methods=['GET'])
+def admin_pin_status():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    lockout = get_admin_pin_lockout(user)
+    return jsonify({
+        'success': True,
+        'configured': is_admin_pin_configured(user),
+        'verified': is_admin_pin_verified(),
+        'idle_timeout_seconds': ADMIN_PIN_IDLE_TIMEOUT_SECONDS,
+        'retry_after_seconds': lockout['retry_after_seconds'] if lockout else 0
+    })
+
+@app.route('/api/admin/pin/verify', methods=['POST'])
+def verify_admin_pin():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    if not is_admin_pin_configured(user):
+        logger.error(f"Admin PIN verification attempted without configuration for {user['email']}")
+        return jsonify({
+            'success': False,
+            'message': 'Security PIN is not configured. Set ADMIN_SECURITY_PIN or ADMIN_SECURITY_PIN_HASH.'
+        }), 503
+
+    lockout = get_admin_pin_lockout(user)
+    if lockout:
+        return jsonify({
+            'success': False,
+            'message': 'Too many invalid PIN attempts. Try again later.',
+            'retry_after_seconds': lockout['retry_after_seconds']
+        }), 429
+
+    data = request.json or {}
+    pin = str(data.get('pin') or '').strip()
+    if not pin:
+        return jsonify({'success': False, 'message': 'Security PIN is required'}), 400
+
+    if check_password_hash(get_admin_pin_hash_for_user(user), pin):
+        mark_admin_pin_verified()
+        clear_admin_pin_failures(user)
+        logger.info(f"Admin PIN verified for {user['email']}")
+        return jsonify({'success': True, 'message': 'Dashboard unlocked'})
+
+    failure_state = record_admin_pin_failure(user)
+    remaining_attempts = max(ADMIN_PIN_MAX_ATTEMPTS - failure_state['attempts'], 0)
+    if failure_state.get('locked_until'):
+        logger.warning(f"Admin PIN lockout triggered for {user['email']}")
+        return jsonify({
+            'success': False,
+            'message': 'Too many invalid PIN attempts. Try again later.',
+            'retry_after_seconds': ADMIN_PIN_LOCKOUT_SECONDS
+        }), 429
+
+    logger.warning(f"Invalid admin PIN attempt for {user['email']}")
+    return jsonify({
+        'success': False,
+        'message': 'Incorrect security PIN',
+        'remaining_attempts': remaining_attempts
+    }), 401
+
+@app.route('/api/admin/pin/lock', methods=['POST'])
+def relock_admin_pin():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    data = request.json or {}
+    reason = str(data.get('reason') or 'manual').strip() or 'manual'
+    lock_admin_pin(reason)
+    return jsonify({'success': True, 'message': 'Dashboard locked'})
 
 @app.route('/auth/google')
 def google_login():
@@ -1229,6 +1471,10 @@ def google_callback():
         
         session['user_id'] = str(user['_id'])
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
+        if user.get('is_admin'):
+            lock_admin_pin('google_signin')
+        else:
+            clear_admin_pin_state()
         logger.info(f"User session created, redirecting to {'admin dashboard' if user.get('is_admin') else 'my accounts page'}")
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
     except Exception as e:
@@ -1929,36 +2175,26 @@ def admin_dashboard():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return redirect(url_for('signin'))
-    
-    all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
-    all_accounts = list(accounts_collection.find().sort('created_at', -1))
-    pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
-    
-    # Enrich pending payments with current user data and account_id
-    for payment in pending_payments:
-        payment_user = users_collection.find_one({'_id': payment['user_id']})
-        if payment_user:
-            payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
-            payment['user_email'] = payment_user['email']
-        
-        # Get account_id from payment record
-        if 'payment_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-        elif 'withdrawal_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-    
-    user_accounts_map = {}
-    for account in all_accounts:
-        user_id = str(account['user_id'])
-        if user_id not in user_accounts_map:
-            user_accounts_map[user_id] = []
-        user_accounts_map[user_id].append(account)
-    
-    return render_template('admin-dashboard.html', user=user, all_users=all_users, user_accounts_map=user_accounts_map, pending_payments=pending_payments)
+
+    admin_pin_verified = is_admin_pin_verified()
+    dashboard_context = {
+        'all_users': [],
+        'user_accounts_map': {},
+        'pending_payments': []
+    }
+    if admin_pin_verified:
+        dashboard_context = build_admin_dashboard_context()
+
+    return render_template(
+        'admin-dashboard.html',
+        user=user,
+        admin_pin_page=True,
+        admin_pin_verified=admin_pin_verified,
+        admin_pin_configured=is_admin_pin_configured(user),
+        admin_pin_idle_timeout_seconds=ADMIN_PIN_IDLE_TIMEOUT_SECONDS,
+        admin_pin_boot_locked=not admin_pin_verified,
+        **dashboard_context
+    )
 
 @app.route('/admin/analytics')
 def admin_analytics():
@@ -1966,7 +2202,16 @@ def admin_analytics():
     if not user or not user.get('is_admin'):
         return redirect(url_for('signin'))
 
-    return render_template('admin-analytics.html', user=user)
+    admin_pin_verified = is_admin_pin_verified()
+    return render_template(
+        'admin-analytics.html',
+        user=user,
+        admin_pin_page=True,
+        admin_pin_verified=admin_pin_verified,
+        admin_pin_configured=is_admin_pin_configured(user),
+        admin_pin_idle_timeout_seconds=ADMIN_PIN_IDLE_TIMEOUT_SECONDS,
+        admin_pin_boot_locked=not admin_pin_verified
+    )
 
 @app.route('/api/admin/analytics/summary', methods=['GET'])
 def get_admin_analytics_summary():
@@ -2600,6 +2845,7 @@ def logout():
             logger.error(f"Error during logout: {e}")
     session.pop('user_id', None)
     session.pop('show_testimonial_prompt', None)
+    clear_admin_pin_state()
     return redirect(url_for('landing_page', status='loggedout'))
 
 @app.route('/api/chat/send', methods=['POST'])

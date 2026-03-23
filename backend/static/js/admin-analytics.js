@@ -21,6 +21,22 @@ function formatDateTime(value) {
 
 let currentWindow = 'daily';
 let currentTrendMode = 'bar';
+let analyticsInitialized = false;
+
+function isAdminPinUnlocked() {
+    return !window.adminPinLock || window.adminPinLock.isUnlocked();
+}
+
+async function parseJsonResponse(response) {
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+        const error = new Error(data.message || 'Unable to load analytics data');
+        error.status = response.status;
+        error.data = data;
+        throw error;
+    }
+    return data;
+}
 
 function setLoadingState(isLoading, title = 'Loading analytics', text = 'Fetching live data and preparing charts...') {
     const banner = document.getElementById('analytics-loading-banner');
@@ -316,6 +332,7 @@ function showAnalyticsError(message) {
 }
 
 async function loadAnalytics(window = currentWindow) {
+    if (!isAdminPinUnlocked()) return;
     document.querySelectorAll('.analytics-error').forEach(node => node.remove());
     setLoadingState(true, 'Loading analytics', 'Fetching live data from the dashboard collections...');
     try {
@@ -324,12 +341,10 @@ async function loadAnalytics(window = currentWindow) {
             fetch('/api/admin/analytics/tables')
         ]);
 
-        const summary = await summaryResponse.json();
-        const tables = await tablesResponse.json();
-
-        if (!summary.success || !tables.success) {
-            throw new Error(summary.message || tables.message || 'Unable to load analytics data');
-        }
+        const [summary, tables] = await Promise.all([
+            parseJsonResponse(summaryResponse),
+            parseJsonResponse(tablesResponse)
+        ]);
 
         setLoadingState(true, 'Rendering charts', 'Drawing cards, charts, and action tables...');
         renderAnalytics(summary, tables);
@@ -337,11 +352,20 @@ async function loadAnalytics(window = currentWindow) {
     } catch (error) {
         console.error('Analytics load error:', error);
         setLoadingState(false);
+        if (error.status === 423 || error.data?.pin_required) {
+            return;
+        }
         showAnalyticsError(error.message || 'Unable to load analytics data');
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    function initializeAnalytics() {
+        if (analyticsInitialized || !isAdminPinUnlocked()) return;
+        analyticsInitialized = true;
+        loadAnalytics();
+    }
+
     document.getElementById('analytics-refresh-btn')?.addEventListener('click', () => loadAnalytics(currentWindow));
     document.querySelectorAll('.window-btn').forEach(button => {
         button.addEventListener('click', () => loadAnalytics(button.dataset.window));
@@ -353,5 +377,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     setTrendMode(currentTrendMode);
-    loadAnalytics();
+    initializeAnalytics();
+    document.addEventListener('admin-pin:locked', () => {
+        analyticsInitialized = false;
+        setLoadingState(false);
+        document.querySelectorAll('.analytics-error').forEach(node => node.remove());
+    });
+    document.addEventListener('admin-pin:unlocked', initializeAnalytics);
 });

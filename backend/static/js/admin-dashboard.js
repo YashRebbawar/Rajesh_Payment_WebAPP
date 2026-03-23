@@ -11,6 +11,26 @@ let currentUnifiedEditAccountName = null;
 let currentBalancePaymentId       = null;
 let currentBalanceAccountId       = null;
 let migrateDropdownOpen           = false;
+let dashboardPollingStarted       = false;
+const dashboardIntervalIds        = [];
+
+function isAdminPinUnlocked() {
+  return !window.adminPinLock || window.adminPinLock.isUnlocked();
+}
+
+function stopDashboardPolling() {
+  while (dashboardIntervalIds.length) {
+    clearInterval(dashboardIntervalIds.pop());
+  }
+  dashboardPollingStarted = false;
+}
+
+function registerDashboardInterval(callback, intervalMs) {
+  const id = setInterval(() => {
+    if (isAdminPinUnlocked()) callback();
+  }, intervalMs);
+  dashboardIntervalIds.push(id);
+}
 
 /* ── password rules ── */
 const passwordRules = {
@@ -54,6 +74,7 @@ function resetCommissionWidgetScroll() {
 
 /* ══ COMMISSION STATS ══ */
 async function loadCommissionStats(year = null, month = null) {
+  if (!isAdminPinUnlocked()) return;
   try {
     let url = '/api/admin/commission-stats';
     if (year && month) url += `?year=${year}&month=${month}`;
@@ -102,6 +123,7 @@ function populateMonthSelector() {
 }
 
 async function loadUsersNoAccountType() {
+  if (!isAdminPinUnlocked()) return;
   try {
     const data = await fetch('/api/admin/users-no-account-type').then(r => r.json());
     if (!data.success) return;
@@ -244,6 +266,7 @@ async function submitBalanceForm(e) {
 
 /* ══ NOTIFICATIONS ══ */
 async function loadNewUserNotifications() {
+  if (!isAdminPinUnlocked()) return;
   try {
     const data = await fetch('/api/admin/new-user-notifications').then(r => r.json());
     if (data.success) data.notifications.forEach(n => {
@@ -253,6 +276,7 @@ async function loadNewUserNotifications() {
   } catch {}
 }
 async function loadNewAccountNotifications() {
+  if (!isAdminPinUnlocked()) return;
   try {
     const data = await fetch('/api/admin/new-account-notifications').then(r => r.json());
     if (data.success) data.notifications.forEach(n => {
@@ -357,6 +381,31 @@ setInterval(async () => { if (!migrateDropdownOpen) return; const el = document.
 
 /* ══ DOM READY ══ */
 document.addEventListener('DOMContentLoaded', function () {
+  function startDashboardPolling() {
+    if (dashboardPollingStarted || !isAdminPinUnlocked()) return;
+    dashboardPollingStarted = true;
+    const refreshDashboardMetrics = () => {
+      const { year, month } = getSelectedCommissionPeriod();
+      loadCommissionStats(year, month);
+      loadUsersNoAccountType();
+    };
+
+    refreshDashboardMetrics();
+    requestAnimationFrame(resetCommissionWidgetScroll);
+    loadNewUserNotifications();
+    loadNewAccountNotifications();
+
+    registerDashboardInterval(refreshDashboardMetrics, 30000);
+    registerDashboardInterval(loadNewAccountNotifications, 5000);
+    registerDashboardInterval(async () => {
+      try {
+        const data = await fetch('/api/admin/notifications').then(r => r.json());
+        const cur = document.querySelectorAll('.pending-payment-card:not(.hidden)').length;
+        if (data.success && data.notifications.length > cur) location.reload();
+      } catch {}
+    }, 15000);
+  }
+
   measureBarHeight();
   resetCommissionWidgetScroll();
   window.addEventListener('resize', () => {
@@ -366,17 +415,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.classList.add('admin-page');
 
   populateMonthSelector();
-  {
-    const { year, month } = getSelectedCommissionPeriod();
-    loadCommissionStats(year, month);
-  }
-  loadUsersNoAccountType();
-  requestAnimationFrame(resetCommissionWidgetScroll);
-  setInterval(() => {
-    const { year, month } = getSelectedCommissionPeriod();
-    loadCommissionStats(year, month);
-    loadUsersNoAccountType();
-  }, 30000);
 
   /* profile dropdown */
   const profileToggle   = document.getElementById('profile-toggle');
@@ -439,16 +477,9 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('balance-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeBalanceModal(); });
   document.getElementById('screenshot-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeScreenshotModal(); });
 
-  loadNewUserNotifications();
-  loadNewAccountNotifications();
-  setInterval(loadNewAccountNotifications, 5000);
-  setInterval(async () => {
-    try {
-      const data = await fetch('/api/admin/notifications').then(r => r.json());
-      const cur = document.querySelectorAll('.pending-payment-card:not(.hidden)').length;
-      if (data.success && data.notifications.length > cur) location.reload();
-    } catch {}
-  }, 15000);
+  if (isAdminPinUnlocked()) startDashboardPolling();
+  document.addEventListener('admin-pin:locked', stopDashboardPolling);
+  document.addEventListener('admin-pin:unlocked', startDashboardPolling);
 });
 
 function updatePaymentTimes() {}

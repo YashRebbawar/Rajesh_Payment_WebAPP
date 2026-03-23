@@ -3,6 +3,7 @@
 
 {% block head %}
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Cabinet+Grotesk:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-pin-lock.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-payments.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
@@ -12,6 +13,8 @@
 
 {% block content %}
 <script>document.body.classList.add('admin-page');</script>
+{% include "_admin_pin_overlay.html" %}
+<div class="admin-pin-sensitive">
 
 {# ═══ HEADER ═══ #}
 <div class="header-nav">
@@ -429,6 +432,7 @@
   </div>
 
 </div>{# /admin-dashboard-wrapper #}
+</div>{# /admin-pin-sensitive #}
 
 {# ═══ MODALS ═══ #}
 
@@ -506,6 +510,7 @@
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/admin-pin-lock.js') }}"></script>
 <script src="{{ url_for('static', filename='js/profile-common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin-dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>

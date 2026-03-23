@@ -3,6 +3,7 @@
 
 {% block head %}
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Cabinet+Grotesk:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-pin-lock.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-analytics.css') }}">
 {% endblock %}
 
@@ -17,6 +18,8 @@
   document.body.classList.add('analytics-page');
 })();
 </script>
+{% include "_admin_pin_overlay.html" %}
+<div class="admin-pin-sensitive">
 
 <!-- HEADER -->
 <header class="analytics-header">
@@ -267,6 +270,7 @@
 
 </main>
 
+<script src="{{ url_for('static', filename='js/admin-pin-lock.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin-analytics.js') }}"></script>
 
 <script>
@@ -364,5 +368,7 @@
   };
 })();
 </script>
+
+</div>{# /admin-pin-sensitive #}
 
 {% endblock %}

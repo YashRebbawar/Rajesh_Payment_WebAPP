@@ -5,9 +5,15 @@
 let currentChatUserId = null;
 let currentUserId     = null;
 let unreadMessages    = {};
+let chatPollIntervalId = null;
+
+function isAdminPinUnlocked() {
+    return !window.adminPinLock || window.adminPinLock.isUnlocked();
+}
 
 /* ══ OPEN / CLOSE ══ */
 function openChatModal(userId, userName) {
+    if (!isAdminPinUnlocked()) return;
     currentChatUserId = userId;
     const modal = document.getElementById('chat-modal');
     if (!modal) { console.error('Chat modal not found'); return; }
@@ -37,7 +43,7 @@ function closeChatModal() {
 
 /* ══ LOAD MESSAGES ══ */
 function loadChatMessages() {
-    if (!currentChatUserId) return;
+    if (!currentChatUserId || !isAdminPinUnlocked()) return;
 
     fetch(`/api/chat/messages/${currentChatUserId}`)
         .then(res => {
@@ -124,6 +130,7 @@ function displayMessages(messages) {
 
 /* ══ SEND MESSAGE ══ */
 function sendChatMessage() {
+    if (!isAdminPinUnlocked()) return;
     const input = document.getElementById('chat-input');
     const message = input?.value.trim();
 
@@ -196,7 +203,7 @@ function removeChatBadge(userId) {
 
 /* ══ POLL NEW MESSAGES (original) ══ */
 function pollNewMessages() {
-    if (currentChatUserId) return;   // don't poll if modal open
+    if (currentChatUserId || !isAdminPinUnlocked()) return;   // don't poll if modal open
 
     fetch('/api/chat/unread-count')
         .then(res => res.json())
@@ -291,5 +298,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* Poll for new messages every 5 s (original) */
-    setInterval(pollNewMessages, 5000);
+    if (isAdminPinUnlocked()) {
+        chatPollIntervalId = setInterval(pollNewMessages, 5000);
+    }
+
+    document.addEventListener('admin-pin:locked', () => {
+        if (chatPollIntervalId) {
+            clearInterval(chatPollIntervalId);
+            chatPollIntervalId = null;
+        }
+        closeChatModal();
+    });
+
+    document.addEventListener('admin-pin:unlocked', () => {
+        if (!chatPollIntervalId) {
+            chatPollIntervalId = setInterval(pollNewMessages, 5000);
+        }
+    });
 });
