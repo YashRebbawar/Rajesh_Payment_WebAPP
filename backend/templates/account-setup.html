@@ -111,7 +111,7 @@
     <p class="tab-description">Trade with real money and withdraw any profit you make</p>
 
     <form id="setup-form" class="setup-form">
-
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <!-- §01 Account details -->
       <div class="form-section">
         <div class="section-title"><span class="section-num">01</span> Account details</div>

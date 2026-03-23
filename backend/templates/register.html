@@ -98,6 +98,7 @@
       <p class="form-subtitle">Join now — it only takes a minute.</p>
 
       <form id="register-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field">
           <label>Country / Region</label>
           <div class="field-wrap select-wrap">

@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from authlib.integrations.flask_client import OAuth
@@ -32,6 +33,9 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # MongoDB Atlas Config
 MONGO_URI = os.getenv('MONGO_URI')
@@ -1571,6 +1575,7 @@ def payment_status(payment_id):
         return jsonify({'success': False, 'message': 'Error checking status'})
 
 @app.route('/api/payment/webhook', methods=['POST'])
+@csrf.exempt
 def payment_webhook():
     """Webhook endpoint for payment gateway to notify payment completion"""
     try:

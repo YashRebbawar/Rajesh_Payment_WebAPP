@@ -202,6 +202,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Collect form data
             const accountType = setupForm.dataset.accountType;
+            const formDataObj = new FormData(setupForm);
+            const csrfToken = formDataObj.get('csrf_token');
             const formData = {
                 account_type: accountType,
                 currency:     document.getElementById('currency').value,
@@ -229,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('/api/account-setup', {
                 method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body:    JSON.stringify(formData)
             })
             .then(response => response.json())

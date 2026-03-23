@@ -112,6 +112,7 @@
       <p class="form-subtitle">Welcome back — enter your credentials to continue.</p>
 
       <form id="signin-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field">
           <label>Email Address</label>
           <div class="field-wrap">
@@ -152,6 +153,7 @@
     <h3>Reset Password</h3>
     <p>Enter your email and set a new password.</p>
     <form id="forgot-password-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="field">
         <label>Email Address</label>
         <div class="field-wrap">

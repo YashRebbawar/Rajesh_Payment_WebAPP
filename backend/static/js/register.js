@@ -54,10 +54,13 @@ document.getElementById('register-form').addEventListener('submit',async functio
   
   const btn=document.getElementById('register-btn');
   btn.classList.add('loading');btn.disabled=true;
-  const data=Object.fromEntries(new FormData(this));
+  const formData = new FormData(this);
+  const csrfToken = formData.get('csrf_token');
+  const data=Object.fromEntries(formData);
   data.email = email;
+  delete data.csrf_token;
   try{
-    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(data)});
     const result=await res.json();
     if(result.success){showToast('Account created! Redirecting…');setTimeout(()=>window.location.href=result.redirect||'/signin',1500);}
     else{

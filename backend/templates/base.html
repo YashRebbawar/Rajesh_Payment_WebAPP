@@ -76,6 +76,7 @@
 	                </div>
 	                <div class="testimonial-form-view" id="testimonial-form-view" hidden>
 	                    <form id="testimonial-form" novalidate>
+	                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 	                        <div class="testimonial-form-grid">
 	                            <label class="testimonial-field">
 	                                <span>Name</span>

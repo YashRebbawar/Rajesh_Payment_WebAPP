@@ -55,10 +55,13 @@ document.getElementById('signin-form').addEventListener('submit',async function(
   
   const btn=document.getElementById('signin-btn');
   btn.classList.add('loading');btn.disabled=true;
-  const data=Object.fromEntries(new FormData(this));
+  const formData = new FormData(this);
+  const csrfToken = formData.get('csrf_token');
+  const data=Object.fromEntries(formData);
   data.email = email;
+  delete data.csrf_token;
   try{
-    const res=await fetch('/api/signin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const res=await fetch('/api/signin',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(data)});
     const result=await res.json();
     if(result.success){
       showToast('Signed in! Redirecting…');
@@ -171,7 +174,11 @@ if(forgotForm){
     }
     btn.classList.add('loading');btn.disabled=true;
     try{
-      const res=await fetch('/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      const formData = new FormData(this);
+      const csrfToken = formData.get('csrf_token');
+      const data=Object.fromEntries(formData);
+      delete data.csrf_token;
+      const res=await fetch('/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(data)});
       const result=await res.json();
       if(result.success){
         showToast(result.message||'Password reset successful. Please sign in.');
