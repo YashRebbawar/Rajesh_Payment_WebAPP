@@ -28,7 +28,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 if not app.config['SECRET_KEY']:
     raise ValueError('SECRET_KEY environment variable is required')
-app.config['SESSION_COOKIE_SECURE'] = False
+# Session cookie security: HTTPS only in production, HTTP allowed in development
+is_production = os.getenv('FLASK_ENV') == 'production' or os.getenv('RENDER_URL')
+app.config['SESSION_COOKIE_SECURE'] = is_production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'
