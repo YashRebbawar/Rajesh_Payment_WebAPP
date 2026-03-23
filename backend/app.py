@@ -15,7 +15,7 @@ import re
 import copy
 from datetime import datetime, timezone, timedelta
 
-def get_current_utc_time():
+def get_current_ist_time():
     """Helper to get current Indian Standard Time"""
     ist = timezone(timedelta(hours=5, minutes=30))
     return datetime.now(ist)
@@ -844,7 +844,7 @@ def clear_admin_pin_state():
 
 def mark_admin_pin_verified():
     session['admin_pin_verified'] = True
-    session['admin_pin_verified_at'] = get_current_utc_time().isoformat()
+    session['admin_pin_verified_at'] = get_current_ist_time().isoformat()
     session.pop('admin_pin_lock_reason', None)
 
 def lock_admin_pin(reason='manual'):
@@ -857,7 +857,7 @@ def get_admin_pin_rate_limit_key(user):
 
 def get_admin_pin_rate_limit_entry(user):
     key = get_admin_pin_rate_limit_key(user)
-    now = get_current_utc_time()
+    now = get_current_ist_time()
     entry = admin_pin_attempt_store.get(key)
 
     if not entry:
@@ -881,7 +881,7 @@ def get_admin_pin_rate_limit_entry(user):
 
 def record_admin_pin_failure(user):
     key, entry = get_admin_pin_rate_limit_entry(user)
-    now = get_current_utc_time()
+    now = get_current_ist_time()
     attempts = int(entry.get('attempts', 0)) + 1
     locked_until = None
     if attempts >= ADMIN_PIN_MAX_ATTEMPTS:
@@ -901,7 +901,7 @@ def get_admin_pin_lockout(user):
     locked_until = entry.get('locked_until')
     if not locked_until:
         return None
-    retry_after_seconds = max(int((locked_until - get_current_utc_time()).total_seconds()), 0)
+    retry_after_seconds = max(int((locked_until - get_current_ist_time()).total_seconds()), 0)
     return {
         'locked_until': locked_until,
         'retry_after_seconds': retry_after_seconds
@@ -916,7 +916,7 @@ def get_cached_admin_dashboard_context(user):
         return None
 
     cached_at = cache_entry.get('cached_at')
-    if not cached_at or cached_at + timedelta(seconds=ADMIN_DASHBOARD_CONTEXT_CACHE_SECONDS) < get_current_utc_time():
+    if not cached_at or cached_at + timedelta(seconds=ADMIN_DASHBOARD_CONTEXT_CACHE_SECONDS) < get_current_ist_time():
         admin_dashboard_context_cache.pop(get_admin_dashboard_cache_key(user), None)
         return None
 
@@ -924,7 +924,7 @@ def get_cached_admin_dashboard_context(user):
 
 def set_cached_admin_dashboard_context(user, context):
     admin_dashboard_context_cache[get_admin_dashboard_cache_key(user)] = {
-        'cached_at': get_current_utc_time(),
+        'cached_at': get_current_ist_time(),
         'context': copy.deepcopy(context)
     }
 
@@ -1337,7 +1337,7 @@ def api_register():
         'email': email,
         'password': generate_password_hash(data['password']),
         'country': country_map.get(data.get('country'), data.get('country')),
-        'created_at': get_current_utc_time(),
+        'created_at': get_current_ist_time(),
         'testimonial_submitted': False
     }
     result = users_collection.insert_one(user_doc)
@@ -1539,7 +1539,7 @@ def google_callback():
                     'email': user_info['email'],
                     'google_id': user_info['sub'],
                     'country': None,
-                    'created_at': get_current_utc_time(),
+                    'created_at': get_current_ist_time(),
                     'testimonial_submitted': False
                 }
                 result = users_collection.insert_one(user_doc)
@@ -1626,7 +1626,7 @@ def submit_testimonial():
         'comment': comment,
         'is_active': True,
         'display_order': 999,
-        'created_at': get_current_utc_time()
+        'created_at': get_current_ist_time()
     }
 
     testimonials_collection.update_one(
@@ -1676,7 +1676,7 @@ def account_setup_api():
         'leverage': data['leverage'],
         'platform': data['platform'],
         'trading_password': data['password'],
-        'created_at': get_current_utc_time()
+        'created_at': get_current_ist_time()
     }
     result = accounts_collection.insert_one(account_doc)
     
@@ -1692,7 +1692,7 @@ def account_setup_api():
         'currency': data['currency'],
         'platform': data['platform'],
         'status': 'unread',
-        'created_at': get_current_utc_time()
+        'created_at': get_current_ist_time()
     }
     notifications_collection.insert_one(notification_doc)
     
@@ -1774,7 +1774,7 @@ def initiate_payment():
             'reference': data.get('reference', ''),
             'type': 'deposit',
             'status': 'pending',
-            'created_at': get_current_utc_time(),
+            'created_at': get_current_ist_time(),
             'screenshot': None
         }
         result = payments_collection.insert_one(payment_doc)
@@ -1841,7 +1841,7 @@ def initiate_withdrawal():
             'payment_method': payment_method,
             'type': 'withdrawal',
             'status': 'pending',
-            'created_at': get_current_utc_time()
+            'created_at': get_current_ist_time()
         }
         
         if payment_method == 'upi':
@@ -1863,7 +1863,7 @@ def initiate_withdrawal():
             'currency': data['currency'],
             'payment_method': payment_method,
             'status': 'pending_approval',
-            'created_at': get_current_utc_time()
+            'created_at': get_current_ist_time()
         }
         
         if payment_method == 'upi':
@@ -1928,7 +1928,7 @@ def payment_webhook():
                 {'_id': ObjectId(payment_id)},
                 {'$set': {
                     'transaction_id': transaction_id,
-                    'submitted_at': get_current_utc_time()
+                    'submitted_at': get_current_ist_time()
                 }}
             )
             
@@ -1945,7 +1945,7 @@ def payment_webhook():
                 'amount': payment['amount'],
                 'currency': payment['currency'],
                 'status': 'pending_approval',
-                'created_at': get_current_utc_time()
+                'created_at': get_current_ist_time()
             }
             notifications_collection.insert_one(notification_doc)
             
@@ -1955,7 +1955,7 @@ def payment_webhook():
             # Handle failed payment
             payments_collection.update_one(
                 {'_id': ObjectId(payment_id)},
-                {'$set': {'status': 'failed', 'failed_at': get_current_utc_time()}}
+                {'$set': {'status': 'failed', 'failed_at': get_current_ist_time()}}
             )
             logger.warning(f"Payment webhook received - Payment failed: {payment_id}")
             return jsonify({'success': True}), 200
@@ -2026,7 +2026,7 @@ def simulate_payment(payment_id):
         # Keep payment status as 'pending' until admin approves it
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'submitted_at': get_current_utc_time()}}
+            {'$set': {'submitted_at': get_current_ist_time()}}
         )
         
         # Create admin notification
@@ -2045,7 +2045,7 @@ def simulate_payment(payment_id):
             'reference': payment.get('reference', ''),
             'screenshot': payment.get('screenshot'),
             'status': 'pending_approval',
-            'created_at': get_current_utc_time()
+            'created_at': get_current_ist_time()
         }
         notifications_collection.insert_one(notification_doc)
         
@@ -2120,7 +2120,7 @@ def mark_account_notification_read(notification_id):
     try:
         notifications_collection.update_one(
             {'_id': ObjectId(notification_id)},
-            {'$set': {'status': 'read', 'read_at': get_current_utc_time()}}
+            {'$set': {'status': 'read', 'read_at': get_current_ist_time()}}
         )
         logger.info(f"Admin {user['email']} marked notification {notification_id} as read")
         return jsonify({'success': True})
@@ -2142,13 +2142,13 @@ def reject_payment(payment_id):
         # Update payment status
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time(), 'rejected_by': user['_id']}}
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_ist_time(), 'rejected_by': user['_id']}}
         )
         
         # Update notification - handle both payment_id and withdrawal_id
         notifications_collection.update_one(
             {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
-            {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time()}}
+            {'$set': {'status': 'rejected', 'rejected_at': get_current_ist_time()}}
         )
         
         clear_admin_dashboard_context_cache(user)
@@ -2187,13 +2187,13 @@ def approve_payment(payment_id):
         # Update payment status to completed when admin approves
         payments_collection.update_one(
             {'_id': ObjectId(payment_id)},
-            {'$set': {'status': 'completed', 'approved_at': get_current_utc_time(), 'approved_by': user['_id']}}
+            {'$set': {'status': 'completed', 'approved_at': get_current_ist_time(), 'approved_by': user['_id']}}
         )
         
         # Update notification - handle both payment_id and withdrawal_id
         notifications_collection.update_one(
             {'$or': [{'payment_id': ObjectId(payment_id)}, {'withdrawal_id': ObjectId(payment_id)}]},
-            {'$set': {'status': 'approved', 'approved_at': get_current_utc_time()}}
+            {'$set': {'status': 'approved', 'approved_at': get_current_ist_time()}}
         )
         
         clear_admin_dashboard_context_cache(user)
@@ -2302,7 +2302,7 @@ def get_admin_analytics_summary():
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     try:
-        now = get_current_utc_time()
+        now = get_current_ist_time()
         window = request.args.get('window', 'daily').lower()
         window_config = get_window_config(window, now)
         range_start = window_config['range_start']
@@ -2811,7 +2811,7 @@ def update_account_mt(account_id):
             {'$set': {
                 'mt_login': data.get('mt_login'),
                 'mt_server': data.get('mt_server'),
-                'mt_updated_at': get_current_utc_time(),
+                'mt_updated_at': get_current_ist_time(),
                 'mt_updated_by': user['_id']
             }}
         )
@@ -2819,7 +2819,7 @@ def update_account_mt(account_id):
         # Mark new account notification as read
         notifications_collection.update_one(
             {'type': 'new_account_opened', 'account_id': ObjectId(account_id), 'status': 'unread'},
-            {'$set': {'status': 'read', 'read_at': get_current_utc_time()}}
+            {'$set': {'status': 'read', 'read_at': get_current_ist_time()}}
         )
         
         # Create notification for user
@@ -2831,7 +2831,7 @@ def update_account_mt(account_id):
             'mt_login': data.get('mt_login'),
             'mt_server': data.get('mt_server'),
             'status': 'unread',
-            'created_at': get_current_utc_time()
+            'created_at': get_current_ist_time()
         }
         notifications_collection.insert_one(notification_doc)
         
@@ -2951,7 +2951,7 @@ def send_chat_message():
             'admin_id': user['_id'],
             'sender_id': user['_id'],
             'message': message,
-            'created_at': get_current_utc_time(),
+            'created_at': get_current_ist_time(),
             'read': False
         }
         result = chats_collection.insert_one(chat_doc)
@@ -3013,7 +3013,7 @@ def user_send_chat_message():
             'admin_id': admin['_id'],
             'sender_id': user['_id'],
             'message': message,
-            'created_at': get_current_utc_time(),
+            'created_at': get_current_ist_time(),
             'read': False
         }
         result = chats_collection.insert_one(chat_doc)
@@ -3318,7 +3318,7 @@ def get_users_no_account_type():
 def cleanup_old_chats_and_notifications():
     """Delete chats and notifications older than 2 days"""
     try:
-        cutoff_time = get_current_utc_time() - timedelta(days=2)
+        cutoff_time = get_current_ist_time() - timedelta(days=2)
         chats_result = chats_collection.delete_many({'created_at': {'$lt': cutoff_time}})
         notifications_result = notifications_collection.delete_many({'created_at': {'$lt': cutoff_time}})
         if chats_result.deleted_count > 0 or notifications_result.deleted_count > 0:
@@ -3330,9 +3330,9 @@ def cleanup_old_chats_and_notifications():
 def periodic_cleanup():
     """Run cleanup on every request (lightweight check)"""
     if not hasattr(app, 'last_cleanup'):
-        app.last_cleanup = get_current_utc_time()
+        app.last_cleanup = get_current_ist_time()
     
-    current_time = get_current_utc_time()
+    current_time = get_current_ist_time()
     if (current_time - app.last_cleanup).total_seconds() > 3600:
         cleanup_old_chats_and_notifications()
         app.last_cleanup = current_time
