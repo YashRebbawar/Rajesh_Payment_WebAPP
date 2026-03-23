@@ -377,14 +377,14 @@
             <span class="upi-label">UPI</span><span class="upi-value">{{ payment.upi_id }}</span>
           </div>
           {% endif %}
-          {% if payment.bank_account %}
-          <div class="payment-upi" style="margin-bottom:4px;">
-            <span class="upi-label">A/C</span><span class="upi-value">{{ payment.bank_account }}</span>
-          </div>
-          {% endif %}
-          {% if payment.ifsc_code %}
-          <div class="payment-upi" style="margin-bottom:6px;">
-            <span class="upi-label">IFSC</span><span class="upi-value">{{ payment.ifsc_code }}</span>
+          {% if payment.bank_account or payment.ifsc_code %}
+          <div style="margin-bottom:6px;">
+            <button class="bank-details-view-btn" onclick="showBankDetailsPopup(event, '{{ payment.bank_account }}', '{{ payment.ifsc_code }}')" title="View bank details">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              View Bank Details
+            </button>
           </div>
           {% endif %}
 
@@ -506,6 +506,26 @@
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
         </svg>
       </button>
+    </div>
+  </div>
+</div>
+
+{# Bank Details Modal #}
+<div id="bank-details-modal" class="bank-details-modal">
+  <div class="bank-details-modal-content">
+    <div class="bank-details-modal-header">
+      <h3>Bank Details</h3>
+      <button class="bank-details-modal-close" onclick="closeBankDetailsModal()">&#10005;</button>
+    </div>
+    <div class="bank-details-modal-body">
+      <div class="bank-detail-item">
+        <span class="detail-label">Account Number</span>
+        <span class="detail-value" id="bank-account-value"></span>
+      </div>
+      <div class="bank-detail-item">
+        <span class="detail-label">IFSC Code</span>
+        <span class="detail-value" id="bank-ifsc-value"></span>
+      </div>
     </div>
   </div>
 </div>

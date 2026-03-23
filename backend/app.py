@@ -10,6 +10,7 @@ import os
 import logging
 import base64
 import re
+import copy
 from datetime import datetime, timezone, timedelta
 
 def get_current_utc_time():
@@ -97,6 +98,8 @@ ADMIN_PIN_LOCKOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_LOCKOUT_SECONDS', '300'
 ADMIN_PIN_IDLE_TIMEOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_IDLE_TIMEOUT_SECONDS', '180')), 60)
 
 admin_pin_attempt_store = {}
+admin_dashboard_context_cache = {}
+ADMIN_DASHBOARD_CONTEXT_CACHE_SECONDS = max(int(os.getenv('ADMIN_DASHBOARD_CONTEXT_CACHE_SECONDS', '10')), 5)
 
 # Google OAuth Config
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
@@ -895,25 +898,75 @@ def get_admin_pin_lockout(user):
         'retry_after_seconds': retry_after_seconds
     }
 
+def get_admin_dashboard_cache_key(user):
+    return str(user.get('_id')) if user else 'anonymous'
+
+def get_cached_admin_dashboard_context(user):
+    cache_entry = admin_dashboard_context_cache.get(get_admin_dashboard_cache_key(user))
+    if not cache_entry:
+        return None
+
+    cached_at = cache_entry.get('cached_at')
+    if not cached_at or cached_at + timedelta(seconds=ADMIN_DASHBOARD_CONTEXT_CACHE_SECONDS) < get_current_utc_time():
+        admin_dashboard_context_cache.pop(get_admin_dashboard_cache_key(user), None)
+        return None
+
+    return copy.deepcopy(cache_entry.get('context'))
+
+def set_cached_admin_dashboard_context(user, context):
+    admin_dashboard_context_cache[get_admin_dashboard_cache_key(user)] = {
+        'cached_at': get_current_utc_time(),
+        'context': copy.deepcopy(context)
+    }
+
+def clear_admin_dashboard_context_cache(user=None):
+    if user:
+        admin_dashboard_context_cache.pop(get_admin_dashboard_cache_key(user), None)
+        return
+    admin_dashboard_context_cache.clear()
+
 def build_admin_dashboard_context():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
     pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
 
+    payment_user_ids = list({
+        payment['user_id']
+        for payment in pending_payments
+        if payment.get('user_id')
+    })
+    payment_users_map = {
+        user['_id']: user
+        for user in users_collection.find(
+            {'_id': {'$in': payment_user_ids}},
+            {'email': 1, 'name': 1}
+        )
+    } if payment_user_ids else {}
+
+    payment_record_ids = list({
+        payment_id
+        for payment in pending_payments
+        for payment_id in [payment.get('payment_id') or payment.get('withdrawal_id')]
+        if payment_id
+    })
+    payment_records_map = {
+        record['_id']: record
+        for record in payments_collection.find(
+            {'_id': {'$in': payment_record_ids}},
+            {'account_id': 1}
+        )
+    } if payment_record_ids else {}
+
     for payment in pending_payments:
-        payment_user = users_collection.find_one({'_id': payment['user_id']})
+        payment_user = payment_users_map.get(payment.get('user_id'))
         if payment_user:
             payment['user_name'] = payment_user.get('name', payment_user['email'].split('@')[0])
             payment['user_email'] = payment_user['email']
 
-        if 'payment_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['payment_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
-        elif 'withdrawal_id' in payment:
-            payment_record = payments_collection.find_one({'_id': payment['withdrawal_id']})
-            if payment_record:
-                payment['account_id'] = str(payment_record['account_id'])
+        payment_record_id = payment.get('payment_id') or payment.get('withdrawal_id')
+        payment_record = payment_records_map.get(payment_record_id)
+        if payment_record and payment_record.get('account_id'):
+            payment['account_id'] = str(payment_record['account_id'])
 
     user_accounts_map = {}
     for account in all_accounts:
@@ -927,6 +980,17 @@ def build_admin_dashboard_context():
         'user_accounts_map': user_accounts_map,
         'pending_payments': pending_payments
     }
+
+def get_admin_dashboard_context(user, warm_only=False):
+    cached_context = get_cached_admin_dashboard_context(user)
+    if cached_context:
+        return cached_context
+
+    context = build_admin_dashboard_context()
+    set_cached_admin_dashboard_context(user, context)
+    if warm_only:
+        return None
+    return copy.deepcopy(context)
 
 def check_db_connection():
     """Check if database connection is alive"""
@@ -2073,6 +2137,7 @@ def reject_payment(payment_id):
             {'$set': {'status': 'rejected', 'rejected_at': get_current_utc_time()}}
         )
         
+        clear_admin_dashboard_context_cache(user)
         logger.info(f"Admin {user['email']} rejected payment {payment_id}")
         return jsonify({'success': True})
     except Exception as e:
@@ -2117,6 +2182,7 @@ def approve_payment(payment_id):
             {'$set': {'status': 'approved', 'approved_at': get_current_utc_time()}}
         )
         
+        clear_admin_dashboard_context_cache(user)
         logger.info(f"Admin {user['email']} approved payment {payment_id}")
         return jsonify({'success': True})
     except Exception as e:
@@ -2183,7 +2249,9 @@ def admin_dashboard():
         'pending_payments': []
     }
     if admin_pin_verified:
-        dashboard_context = build_admin_dashboard_context()
+        dashboard_context = get_admin_dashboard_context(user) or dashboard_context
+    else:
+        get_admin_dashboard_context(user, warm_only=True)
 
     return render_template(
         'admin-dashboard.html',
@@ -2753,6 +2821,7 @@ def update_account_mt(account_id):
         }
         notifications_collection.insert_one(notification_doc)
         
+        clear_admin_dashboard_context_cache(user)
         logger.info(f"Admin {user['email']} updated MT details for account {account_id}")
         return jsonify({'success': True})
     except Exception as e:
@@ -2768,6 +2837,7 @@ def delete_user(user_id):
     try:
         accounts_collection.delete_many({'user_id': ObjectId(user_id)})
         users_collection.delete_one({'_id': ObjectId(user_id)})
+        clear_admin_dashboard_context_cache(user)
         logger.info(f"Admin {user['email']} deleted user {user_id}")
         return jsonify({'success': True})
     except Exception as e:
@@ -3070,6 +3140,7 @@ def update_account_balance(account_id):
             {'$set': {'balance': new_balance}}
         )
         
+        clear_admin_dashboard_context_cache(user)
         logger.info(f"Admin {user['email']} updated balance for account {account_id} to {new_balance}")
         return jsonify({'success': True})
     except Exception as e:
@@ -3116,6 +3187,7 @@ def update_account_details(account_id):
         else:
             logger.warning(f"No update data provided for account {account_id}")
         
+        clear_admin_dashboard_context_cache(user)
         return jsonify({'success': True}), 200
     except Exception as e:
         logger.error(f"Error updating account details: {e}", exc_info=True)

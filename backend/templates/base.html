@@ -129,9 +129,50 @@
 	            </div>
 	        </section>
 	    </div>
-	    {% endif %}
-	    <script src="{{ url_for('static', filename='js/cursor-global.js') }}"></script>
-	    <script src="{{ url_for('static', filename='js/testimonial-modal.js') }}"></script>
-	    {% block scripts %}{% endblock %}
-	</body>
-	</html>
+		    {% endif %}
+		    <script>
+		    (function () {
+		        if (!window.fetch) return;
+		        const originalFetch = window.fetch.bind(window);
+		        const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+		        function isSameOrigin(resource) {
+		            try {
+		                const requestUrl = new URL(resource, window.location.origin);
+		                return requestUrl.origin === window.location.origin;
+		            } catch (error) {
+		                return true;
+		            }
+		        }
+
+		        window.fetch = function (resource, options) {
+		            const init = options ? { ...options } : {};
+		            const method = String(
+		                init.method ||
+		                (resource && typeof resource === 'object' && 'method' in resource ? resource.method : 'GET')
+		            ).toUpperCase();
+		            const resourceUrl = typeof resource === 'string'
+		                ? resource
+		                : (resource && typeof resource === 'object' && 'url' in resource ? resource.url : window.location.href);
+
+		            if (unsafeMethods.has(method) && isSameOrigin(resourceUrl)) {
+		                const headers = new Headers(
+		                    init.headers ||
+		                    (resource && typeof resource === 'object' && 'headers' in resource ? resource.headers : undefined)
+		                );
+		                const csrfToken = document.body?.dataset?.csrfToken;
+		                if (csrfToken && !headers.has('X-CSRFToken')) {
+		                    headers.set('X-CSRFToken', csrfToken);
+		                }
+		                init.headers = headers;
+		            }
+
+		            return originalFetch(resource, init);
+		        };
+		    })();
+		    </script>
+		    <script src="{{ url_for('static', filename='js/cursor-global.js') }}"></script>
+		    <script src="{{ url_for('static', filename='js/testimonial-modal.js') }}"></script>
+		    {% block scripts %}{% endblock %}
+		</body>
+		</html>

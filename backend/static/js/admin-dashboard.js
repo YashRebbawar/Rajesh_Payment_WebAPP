@@ -317,19 +317,45 @@ function showConfirmModal(title, body, onConfirm) {
 }
 
 /* ══ APPROVE / REJECT ══ */
+function getCsrfToken() {
+  const token = document.querySelector('input[name="csrf_token"]')?.value;
+  if (!token) {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+  return token;
+}
+
 async function approvePayment(paymentId) {
   showConfirmModal('Approve payment?', "Approve and credit the user's account?", async () => {
     try {
-      const data = await fetch(`/api/admin/approve-payment/${paymentId}`, { method: 'POST' }).then(r => r.json());
+      const csrfToken = getCsrfToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+      
+      const data = await fetch(`/api/admin/approve-payment/${paymentId}`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({})
+      }).then(r => r.json());
       if (data.success) { showSuccessMessage('Payment approved!'); setTimeout(() => location.reload(), 1300); }
       else showErrorMessage('Error: ' + data.message);
     } catch { showErrorMessage('Failed to approve'); }
   });
 }
+
 async function rejectPayment(paymentId) {
   showConfirmModal('Reject payment?', 'This will reject the payment and notify the user.', async () => {
     try {
-      const data = await fetch(`/api/admin/reject-payment/${paymentId}`, { method: 'POST' }).then(r => r.json());
+      const csrfToken = getCsrfToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+      
+      const data = await fetch(`/api/admin/reject-payment/${paymentId}`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({})
+      }).then(r => r.json());
       if (data.success) { showSuccessMessage('Payment rejected.'); setTimeout(() => location.reload(), 1300); }
       else showErrorMessage('Error: ' + data.message);
     } catch { showErrorMessage('Failed to reject'); }
@@ -483,3 +509,19 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function updatePaymentTimes() {}
+
+function showBankDetailsPopup(event, bankAccount, ifscCode) {
+  event.preventDefault();
+  event.stopPropagation();
+  document.getElementById('bank-account-value').textContent = bankAccount || 'N/A';
+  document.getElementById('bank-ifsc-value').textContent = ifscCode || 'N/A';
+  document.getElementById('bank-details-modal').classList.add('active');
+}
+
+function closeBankDetailsModal() {
+  document.getElementById('bank-details-modal').classList.remove('active');
+}
+
+document.getElementById('bank-details-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeBankDetailsModal();
+});
