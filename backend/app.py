@@ -19,6 +19,10 @@ def get_current_ist_time():
     """Helper to get current Indian Standard Time"""
     ist = timezone(timedelta(hours=5, minutes=30))
     return datetime.now(ist)
+
+def get_current_utc_time():
+    """Backward-compatible alias retained for older call sites."""
+    return get_current_ist_time()
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -1272,7 +1276,7 @@ def register():
     user = get_current_user()
     if user:
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
-    response = render_template('register.html', user=user)
+    response = render_template('register.html', user=user, allowed_email_domains=ALLOWED_EMAIL_DOMAINS)
     return response
 
 @app.route('/my-accounts')

@@ -4,6 +4,11 @@ function showToast(msg,type='success'){
   setTimeout(()=>t.classList.add('show'),10);
   setTimeout(()=>t.classList.remove('show'),3500);
 }
+const registerForm=document.getElementById('register-form');
+const allowedDomains=(registerForm?.dataset.allowedEmailDomains||'')
+  .split(',')
+  .map(domain=>domain.trim().toLowerCase())
+  .filter(Boolean);
 document.querySelectorAll('.pw-toggle').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const inp=document.getElementById(btn.dataset.target);
@@ -29,7 +34,7 @@ pwInput.addEventListener('input',function(){
 document.getElementById('legal-docs-link').addEventListener('click',e=>{e.preventDefault();document.getElementById('terms-modal').classList.add('active');});
 document.getElementById('close-modal').addEventListener('click',()=>document.getElementById('terms-modal').classList.remove('active'));
 document.getElementById('terms-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');});
-document.getElementById('register-form').addEventListener('submit',async function(e){
+registerForm?.addEventListener('submit',async function(e){
   e.preventDefault();
   const emailInput = document.querySelector('input[name="email"]');
   const emailField = emailInput.closest('.field');
@@ -38,17 +43,15 @@ document.getElementById('register-form').addEventListener('submit',async functio
   const pw=pwInput.value;
   
   emailField.classList.remove('has-error');
-  emailErrorDiv.textContent = '';
+  if (emailErrorDiv) emailErrorDiv.textContent = '';
   
   if(!Object.values(rules).every(fn=>fn(pw))){showToast('Password does not meet all requirements.','error');return;}
   
   const emailDomain = email.split('@')[1];
-  const allowedDomains = ['gmail.com', 'company.com'];
-  if(!emailDomain || !allowedDomains.includes(emailDomain)){
+  if(allowedDomains.length && (!emailDomain || !allowedDomains.includes(emailDomain))){
     const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
     emailField.classList.add('has-error');
-    emailErrorDiv.textContent = errorMsg;
-    showToast(errorMsg, 'error');
+    if (emailErrorDiv) emailErrorDiv.textContent = errorMsg;
     return;
   }
   
@@ -66,9 +69,10 @@ document.getElementById('register-form').addEventListener('submit',async functio
     else{
       if(result.message.includes('domain')){
         emailField.classList.add('has-error');
-        emailErrorDiv.textContent = result.message;
+        if (emailErrorDiv) emailErrorDiv.textContent = result.message;
+      } else {
+        showToast(result.message||'Registration failed.','error');
       }
-      showToast(result.message||'Registration failed.','error');
       btn.classList.remove('loading');btn.disabled=false;
     }
   }catch{
@@ -84,27 +88,26 @@ document.getElementById('google-register').addEventListener('click',function(){
 
 const emailInput = document.querySelector('input[name="email"]');
 if(emailInput){
-  emailInput.addEventListener('blur', function(){
+ emailInput.addEventListener('blur', function(){
     const email = this.value.trim().toLowerCase();
     const emailField = this.closest('.field');
     const emailErrorDiv = document.getElementById('email-error');
     
     if(!email){
       emailField.classList.remove('has-error');
-      emailErrorDiv.textContent = '';
+      if (emailErrorDiv) emailErrorDiv.textContent = '';
       return;
     }
     
     const emailDomain = email.split('@')[1];
-    const allowedDomains = ['gmail.com', 'company.com'];
     
-    if(!emailDomain || !allowedDomains.includes(emailDomain)){
+    if(allowedDomains.length && (!emailDomain || !allowedDomains.includes(emailDomain))){
       const errorMsg = `Email domain not allowed. Allowed domains: ${allowedDomains.join(', ')}`;
       emailField.classList.add('has-error');
-      emailErrorDiv.textContent = errorMsg;
+      if (emailErrorDiv) emailErrorDiv.textContent = errorMsg;
     } else {
       emailField.classList.remove('has-error');
-      emailErrorDiv.textContent = '';
+      if (emailErrorDiv) emailErrorDiv.textContent = '';
     }
   });
 }

@@ -97,7 +97,7 @@
       <h1 class="form-title">Create Account</h1>
       <p class="form-subtitle">Join now — it only takes a minute.</p>
 
-      <form id="register-form">
+      <form id="register-form" data-allowed-email-domains="{{ allowed_email_domains|join(',') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field">
           <label>Country / Region</label>
@@ -113,6 +113,7 @@
           <div class="field-wrap">
             <input type="email" name="email" placeholder="your@gmail.com" required autocomplete="email">
           </div>
+          <div id="email-error" class="field-error" aria-live="polite"></div>
         </div>
         <div class="field">
           <label>Password</label>
