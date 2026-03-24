@@ -126,10 +126,11 @@ body.admin-page::after {
   width: 34px; height: 34px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 3px 8px rgba(26,21,16,.18); transition: all .22s; flex-shrink: 0;
-  color: var(--ink-45);
+  color: var(--ink-45); position: relative;
 }
 .quick-migrate-header-btn:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(26,21,16,.24); background: var(--ink); color: #fff; }
 .quick-migrate-header-btn svg { pointer-events: none; width: 16px; height: 16px; }
+.header-icon-badge { position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--red); color: #fff; border: 2px solid var(--bg); font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; line-height: 1; box-shadow: 0 2px 8px rgba(26,21,16,.18); }
 
 /* profile */
 .user-profile-wrapper { position: relative; }
@@ -188,9 +189,9 @@ body.admin-page::after {
 
 /* mobile tabs */
 .mobile-tabs { display: none; background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: var(--nav-h); z-index: 700; }
-.mobile-tab-btn { flex: 1; padding: 11px 12px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-45); transition: all .18s; }
+.mobile-tab-btn { flex: 1; padding: 11px 12px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-45); transition: all .18s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
 .mobile-tab-btn.active { color: var(--ink); border-bottom-color: var(--green); }
-.tab-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--red); color: #fff; border-radius: 9px; min-width: 14px; height: 14px; padding: 0 3px; font-size: 9px; font-weight: 800; margin-left: 4px; }
+.tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; background: var(--red); color: #fff; border-radius: 999px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; line-height: 1; flex-shrink: 0; box-shadow: 0 2px 8px rgba(26,21,16,.16); }
 
 /* ══════════════════════════════════════════
    ANALYTICS BAR
@@ -389,7 +390,7 @@ body.admin-page::after {
 }
 @keyframes countPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 
-.notification-badge { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; background: var(--red); color: #fff; padding: 4px 10px; border-radius: 100px; flex-shrink: 0; animation: blink 2s infinite; }
+.notification-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 8px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; line-height: 1; background: var(--red); color: #fff; border-radius: 999px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(26,21,16,.14); animation: blink 2s infinite; }
 @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.65;} }
 
 .view-toggle { display: flex; gap: 5px; }
@@ -751,8 +752,9 @@ body.admin-page::after {
   .stats-card-note { font-size: 11px; }
   .meta-label { font-size: 7px; }
   .meta-value { font-size: 11px; }
-  .section-header { padding: 12px 14px 10px; }
+  .section-header { padding: 12px 14px 10px; align-items: flex-start; }
   .section-header h2 { font-size: 20px; }
+  .notification-badge { min-width: 20px; height: 20px; padding: 0 7px; font-size: 9px; }
   .user-count-widget { min-width: 55px; padding: 3px 7px; }
   .user-count-number { font-size: 14px; }
   .user-count-label { font-size: 5px; margin-top: 1px; }

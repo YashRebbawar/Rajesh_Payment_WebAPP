@@ -72,6 +72,52 @@ function resetCommissionWidgetScroll() {
   bar.scrollLeft = 0;
 }
 
+function setBadgeCount(el, count) {
+  if (!el) return;
+  const safeCount = Math.max(Number(count) || 0, 0);
+  el.textContent = safeCount;
+  el.style.display = safeCount > 0 ? '' : 'none';
+}
+
+async function refreshAdminNotificationBadges() {
+  if (!isAdminPinUnlocked()) return;
+
+  try {
+    const [paymentData, chatData] = await Promise.all([
+      fetch('/api/admin/notifications').then(r => r.json()),
+      fetch('/api/admin/chat-users-with-pending').then(r => r.json())
+    ]);
+
+    const pendingPaymentsCount = paymentData.success && Array.isArray(paymentData.notifications)
+      ? paymentData.notifications.length
+      : 0;
+    const pendingChatThreadsCount = chatData.success && Array.isArray(chatData.users)
+      ? chatData.users.length
+      : 0;
+
+    setBadgeCount(document.getElementById('pending-payments-badge'), pendingPaymentsCount);
+    setBadgeCount(document.getElementById('mobile-payments-badge'), pendingPaymentsCount);
+    setBadgeCount(document.getElementById('quick-migrate-badge'), pendingChatThreadsCount);
+  } catch (e) {
+    console.error('Failed to refresh admin notification badges:', e);
+  }
+}
+
+function updateMobileDashboardTabState(tab) {
+  const usersSection = document.getElementById('users-tab');
+  const paymentsSection = document.getElementById('payments-tab');
+  const commissionBar = document.querySelector('.commission-stats-widget');
+  const isMobile = window.innerWidth <= 768;
+
+  if (usersSection) usersSection.style.display = tab === 'users' ? 'flex' : 'none';
+  if (paymentsSection) paymentsSection.style.display = tab === 'payments' ? 'flex' : 'none';
+
+  if (commissionBar) {
+    commissionBar.style.display = !isMobile || tab === 'users' ? '' : 'none';
+    if (!isMobile || tab === 'users') resetCommissionWidgetScroll();
+  }
+}
+
 /* ══ COMMISSION STATS ══ */
 async function loadCommissionStats(year = null, month = null) {
   if (!isAdminPinUnlocked()) return;
@@ -385,6 +431,10 @@ async function toggleMigrateDropdown() {
 async function refreshMigrateList(el) {
   try {
     const data = await fetch('/api/admin/chat-users-with-pending').then(r => r.json());
+    setBadgeCount(
+      document.getElementById('quick-migrate-badge'),
+      data.success && Array.isArray(data.users) ? data.users.length : 0
+    );
     if (data.success && data.users.length > 0) {
       el.innerHTML = data.users.map(u => `<div class="migrate-user-item" onclick="selectMigrateUser('${u.user_id}','${u.name.replace(/'/g,"\\'")}')"><div><div class="migrate-item-name">${u.name}</div><div class="migrate-item-email">${u.email}</div></div><div class="migrate-item-badge">${u.pending_count}</div></div>`).join('');
     } else {
@@ -417,11 +467,13 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     refreshDashboardMetrics();
+    refreshAdminNotificationBadges();
     requestAnimationFrame(resetCommissionWidgetScroll);
     loadNewUserNotifications();
     loadNewAccountNotifications();
 
     registerDashboardInterval(refreshDashboardMetrics, 30000);
+    registerDashboardInterval(refreshAdminNotificationBadges, 15000);
     registerDashboardInterval(loadNewAccountNotifications, 5000);
     registerDashboardInterval(async () => {
       try {
@@ -469,18 +521,24 @@ document.addEventListener('DOMContentLoaded', function () {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.mobile-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const u = document.getElementById('users-tab');
-      const p = document.getElementById('payments-tab');
-      if (u) u.style.display = tab === 'users' ? 'flex' : 'none';
-      if (p) p.style.display = tab === 'payments' ? 'flex' : 'none';
+      updateMobileDashboardTabState(tab);
     });
   });
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
       const u = document.getElementById('users-tab'); if (u) u.style.display = '';
       const p = document.getElementById('payments-tab'); if (p) p.style.display = '';
+      const bar = document.querySelector('.commission-stats-widget'); if (bar) bar.style.display = '';
+    } else {
+      const activeTab = document.querySelector('.mobile-tab-btn.active')?.dataset.tab || 'users';
+      updateMobileDashboardTabState(activeTab);
     }
   });
+
+  if (window.innerWidth <= 768) {
+    const activeTab = document.querySelector('.mobile-tab-btn.active')?.dataset.tab || 'users';
+    updateMobileDashboardTabState(activeTab);
+  }
 
   /* view toggle */
   document.querySelectorAll('.view-btn').forEach(btn => {

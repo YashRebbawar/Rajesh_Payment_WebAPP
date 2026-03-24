@@ -942,6 +942,7 @@ def build_admin_dashboard_context():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
     pending_payments = list(notifications_collection.find({'status': 'pending_approval'}).sort('created_at', -1))
+    admin_user = get_current_user()
 
     payment_user_ids = list({
         payment['user_id']
@@ -988,10 +989,20 @@ def build_admin_dashboard_context():
             user_accounts_map[user_id] = []
         user_accounts_map[user_id].append(account)
 
+    unread_chat_users = []
+    if admin_user and admin_user.get('is_admin'):
+        unread_chat_rows = chats_collection.aggregate([
+            {'$match': {'admin_id': admin_user['_id'], 'read': False}},
+            {'$group': {'_id': '$user_id'}},
+            {'$sort': {'_id': 1}}
+        ])
+        unread_chat_users = [str(row['_id']) for row in unread_chat_rows]
+
     return {
         'all_users': all_users,
         'user_accounts_map': user_accounts_map,
-        'pending_payments': pending_payments
+        'pending_payments': pending_payments,
+        'unread_chat_users': unread_chat_users
     }
 
 def get_admin_dashboard_context(user, warm_only=False):

@@ -34,6 +34,7 @@
     <a class="admin-analytics-link" href="/admin/analytics">Analytics</a>
     <button class="quick-migrate-header-btn" onclick="toggleMigrateDropdown()" title="Pending chats">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span id="quick-migrate-badge" class="header-icon-badge" {% if not unread_chat_users %}style="display:none;"{% endif %}>{{ unread_chat_users|length if unread_chat_users else 0 }}</span>
     </button>
 
     <div class="user-profile-wrapper">
@@ -97,7 +98,7 @@
 <div class="mobile-tabs">
   <button class="mobile-tab-btn active" data-tab="users">Users</button>
   <button class="mobile-tab-btn" data-tab="payments">
-    Payments{% if pending_payments %}<span class="tab-badge">{{ pending_payments|length }}</span>{% endif %}
+    Payments<span id="mobile-payments-badge" class="tab-badge" {% if not pending_payments %}style="display:none;"{% endif %}>{{ pending_payments|length }}</span>
   </button>
 </div>
 
@@ -326,7 +327,7 @@
   <div class="pending-payments-wrapper" id="payments-tab">
     <div class="section-header" style="padding:0 0 14px;">
       <h2>Pending <em>Payment's</em></h2>
-      {% if pending_payments %}<span class="notification-badge">{{ pending_payments|length }}</span>{% endif %}
+      <span id="pending-payments-badge" class="notification-badge" {% if not pending_payments %}style="display:none;"{% endif %}>{{ pending_payments|length }}</span>
     </div>
 
     {% if pending_payments %}
