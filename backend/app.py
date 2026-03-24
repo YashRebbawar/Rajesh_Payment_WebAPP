@@ -3342,6 +3342,7 @@ def periodic_cleanup():
         app.last_cleanup = current_time
 
 @app.route('/health')
+@limiter.exempt
 def health_check():
     """Health check endpoint for Render"""
     db_status = 'ok' if check_db_connection() else 'unavailable'
