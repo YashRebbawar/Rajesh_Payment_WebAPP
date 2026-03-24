@@ -202,7 +202,8 @@ function filterUsers(q) {
   document.querySelectorAll('.admin-user-card').forEach(card => {
     const name  = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
     const email = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
-    card.style.display = (name.includes(q) || email.includes(q)) ? '' : 'none';
+    const accountNames = Array.from(card.querySelectorAll('.account-name')).map(el => el.textContent.toLowerCase()).join(' ');
+    card.style.display = (name.includes(q) || email.includes(q) || accountNames.includes(q)) ? '' : 'none';
   });
 }
 
