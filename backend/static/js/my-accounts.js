@@ -430,30 +430,37 @@ function displayUserMessages(messages) {
     }
     
     const userId = document.body.dataset.userId;
+    let lastDate = null;
+
     messages.forEach(msg => {
         try {
             if (!msg.sender_id || !msg.message || !msg.created_at) {
                 console.warn('Invalid message object:', msg);
                 return;
             }
+
+            const msgDate = new Date(msg.created_at).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            });
+            if (msgDate !== lastDate) {
+                const divider = document.createElement('div');
+                divider.className = 'chat-date-divider';
+                divider.innerHTML = `<span>${msgDate}</span>`;
+                messagesContainer.appendChild(divider);
+                lastDate = msgDate;
+            }
+
             const isOwn = msg.sender_id === userId;
+            const time = new Date(msg.created_at).toLocaleTimeString([], {
+                hour: '2-digit', minute: '2-digit'
+            });
+
             const messageDiv = document.createElement('div');
             messageDiv.className = `chat-message ${isOwn ? 'sent' : 'received'}`;
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = `message-bubble ${isOwn ? 'sent' : 'received'}`;
-            bubbleDiv.textContent = msg.message;
-            
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            timeDiv.textContent = time;
-            
-            const wrapper = document.createElement('div');
-            wrapper.appendChild(bubbleDiv);
-            wrapper.appendChild(timeDiv);
-            messageDiv.appendChild(wrapper);
-            
+            messageDiv.innerHTML = `
+                <div class="message-bubble ${isOwn ? 'sent' : 'received'}">${escapeHtml(msg.message)}</div>
+                <div class="message-time">${time}</div>`;
+
             messagesContainer.appendChild(messageDiv);
         } catch (err) {
             console.error('Error rendering message:', err, msg);

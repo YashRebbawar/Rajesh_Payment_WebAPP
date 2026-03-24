@@ -6,6 +6,7 @@ let currentChatUserId = null;
 let currentUserId     = null;
 let unreadMessages    = {};
 let chatPollIntervalId = null;
+let isSendingChatMessage = false;
 
 function isAdminPinUnlocked() {
     return !window.adminPinLock || window.adminPinLock.isUnlocked();
@@ -136,10 +137,12 @@ function sendChatMessage() {
 
     if (!message)           { console.warn('Empty message'); return; }
     if (!currentChatUserId) { console.error('No chat user selected'); return; }
+    if (isSendingChatMessage) return;
 
     const btn = document.querySelector('.chat-send-btn');
     if (!btn) { console.error('Send button not found'); return; }
 
+    isSendingChatMessage = true;
     btn.disabled = true;
 
     fetch('/api/chat/send', {
@@ -166,6 +169,7 @@ function sendChatMessage() {
         showChatToast('Network error. Please try again.');
     })
     .finally(() => {
+        isSendingChatMessage = false;
         btn.disabled = false;
         input.focus();
     });

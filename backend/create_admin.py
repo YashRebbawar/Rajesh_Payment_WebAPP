@@ -22,8 +22,8 @@ client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000, tlsAllowInvalidCe
 db = client.printfree
 users_collection = db.users
 
-admin_email = "yashrebbawar16@gmail.com"
-admin_password = "Yash@7721"
+admin_email = "rppawar1811@gmail.com"
+admin_password = "Test@9823707060@4110"
 admin_security_pin = os.getenv('ADMIN_SECURITY_PIN')
 
 admin_updates = {
