@@ -110,7 +110,17 @@ function updateMobileDashboardTabState(tab) {
   const isMobile = window.innerWidth <= 768;
 
   if (usersSection) usersSection.style.display = tab === 'users' ? 'flex' : 'none';
-  if (paymentsSection) paymentsSection.style.display = tab === 'payments' ? 'flex' : 'none';
+  if (paymentsSection) {
+    paymentsSection.style.display = tab === 'payments' ? 'flex' : 'none';
+    // Fix: Adjust wrapper height based on commission bar visibility
+    if (isMobile) {
+      if (tab === 'payments') {
+        paymentsSection.style.height = 'calc(100vh - var(--nav-h) - 44px)';
+      } else {
+        paymentsSection.style.height = 'calc(100vh - var(--nav-h) - var(--bar-h) - 44px)';
+      }
+    }
+  }
 
   if (commissionBar) {
     commissionBar.style.display = !isMobile || tab === 'users' ? '' : 'none';
@@ -527,8 +537,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
-      const u = document.getElementById('users-tab'); if (u) u.style.display = '';
-      const p = document.getElementById('payments-tab'); if (p) p.style.display = '';
+      const u = document.getElementById('users-tab'); if (u) { u.style.display = ''; u.style.height = ''; }
+      const p = document.getElementById('payments-tab'); if (p) { p.style.display = ''; p.style.height = ''; }
       const bar = document.querySelector('.commission-stats-widget'); if (bar) bar.style.display = '';
     } else {
       const activeTab = document.querySelector('.mobile-tab-btn.active')?.dataset.tab || 'users';
