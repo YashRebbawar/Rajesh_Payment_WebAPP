@@ -1037,6 +1037,27 @@ def get_active_testimonials(limit=6):
         })
     return testimonials
 
+def get_verified_traders_count():
+    """Count unique users with verified trading accounts (have account_type)"""
+    verified_users = accounts_collection.distinct('user_id', {'account_type': {'$exists': True, '$ne': None}})
+    return len(verified_users)
+
+def get_social_proof_stats():
+    """Get stats for landing page social proof: average rating and verified trader count"""
+    testimonials = get_active_testimonials(6)
+    verified_count = get_verified_traders_count()
+    
+    if testimonials:
+        avg_rating = sum(t['rating'] for t in testimonials) / len(testimonials)
+    else:
+        avg_rating = 5.0
+    
+    return {
+        'testimonials': testimonials,
+        'avg_rating': round(avg_rating, 1),
+        'verified_traders': verified_count if verified_count > 0 else len(testimonials)
+    }
+
 @app.context_processor
 def inject_global_template_flags():
     show_testimonial_prompt = bool(session.get('show_testimonial_prompt'))
@@ -1261,8 +1282,8 @@ def landing_page():
     user = get_current_user()
     if user:
         logger.info(f"User logged in: {user['email']}")
-    testimonials = get_active_testimonials()
-    return render_template('landing.html', user=user, testimonials=testimonials)
+    stats = get_social_proof_stats()
+    return render_template('landing.html', user=user, testimonials=stats['testimonials'], avg_rating=stats['avg_rating'], verified_traders=stats['verified_traders'])
 
 @app.route('/signin')
 def signin():

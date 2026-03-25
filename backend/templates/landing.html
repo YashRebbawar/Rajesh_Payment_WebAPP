@@ -87,15 +87,14 @@
 
       <div class="social-proof">
         <div class="avatars">
-          <div class="av" style="background:#3b82f6;">T</div>
-          <div class="av" style="background:#f59e0b;">A</div>
-          <div class="av" style="background:#ec4899;">P</div>
-          <div class="av" style="background:#8b5cf6;">M</div>
-          <div class="av" style="background:var(--green); font-size:9px;">+12M</div>
+          {% for testimonial in testimonials[:4] %}
+          <div class="av" style="background:hsl({{ loop.index0 * 90 }}, 70%, 55%);">{{ testimonial.name[0].upper() }}</div>
+          {% endfor %}
+          <div class="av" style="background:var(--green); font-size:9px;">+{{ testimonials|length }}</div>
         </div>
         <div class="social-text">
-          <div class="stars">★★★★★</div>
-          <div><strong>4.9 / 5</strong> from 50,000+ traders worldwide</div>
+          <div class="stars">{% for i in range(5) %}★{% endfor %}</div>
+          <div><strong>{{ avg_rating }} / 5</strong> from {{ verified_traders }} verified traders</div>
         </div>
       </div>
     </div>
@@ -264,7 +263,7 @@
       <div class="stat-desc">Active MT5 Traders</div>
     </div>
     <div class="stat-item reveal reveal-delay-1">
-      <div class="stat-num">$<span>544</span>M</div>
+      <div class="stat-num">$<span>750</span>M+</div>
       <div class="stat-desc">Total Trading Volume</div>
     </div>
     <div class="stat-item reveal reveal-delay-2">
