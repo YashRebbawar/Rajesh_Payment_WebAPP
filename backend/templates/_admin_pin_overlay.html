@@ -1,4 +1,4 @@
-<div class="admin-pin-overlay{% if not admin_pin_verified %} is-visible{% endif %}" id="admin-pin-overlay" aria-hidden="{{ 'false' if not admin_pin_verified else 'true' }}">
+<div class="admin-pin-overlay{% if not admin_pin_verified %} is-visible{% endif %}" id="admin-pin-overlay" {% if admin_pin_verified %}inert{% endif %}>
   <div class="admin-pin-backdrop"></div>
   <section class="admin-pin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-pin-title">
     <div class="admin-pin-kicker">Admin Vault Lock</div>

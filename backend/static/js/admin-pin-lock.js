@@ -25,7 +25,12 @@
     body.classList.toggle('admin-pin-locked', locked);
     if (!overlay) return;
     overlay.classList.toggle('is-visible', locked);
-    overlay.setAttribute('aria-hidden', locked ? 'false' : 'true');
+    // Use inert instead of aria-hidden to prevent focus conflicts
+    if (locked) {
+      overlay.removeAttribute('inert');
+    } else {
+      overlay.setAttribute('inert', '');
+    }
   }
 
   function setStatus(message, isError = false) {
