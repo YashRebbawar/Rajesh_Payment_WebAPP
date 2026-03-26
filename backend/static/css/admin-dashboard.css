@@ -634,10 +634,10 @@ body.admin-page::after {
 .payment-amount .amount { font-family: var(--number-font); font-size: 22px; font-weight: 700; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
 .payment-amount .currency { font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink-45); }
 .payment-reference { background: var(--cream); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; }
-.ref-value { font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: var(--ink); }
+.ref-value { font-size: 11px; font-weight: 700; color: var(--ink); }
 .payment-upi { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 0 16px; margin-bottom: 12px; }
 .upi-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-45); min-width: 40px; }
-.upi-value { font-family: 'Courier New', monospace; font-size: 11px; color: var(--ink); font-weight: 600; }
+.upi-value { font-size: 11px; color: var(--ink); font-weight: 600; }
 
 .payment-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 16px; background: linear-gradient(135deg, rgba(45,122,79,.03) 0%, rgba(45,122,79,.01) 100%); border-top: 1px solid var(--border); }
 .payment-actions button { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .18s; white-space: nowrap; }
@@ -655,6 +655,23 @@ body.admin-page::after {
 .no-payments-message { text-align: center; padding: 40px 16px; }
 .no-payments-message svg { display: block; margin: 0 auto 10px; width: 48px; height: 48px; color: var(--ink-25); }
 .no-payments-message p { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--ink-45); letter-spacing: -.3px; }
+
+/* Bank Details Modal */
+.bank-details-modal { display: none; position: fixed; inset: 0; z-index: 2500; background: rgba(26,21,16,.5); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
+.bank-details-modal.active { display: flex !important; }
+.bank-details-modal-content { background: var(--white); border-radius: 16px; padding: 24px; max-width: 380px; width: 92%; box-shadow: var(--shd-lg); animation: popIn .26s cubic-bezier(.22,1,.36,1); }
+.bank-details-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.bank-details-modal-header h3 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 900; letter-spacing: -.5px; color: var(--ink); margin: 0; }
+.bank-details-modal-close { background: var(--cream); border: 1.5px solid var(--border); border-radius: 7px; width: 28px; height: 28px; cursor: pointer; color: var(--ink-45); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all .17s; }
+.bank-details-modal-close:hover { background: var(--cream-dk); color: var(--ink); border-color: var(--ink-45); }
+.bank-details-modal-body { display: flex; flex-direction: column; gap: 16px; }
+.bank-detail-item { display: flex; flex-direction: column; gap: 6px; }
+.detail-label-row { display: flex; align-items: center; justify-content: space-between; }
+.detail-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-45); }
+.detail-copy-btn { background: none; border: none; padding: 4px; cursor: pointer; color: var(--ink-45); display: flex; align-items: center; justify-content: center; transition: all .17s; }
+.detail-copy-btn:hover { color: var(--ink); transform: scale(1.1); }
+.detail-copy-btn.copied { color: var(--green); }
+.detail-value { font-size: 12px; font-weight: 600; color: var(--ink); word-break: break-all; padding: 10px 12px; background: var(--cream); border: 1px solid var(--border); border-radius: 8px; }
 
 /* ══════════════════════════════════════════
    MODALS

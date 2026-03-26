@@ -579,9 +579,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function updatePaymentTimes() {}
 
-function showBankDetailsPopup(event, bankAccount, ifscCode) {
+function showBankDetailsPopup(event, bankAccount, ifscCode, accountHolder = '') {
   event.preventDefault();
   event.stopPropagation();
+  document.getElementById('bank-account-holder-value').textContent = accountHolder || 'N/A';
   document.getElementById('bank-account-value').textContent = bankAccount || 'N/A';
   document.getElementById('bank-ifsc-value').textContent = ifscCode || 'N/A';
   document.getElementById('bank-details-modal').classList.add('active');
@@ -609,8 +610,8 @@ function copyDetailField(elementId, btn) {
   }).catch(() => showToast('Failed to copy', 'error'));
 }
 
-function copyBankDetails(account, ifsc, btn) {
-  const text = `Account: ${account}\nIFSC: ${ifsc}`;
+function copyBankDetails(account, ifsc, holder, btn) {
+  const text = `Account Holder: ${holder}\nAccount: ${account}\nIFSC: ${ifsc}`;
   navigator.clipboard.writeText(text).then(() => {
     btn.classList.add('copied');
     btn.textContent = 'Copied!';

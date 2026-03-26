@@ -1835,6 +1835,7 @@ def initiate_withdrawal():
         upi_pattern = re.compile(r'^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$')
         bank_account_pattern = re.compile(r'^\d{9,18}$')
         ifsc_pattern = re.compile(r'^[A-Z]{4}0[A-Z0-9]{6}$')
+        account_holder_pattern = re.compile(r'^[a-zA-Z\s]{3,}$')
 
         if payment_method == 'upi':
             if amount < 10 or amount > 50:
@@ -1847,10 +1848,14 @@ def initiate_withdrawal():
                 return jsonify({'success': False, 'message': 'Bank transfer withdrawal amount must be at least $50'})
             bank_account = (data.get('bank_account') or '').strip()
             ifsc_code = (data.get('ifsc_code') or '').strip().upper()
+            account_holder_name = (data.get('account_holder_name') or '').strip()
+            
             if not bank_account_pattern.match(bank_account):
                 return jsonify({'success': False, 'message': 'Please enter a valid bank account number'})
             if not ifsc_pattern.match(ifsc_code):
                 return jsonify({'success': False, 'message': 'Please enter a valid IFSC code'})
+            if not account_holder_pattern.match(account_holder_name):
+                return jsonify({'success': False, 'message': 'Please enter a valid account holder name'})
         
         if amount > balance:
             return jsonify({'success': False, 'message': 'Insufficient balance'})
@@ -1872,6 +1877,7 @@ def initiate_withdrawal():
         else:
             withdrawal_doc['bank_account'] = bank_account
             withdrawal_doc['ifsc_code'] = ifsc_code
+            withdrawal_doc['account_holder_name'] = account_holder_name
         
         result = payments_collection.insert_one(withdrawal_doc)
         
@@ -1894,6 +1900,7 @@ def initiate_withdrawal():
         else:
             notification_doc['bank_account'] = bank_account
             notification_doc['ifsc_code'] = ifsc_code
+            notification_doc['account_holder_name'] = account_holder_name
         
         notifications_collection.insert_one(notification_doc)
         
@@ -2895,7 +2902,8 @@ def get_saved_credentials():
             'success': True,
             'upi_id': user_data.get('saved_upi_id'),
             'bank_account': user_data.get('saved_bank_account'),
-            'ifsc_code': user_data.get('saved_ifsc_code')
+            'ifsc_code': user_data.get('saved_ifsc_code'),
+            'account_holder_name': user_data.get('saved_account_holder_name')
         })
     except Exception as e:
         logger.error(f"Error fetching saved credentials: {e}")
@@ -2917,9 +2925,11 @@ def save_withdrawal_credentials():
         if data.get('bank_account'):
             update_data['saved_bank_account'] = data['bank_account']
             update_data['saved_ifsc_code'] = data.get('ifsc_code')
+            update_data['saved_account_holder_name'] = data.get('account_holder_name')
         else:
             update_data['saved_bank_account'] = None
             update_data['saved_ifsc_code'] = None
+            update_data['saved_account_holder_name'] = None
         
         users_collection.update_one({'_id': user['_id']}, {'$set': update_data})
         return jsonify({'success': True})

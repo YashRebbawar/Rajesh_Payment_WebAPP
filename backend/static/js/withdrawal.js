@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const upiIdInput = document.getElementById('upi-id');
     const bankAccountInput = document.getElementById('bank-account');
     const ifscCodeInput = document.getElementById('ifsc-code');
+    const accountHolderInput = document.getElementById('account-holder-name');
     const continueButton = document.getElementById('continue-button');
     const confirmationModal = document.getElementById('confirmation-modal');
     const successModal = document.getElementById('success-modal');
@@ -45,23 +46,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const upiFieldGroup = document.getElementById('upi-field-group');
     const bankFieldGroup = document.getElementById('bank-field-group');
     const ifscFieldGroup = document.getElementById('ifsc-field-group');
+    const accountHolderFieldGroup = document.getElementById('account-holder-field-group');
     const saveUpiCheckbox = document.getElementById('save-upi-checkbox');
     const saveBankCheckbox = document.getElementById('save-bank-checkbox');
     const amountField = document.getElementById('amount-field');
     const upiField = document.getElementById('upi-field');
     const bankField = document.getElementById('bank-field');
     const ifscField = document.getElementById('ifsc-field');
+    const accountHolderField = document.getElementById('account-holder-field');
     const amountError = document.getElementById('amount-error');
     const upiError = document.getElementById('upi-error');
     const bankAccountError = document.getElementById('bank-account-error');
     const ifscError = document.getElementById('ifsc-error');
+    const accountHolderError = document.getElementById('account-holder-error');
 
     let selectedPaymentMethod = 'upi';
     const touchedFields = {
         amount: false,
         upi: false,
         bankAccount: false,
-        ifsc: false
+        ifsc: false,
+        accountHolder: false
     };
 
     async function loadSavedCredentials() {
@@ -83,6 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ifscField.classList.add('filled');
                     saveBankCheckbox.checked = true;
                 }
+                if (data.account_holder_name) {
+                    accountHolderInput.value = data.account_holder_name;
+                    accountHolderField.classList.add('filled');
+                    saveBankCheckbox.checked = true;
+                }
             }
         } catch (error) {
             console.error('Error loading credentials:', error);
@@ -97,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     upi_id: saveUpiCheckbox.checked ? upiIdInput.value.trim() : null,
                     bank_account: saveBankCheckbox.checked ? bankAccountInput.value.trim() : null,
-                    ifsc_code: saveBankCheckbox.checked ? ifscCodeInput.value.trim().toUpperCase() : null
+                    ifsc_code: saveBankCheckbox.checked ? ifscCodeInput.value.trim().toUpperCase() : null,
+                    account_holder_name: saveBankCheckbox.checked ? accountHolderInput.value.trim() : null
                 })
             });
         } catch (error) {
@@ -128,11 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const upiId = upiIdInput.value.trim();
         const bankAccount = bankAccountInput.value.trim();
         const ifscCode = ifscCodeInput.value.trim().toUpperCase();
+        const accountHolder = accountHolderInput.value.trim();
         const errors = {
             amount: '',
             upi: '',
             bankAccount: '',
-            ifsc: ''
+            ifsc: '',
+            accountHolder: ''
         };
 
         if (amount <= 0) {
@@ -163,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (!validateIfscCode(ifscCode)) {
                 errors.ifsc = 'Enter a valid IFSC code like SBIN0001234.';
             }
+
+            if (!accountHolder) {
+                errors.accountHolder = 'Enter the account holder name.';
+            } else if (accountHolder.length < 3) {
+                errors.accountHolder = 'Account holder name must be at least 3 characters.';
+            } else if (!/^[a-zA-Z\s]+$/.test(accountHolder)) {
+                errors.accountHolder = 'Account holder name should contain only letters.';
+            }
         }
 
         return errors;
@@ -174,15 +195,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const showUpiError = showErrors || touchedFields.upi;
         const showBankAccountError = showErrors || touchedFields.bankAccount;
         const showIfscError = showErrors || touchedFields.ifsc;
+        const showAccountHolderError = showErrors || touchedFields.accountHolder;
 
         setFieldError(amountField, amountError, showAmountError ? errors.amount : '');
         setFieldError(upiField, upiError, selectedPaymentMethod === 'upi' && showUpiError ? errors.upi : '');
         setFieldError(bankField, bankAccountError, selectedPaymentMethod === 'bank' && showBankAccountError ? errors.bankAccount : '');
         setFieldError(ifscField, ifscError, selectedPaymentMethod === 'bank' && showIfscError ? errors.ifsc : '');
+        setFieldError(accountHolderField, accountHolderError, selectedPaymentMethod === 'bank' && showAccountHolderError ? errors.accountHolder : '');
 
         if (selectedPaymentMethod === 'upi') {
             setFieldError(bankField, bankAccountError, '');
             setFieldError(ifscField, ifscError, '');
+            setFieldError(accountHolderField, accountHolderError, '');
         } else {
             setFieldError(upiField, upiError, '');
         }
@@ -212,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateButtonState() {
         const errors = getValidationErrors();
-        const isValid = !errors.amount && !errors.upi && !errors.bankAccount && !errors.ifsc;
+        const isValid = !errors.amount && !errors.upi && !errors.bankAccount && !errors.ifsc && !errors.accountHolder;
 
         continueButton.classList.toggle('active', isValid);
         continueButton.disabled = !isValid;
@@ -233,12 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
             upiFieldGroup.style.display = 'block';
             bankFieldGroup.style.display = 'none';
             ifscFieldGroup.style.display = 'none';
+            accountHolderFieldGroup.style.display = 'none';
             document.getElementById('processing-time').textContent = '~15 minutes';
             document.getElementById('method-display').textContent = 'UPI';
         } else {
             upiFieldGroup.style.display = 'none';
             bankFieldGroup.style.display = 'block';
             ifscFieldGroup.style.display = 'block';
+            accountHolderFieldGroup.style.display = 'block';
             document.getElementById('processing-time').textContent = '~30 minutes';
             document.getElementById('method-display').textContent = 'Bank Transfer';
         }
@@ -340,6 +366,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonState();
     });
 
+    accountHolderInput.addEventListener('input', () => {
+        renderValidationState();
+        updateButtonState();
+    });
+
     amountInput.addEventListener('blur', () => {
         touchedFields.amount = true;
         renderValidationState();
@@ -360,23 +391,32 @@ document.addEventListener('DOMContentLoaded', () => {
         renderValidationState();
     });
 
+    accountHolderInput.addEventListener('blur', () => {
+        touchedFields.accountHolder = true;
+        renderValidationState();
+    });
+
     continueButton.addEventListener('click', () => {
         const errors = renderValidationState(true);
-        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc) return;
+        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc || errors.accountHolder) return;
 
         const amount = parseFloat(amountInput.value) || 0;
         const upiId = upiIdInput.value.trim();
         const bankAccount = bankAccountInput.value.trim();
         const ifscCode = ifscCodeInput.value.trim().toUpperCase();
+        const accountHolder = accountHolderInput.value.trim();
 
         document.getElementById('confirm-amount').textContent = amount.toFixed(2);
         document.getElementById('confirm-currency').textContent = currency;
         if (selectedPaymentMethod === 'upi') {
             document.getElementById('confirm-upi').textContent = upiId;
             document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'UPI destination';
+            document.getElementById('account-holder-detail-row').style.display = 'none';
         } else {
             document.getElementById('confirm-upi').textContent = `${bankAccount} (${ifscCode})`;
             document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'Bank account';
+            document.getElementById('confirm-account-holder').textContent = accountHolder;
+            document.getElementById('account-holder-detail-row').style.display = 'flex';
         }
         confirmationModal.style.display = 'block';
     });
@@ -391,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmBtn.addEventListener('click', async () => {
         const errors = renderValidationState(true);
-        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc) {
+        if (errors.amount || errors.upi || errors.bankAccount || errors.ifsc || errors.accountHolder) {
             confirmationModal.style.display = 'none';
             return;
         }
@@ -400,6 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const upiId = upiIdInput.value.trim();
         const bankAccount = bankAccountInput.value.trim();
         const ifscCode = ifscCodeInput.value.trim().toUpperCase();
+        const accountHolder = accountHolderInput.value.trim();
 
         saveCredentials();
 
@@ -415,6 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             payload.bank_account = bankAccount;
             payload.ifsc_code = ifscCode;
+            payload.account_holder_name = accountHolder;
         }
 
         try {
