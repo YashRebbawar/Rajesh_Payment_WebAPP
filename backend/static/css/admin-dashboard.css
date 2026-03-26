@@ -755,6 +755,7 @@ body.admin-page::after {
   .section-header { padding: 12px 14px 10px; align-items: flex-start; }
   .section-header h2 { font-size: 20px; }
   .notification-badge { min-width: 20px; height: 20px; padding: 0 7px; font-size: 9px; }
+  #pending-payments-badge { display: none; }
   .user-count-widget { min-width: 55px; padding: 3px 7px; }
   .user-count-number { font-size: 14px; }
   .user-count-label { font-size: 5px; margin-top: 1px; }
