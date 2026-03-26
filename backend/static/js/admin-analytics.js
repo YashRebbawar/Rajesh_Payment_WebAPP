@@ -2,6 +2,17 @@ function formatNumber(value) {
     return Number(value || 0).toLocaleString('en-IN');
 }
 
+function isMobileViewport() {
+    return window.innerWidth <= 768;
+}
+
+function getTooltipDimensions() {
+    if (isMobileViewport()) {
+        return { width: 70, height: 26, fontSize: 9, padding: 3 };
+    }
+    return { width: 92, height: 28, fontSize: 10, padding: 6 };
+}
+
 function formatCurrency(value, symbol = '₹') {
     return `${symbol}${Number(value || 0).toLocaleString('en-IN', {
         minimumFractionDigits: 2,
@@ -117,6 +128,7 @@ function renderLineTrendChart(labels, values, formatter) {
     const paddingX = 18;
     const paddingTop = 20;
     const paddingBottom = 34;
+    const tooltipDims = getTooltipDimensions();
     const chartHeight = height - paddingTop - paddingBottom;
     const chartWidth = width - paddingX * 2;
     const maxValue = Math.max(...values, 0);
@@ -152,16 +164,47 @@ function renderLineTrendChart(labels, values, formatter) {
             <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
                 <path class="line-chart-area" d="M ${areaPoints}" fill="rgba(29,108,83,0.15)"></path>
                 <polyline class="line-chart-path" points="${linePoints}"></polyline>
-                ${points.map(point => `
+                ${points.map(point => {
+                    const tooltipWidth = tooltipDims.width;
+                    const tooltipHeight = tooltipDims.height;
+                    const strokeWidth = 1;
+                    const safetyMargin = isMobileViewport() ? 4 : 8;
+                    
+                    // Calculate tooltip position with boundary checks
+                    let tooltipX = point.x - tooltipWidth / 2;
+                    let tooltipY = point.y - tooltipHeight - 6;
+                    
+                    // Prevent right overflow (including stroke width and safety margin)
+                    if (tooltipX + tooltipWidth + strokeWidth > width - safetyMargin) {
+                        tooltipX = width - tooltipWidth - strokeWidth - safetyMargin;
+                    }
+                    // Prevent left overflow (including safety margin)
+                    if (tooltipX < safetyMargin) {
+                        tooltipX = safetyMargin;
+                    }
+                    // Prevent top overflow (including safety margin)
+                    if (tooltipY < safetyMargin) {
+                        tooltipY = safetyMargin;
+                    }
+                    // Prevent bottom overflow (including stroke width and safety margin)
+                    if (tooltipY + tooltipHeight + strokeWidth > height - safetyMargin) {
+                        tooltipY = height - tooltipHeight - strokeWidth - safetyMargin;
+                    }
+                    
+                    // Calculate text position (centered in tooltip)
+                    const textX = tooltipX + tooltipWidth / 2;
+                    const textY = tooltipY + tooltipHeight / 2 + 3;
+                    
+                    return `
                     <g class="line-point-group">
                         <circle class="line-point-hit" cx="${point.x}" cy="${point.y}" r="14"></circle>
                         <circle class="line-point-dot" cx="${point.x}" cy="${point.y}" r="4"></circle>
-                        <g class="line-point-tooltip">
-                            <rect x="${Math.max(point.x - 46, 6)}" y="${Math.max(point.y - 42, 6)}" width="92" height="28" rx="8"></rect>
-                            <text x="${point.x}" y="${Math.max(point.y - 24, 20)}" text-anchor="middle">${formatter(point.value)}</text>
+                        <g class="line-point-tooltip" data-mobile="${isMobileViewport()}">
+                            <rect x="${tooltipX}" y="${tooltipY}" width="${tooltipWidth}" height="${tooltipHeight}" rx="6" stroke="var(--border-md)" stroke-width="${strokeWidth}"></rect>
+                            <text x="${textX}" y="${textY}" text-anchor="middle" font-size="${tooltipDims.fontSize}">${formatter(point.value)}</text>
                         </g>
                     </g>
-                `).join('')}
+                `}).join('')}
             </svg>
             <div class="line-x-axis">
                 ${xLabels}
@@ -364,6 +407,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (analyticsInitialized || !isAdminPinUnlocked()) return;
         analyticsInitialized = true;
         loadAnalytics();
+        
+        // Add touch support for mobile tooltips on SVG charts
+        if (isMobileViewport()) {
+            document.addEventListener('touchstart', (e) => {
+                if (e.target.classList?.contains('line-point-hit')) {
+                    const group = e.target.parentElement;
+                    group.classList.add('active');
+                    setTimeout(() => group.classList.remove('active'), 3000);
+                }
+            }, { passive: true });
+        }
     }
 
     document.getElementById('analytics-refresh-btn')?.addEventListener('click', () => loadAnalytics(currentWindow));

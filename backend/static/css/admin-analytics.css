@@ -490,7 +490,7 @@ body.analytics-page::after {
 .a-section {
   background: var(--panel);
   border: 1px solid var(--border-md);
-  border-radius: 12px; overflow: hidden;
+  border-radius: 12px; overflow: visible;
   transition: var(--tr);
 }
 
@@ -618,7 +618,7 @@ body.analytics-page::after {
 
 .chart-card,
 .table-card {
-  background: var(--panel); overflow: hidden; min-width: 0;
+  background: var(--panel); overflow: visible; min-width: 0;
   transition: background .18s;
 }
 .chart-card:hover,
@@ -658,7 +658,7 @@ body.analytics-page::after {
 /* ═══════════════════
    TREND CHART (bars)
 ═══════════════════ */
-.trend-chart { display: grid; gap: 10px; min-height: 240px; }
+.trend-chart { display: grid; gap: 10px; min-height: 240px; overflow: visible; }
 .trend-summary {
   display: flex; justify-content: space-between; align-items: center; gap: 10px;
 }
@@ -671,10 +671,12 @@ body.analytics-page::after {
   display: grid;
   grid-template-columns: repeat(var(--bars, 1), minmax(0, 1fr));
   gap: 4px; align-items: end; min-height: 150px;
+  overflow: visible;
 }
 .trend-bar-wrap { display: grid; gap: 4px; min-width: 0; }
 .trend-bar-zone {
   position: relative; display: flex; align-items: flex-end; justify-content: center;
+  overflow: visible;
 }
 .trend-bar {
   width: 100%; min-height: 4px; border-radius: 3px 3px 1px 1px;
@@ -706,6 +708,9 @@ body.analytics-page::after {
   color: var(--green); font-family: var(--number); font-size: 10px; font-weight: 700;
   white-space: nowrap; transition: opacity .14s, transform .14s;
   font-variant-numeric: tabular-nums lining-nums;
+  max-width: 140px; width: max-content;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: visible;
 }
 .trend-bar-zone:hover .trend-hover-value { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -720,7 +725,7 @@ body.analytics-page::after {
 /* ═══════════════════
    LINE CHART
 ═══════════════════ */
-.line-chart-shell { display: grid; gap: 8px; }
+.line-chart-shell { display: grid; gap: 8px; overflow: visible; }
 .line-chart-svg { width: 100%; height: 200px; overflow: visible; }
 .line-chart-area { fill: rgba(46,204,122,.10); }
 [data-theme="light"] .line-chart-area { fill: rgba(45,122,79,.09); }
@@ -732,13 +737,15 @@ body.analytics-page::after {
   stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
 .money-trend .line-chart-path { stroke: var(--gold); }
-.line-point-hit { fill: transparent; }
+.line-point-hit { fill: transparent; cursor: pointer; }
 .line-point-dot { fill: var(--green); stroke: var(--panel); stroke-width: 2; }
 .money-trend .line-point-dot { fill: var(--gold); }
-.line-point-tooltip { opacity: 0; transition: opacity .15s; }
-.line-point-tooltip rect { fill: var(--surface); }
-.line-point-tooltip text { fill: var(--green); font: 700 10px var(--number); font-variant-numeric: tabular-nums lining-nums; }
-.line-point-group:hover .line-point-tooltip { opacity: 1; }
+.line-point-tooltip { opacity: 0; transition: opacity .15s; pointer-events: none; }
+.line-point-tooltip rect { fill: var(--surface); stroke: var(--border-md); stroke-width: 1; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2)); }
+.line-point-tooltip text { fill: var(--green); font: 700 10px var(--number); font-variant-numeric: tabular-nums lining-nums; pointer-events: none; }
+.line-point-group:hover .line-point-tooltip,
+.line-point-group:active .line-point-tooltip,
+.line-point-group.active .line-point-tooltip { opacity: 1; }
 .line-x-axis { position: relative; min-height: 16px; }
 .line-x-label {
   position: absolute; top: 0; transform: translateX(-50%);
@@ -823,6 +830,12 @@ body.analytics-page::after {
   .charts-grid, .tables-grid { grid-template-columns: 1fr; }
   .cards-grid { grid-template-columns: repeat(2, 1fr); }
   .fee-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  
+  /* Ensure tooltips visible on medium screens */
+  .line-chart-shell,
+  .trend-chart {
+    overflow: visible;
+  }
 }
 @media (max-width: 768px) {
   .analytics-shell { padding: 10px 10px 40px; gap: 10px; }
@@ -836,4 +849,37 @@ body.analytics-page::after {
   .analytics-hero { padding: 18px; }
   .analytics-hero h1 { font-size: 26px; }
   .metric-value { font-size: 26px; }
+  
+  /* Mobile chart fixes */
+  .trend-chart,
+  .rank-chart,
+  .data-table,
+  .chart-card,
+  .a-section {
+    overflow: visible !important;
+  }
+  
+  .line-chart-shell {
+    overflow: visible;
+    padding: 0;
+  }
+  
+  .line-chart-svg {
+    overflow: visible;
+    padding: 4px;
+  }
+  
+  .line-point-tooltip text {
+    font-size: 9px;
+  }
+  
+  .trend-hover-value {
+    font-size: 9px;
+    padding: 3px 5px;
+  }
+  
+  .charts-grid,
+  .tables-grid {
+    overflow: visible;
+  }
 }
