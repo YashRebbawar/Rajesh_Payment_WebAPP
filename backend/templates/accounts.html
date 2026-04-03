@@ -79,7 +79,6 @@
   <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
     {% if user %}
-    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
     <button class="btn-pill" onclick="window.location.href='/logout'; closeMobileNav()">Logout →</button>
     {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
