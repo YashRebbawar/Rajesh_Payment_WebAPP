@@ -106,7 +106,7 @@ try:
     accounts_collection.create_index('user_id')
     accounts_collection.create_index([('user_id', 1), ('nickname', 1)])
     chats_collection.create_index([('user_id', 1), ('admin_id', 1)])
-    chats_collection.create_index('created_at')
+    chats_collection.create_index('created_at', expireAfterSeconds=172800)
     logger.info("Database indexes created successfully")
 except Exception as e:
     logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
