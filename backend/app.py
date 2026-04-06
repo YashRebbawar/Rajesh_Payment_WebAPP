@@ -1017,14 +1017,13 @@ def check_db_connection():
 def should_prompt_for_testimonial(user):
     return bool(user and not user.get('is_admin') and not user.get('testimonial_submitted'))
 
-def get_active_testimonials(limit=6):
-    raw_testimonials = list(
-        testimonials_collection.find({'is_active': True})
-        .sort([('display_order', 1), ('created_at', -1)])
-        .limit(limit)
-    )
+def get_active_testimonials(limit=None):
+    query = testimonials_collection.find({'is_active': True}).sort([('display_order', 1), ('created_at', -1)])
+    if limit is not None:
+        query = query.limit(limit)
+    raw_testimonials = list(query)
     if not raw_testimonials:
-        return DEFAULT_TESTIMONIALS[:limit]
+        return DEFAULT_TESTIMONIALS[:limit] if limit is not None else DEFAULT_TESTIMONIALS[:]
 
     testimonials = []
     for testimonial in raw_testimonials:
@@ -1043,7 +1042,7 @@ def get_verified_traders_count():
 
 def get_social_proof_stats():
     """Get stats for landing page social proof: average rating and verified trader count"""
-    testimonials = get_active_testimonials(6)
+    testimonials = get_active_testimonials()
     verified_count = get_verified_traders_count()
     
     if testimonials:
