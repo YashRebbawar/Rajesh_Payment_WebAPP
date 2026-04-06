@@ -39,12 +39,16 @@
 
 <!-- Mobile Nav Overlay -->
 <div class="mobile-nav" id="mobileNav">
+  {% if not user or not user.is_admin %}
   <a href="/my-accounts" onclick="closeMobileNav()">My Accounts</a>
+  {% endif %}
   <a href="/accounts" onclick="closeMobileNav()">Open Account</a>
   <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
     {% if user %}
-    <button class="btn-pill" onclick="window.location.href='{{ '/admin/dashboard' if user.is_admin else '/my-accounts' }}'; closeMobileNav()">{% if user.is_admin %}Dashboard{% else %}My Accounts{% endif %} →</button>
+    {% if user.is_admin %}
+    <button class="btn-pill" onclick="window.location.href='/admin/dashboard'; closeMobileNav()">Dashboard →</button>
+    {% endif %}
     <button class="btn-pill" onclick="window.location.href='/logout'; closeMobileNav()">Logout →</button>
     {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
