@@ -172,18 +172,18 @@ document.addEventListener('DOMContentLoaded', function () {
             minAmount: accountType === 'standard' ? 1000 : 50000,
             maxAmount: 100000,
             step: '1',
-            feeRate: 0.014,
+            feeRate: 0.016,
             rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
-            feeLabel: '1.4%'
+            feeLabel: '1.6%'
         },
         imps: {
             currency: fiatCurrency,
             minAmount: accountType === 'standard' ? 1000 : 50000,
             maxAmount: 100000,
             step: '1',
-            feeRate: 0.014,
+            feeRate: 0.016,
             rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
-            feeLabel: '1.4%'
+            feeLabel: '1.6%'
         },
         usdt: {
             currency: 'USDT',

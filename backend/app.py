@@ -1017,14 +1017,13 @@ def check_db_connection():
 def should_prompt_for_testimonial(user):
     return bool(user and not user.get('is_admin') and not user.get('testimonial_submitted'))
 
-def get_active_testimonials(limit=6):
-    raw_testimonials = list(
-        testimonials_collection.find({'is_active': True})
-        .sort([('display_order', 1), ('created_at', -1)])
-        .limit(limit)
-    )
+def get_active_testimonials(limit=None):
+    query = testimonials_collection.find({'is_active': True}).sort([('display_order', 1), ('created_at', -1)])
+    if limit is not None:
+        query = query.limit(limit)
+    raw_testimonials = list(query)
     if not raw_testimonials:
-        return DEFAULT_TESTIMONIALS[:limit]
+        return DEFAULT_TESTIMONIALS[:limit] if limit is not None else DEFAULT_TESTIMONIALS[:]
 
     testimonials = []
     for testimonial in raw_testimonials:
@@ -1043,7 +1042,7 @@ def get_verified_traders_count():
 
 def get_social_proof_stats():
     """Get stats for landing page social proof: average rating and verified trader count"""
-    testimonials = get_active_testimonials(6)
+    testimonials = get_active_testimonials()
     verified_count = get_verified_traders_count()
     
     if testimonials:
@@ -1198,7 +1197,7 @@ def calculate_platform_fee(payment):
 
     payment_method = str(payment.get('payment_method') or '').lower()
     currency = str(payment.get('currency') or '').upper()
-    fee_rate = 0.019 if payment_method == 'usdt' or currency == 'USDT' else 0.014
+    fee_rate = 0.019 if payment_method == 'usdt' or currency == 'USDT' else 0.016
 
     try:
         amount = float(payment.get('amount') or 0)
@@ -1779,7 +1778,7 @@ def initiate_payment():
             if amount < min_amount or amount > max_amount:
                 return jsonify({'success': False, 'message': f'{payment_method.upper()} deposit amount must be between {min_amount} and {max_amount}'})
             currency = 'INR' if account['currency'] == 'USD' else account['currency']
-            fee_rate = 0.014
+            fee_rate = 0.016
         else:
             return jsonify({'success': False, 'message': 'Invalid payment method'})
         
@@ -3263,7 +3262,7 @@ def get_stats():
 
 @app.route('/api/admin/commission-stats', methods=['GET'])
 def get_commission_stats():
-    """Get total platform fees (1.4% of all completed deposits)"""
+    """Get total platform fees (1.6% of standard completed deposits)"""
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
@@ -3278,7 +3277,7 @@ def get_commission_stats():
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
-        platform_fee = total_amount * 0.014
+        platform_fee = total_amount * 0.016
         transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
         
         pending_deposits = list(payments_collection.aggregate([
@@ -3287,7 +3286,7 @@ def get_commission_stats():
         ]))
         
         pending_total = pending_deposits[0]['total'] if pending_deposits else 0
-        pending_fee = pending_total * 0.014
+        pending_fee = pending_total * 0.016
         
         # Calculate monthly commission
         now = get_current_utc_time()
@@ -3311,7 +3310,7 @@ def get_commission_stats():
         ]))
         
         monthly_amount = monthly_deposits[0]['total'] if monthly_deposits else 0
-        monthly_fee = monthly_amount * 0.014
+        monthly_fee = monthly_amount * 0.016
         
         return jsonify({
             'success': True,
