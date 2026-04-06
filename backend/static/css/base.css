@@ -7,7 +7,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #faf8f3 0%, #f5f1eb 50%, #efe8e0 100%);
+  background: #ffffff;
   color: #1a1a1a;
   overflow-x: hidden;
   overflow-y: auto;
@@ -16,34 +16,58 @@ body {
 }
 
 body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: 
-    radial-gradient(circle at 30% 40%, rgba(212, 165, 116, 0.4) 0%, transparent 25%),
-    radial-gradient(circle at 70% 60%, rgba(212, 165, 116, 0.3) 0%, transparent 25%),
-    radial-gradient(circle at 50% 80%, rgba(179, 157, 219, 0.25) 0%, transparent 25%);
-  pointer-events: none;
-  z-index: 0;
-  animation: backgroundShift 15s ease-in-out infinite;
+  display: none;
 }
 
 body::after {
-  content: '';
+  display: none;
+}
+
+.pf-cursor-dot,
+.pf-cursor-ring {
   position: fixed;
-  top: 20%;
-  right: 10%;
-  width: 400px;
-  height: 400px;
-  background: rgba(212, 165, 116, 0.2);
-  border-radius: 50%;
-  filter: blur(100px);
+  top: 0;
+  left: 0;
   pointer-events: none;
-  z-index: 0;
-  animation: float1 20s ease-in-out infinite;
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0);
+  z-index: 9999;
+  will-change: transform;
+}
+
+.pf-cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2d7a4f;
+  box-shadow: 0 0 18px rgba(45, 122, 79, 0.45);
+  transition: opacity 0.15s ease;
+}
+
+.pf-cursor-ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(45, 122, 79, 0.75);
+  transition: width 0.15s ease, height 0.15s ease, opacity 0.15s ease;
+}
+
+html.pf-cursor-active .pf-cursor-dot,
+html.pf-cursor-active .pf-cursor-ring {
+  opacity: 1;
+}
+
+html.pf-cursor-hover .pf-cursor-ring {
+  width: 44px;
+  height: 44px;
+  opacity: 0.88;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .pf-cursor-dot,
+  .pf-cursor-ring {
+    display: none !important;
+  }
 }
 
 @keyframes float1 {

@@ -1,0 +1,43 @@
+<div class="admin-pin-overlay{% if not admin_pin_verified %} is-visible{% endif %}" id="admin-pin-overlay" {% if admin_pin_verified %}inert{% endif %}>
+  <div class="admin-pin-backdrop"></div>
+  <section class="admin-pin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-pin-title">
+    <div class="admin-pin-kicker">Admin Vault Lock</div>
+    <h2 id="admin-pin-title">Security PIN Required</h2>
+    <p class="admin-pin-copy">
+      Re-enter the dashboard PIN to reveal sensitive admin controls, chats, balances, and payout actions.
+    </p>
+    <div class="admin-pin-status-row">
+      <span class="admin-pin-status-dot"></span>
+      <span id="admin-pin-status-text">
+        {% if admin_pin_configured %}
+        Session protected with live relock on blur and inactivity.
+        {% else %}
+        Security PIN is not configured on the server yet.
+        {% endif %}
+      </span>
+    </div>
+    <form id="admin-pin-form" class="admin-pin-form" novalidate>
+      <label class="admin-pin-label" for="admin-pin-input">Security PIN</label>
+      <input
+        id="admin-pin-input"
+        class="admin-pin-input"
+        type="password"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="8"
+        autocomplete="one-time-code"
+        placeholder="Enter PIN">
+      <p class="admin-pin-error" id="admin-pin-error" aria-live="polite"></p>
+      <div class="admin-pin-actions">
+        <button type="submit" class="admin-pin-submit" id="admin-pin-submit" {% if not admin_pin_configured %}disabled{% endif %}>
+          <span class="admin-pin-submit-text">Unlock Dashboard</span>
+          <span class="admin-pin-submit-spinner" aria-hidden="true"></span>
+        </button>
+        <a class="admin-pin-logout" href="/logout">Log out</a>
+      </div>
+    </form>
+    <p class="admin-pin-footnote">
+      Forgot PIN? Reset the hashed admin PIN in the backend configuration before the next sign-in.
+    </p>
+  </section>
+</div>

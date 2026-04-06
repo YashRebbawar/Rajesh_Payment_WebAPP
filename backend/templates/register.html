@@ -1,486 +1,177 @@
 {% extends "base.html" %}
-
 {% block title %}Register - PrintFree{% endblock %}
-
 {% block content %}
-<div class="register-container">
-    <div class="auth-header-new">
-        <a href="/" class="logo-link-new">
-            <img src="{{ url_for('static', filename='images/Printfree_logo.png') }}" alt="PrintFree Logo" class="logo-image-new">
-            <div>
-                <div class="logo-text-new">PrintFree</div>
-                <div class="logo-subtitle-new">Dubai-based Partnered Firm</div>
-            </div>
-        </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — PrintFree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cabinet+Grotesk:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+<div class="toast" id="toast"></div>
+
+<div style="position:relative;z-index:2;">
+  <a href="/" class="mobile-logo">
+    <div style="width:36px;height:36px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;">
+      <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="6" height="6" fill="#fff"/><rect x="3" y="13" width="6" height="6" fill="#fff"/><rect x="13" y="3" width="6" height="6" fill="#fff"/><rect x="13" y="13" width="6" height="6" fill="#fff" opacity="0.4"/></svg>
     </div>
-
-    <div class="auth-box-combined">
-        <!-- Left: Image -->
-        <div class="auth-image-side">
-            <img src="{{ url_for('static', filename='images/pattern.jpg') }}" alt="Pattern" class="auth-pattern-image">
-        </div>
-
-        <!-- Right: Form -->
-        <div class="auth-form-side">
-            <h1 class="form-title">Create Account</h1>
-            <p class="form-subtitle">Join thousands of traders on PrintFree</p>
-
-            <form class="auth-form" id="register-form">
-                <div class="form-group">
-                    <label>Country / Region</label>
-                    <select name="country" required>
-                        <option value="">Select country</option>
-                        <option value="AF">Afghanistan</option>
-                        <option value="AL">Albania</option>
-                        <option value="DZ">Algeria</option>
-                        <option value="AD">Andorra</option>
-                        <option value="AO">Angola</option>
-                        <option value="AG">Antigua and Barbuda</option>
-                        <option value="AR">Argentina</option>
-                        <option value="AM">Armenia</option>
-                        <option value="AU">Australia</option>
-                        <option value="AT">Austria</option>
-                        <option value="AZ">Azerbaijan</option>
-                        <option value="BS">Bahamas</option>
-                        <option value="BH">Bahrain</option>
-                        <option value="BD">Bangladesh</option>
-                        <option value="BB">Barbados</option>
-                        <option value="BY">Belarus</option>
-                        <option value="BE">Belgium</option>
-                        <option value="BZ">Belize</option>
-                        <option value="BJ">Benin</option>
-                        <option value="BT">Bhutan</option>
-                        <option value="BO">Bolivia</option>
-                        <option value="BA">Bosnia and Herzegovina</option>
-                        <option value="BW">Botswana</option>
-                        <option value="BR">Brazil</option>
-                        <option value="BN">Brunei</option>
-                        <option value="BG">Bulgaria</option>
-                        <option value="BF">Burkina Faso</option>
-                        <option value="BI">Burundi</option>
-                        <option value="KH">Cambodia</option>
-                        <option value="CM">Cameroon</option>
-                        <option value="CA">Canada</option>
-                        <option value="CV">Cape Verde</option>
-                        <option value="CF">Central African Republic</option>
-                        <option value="TD">Chad</option>
-                        <option value="CL">Chile</option>
-                        <option value="CN">China</option>
-                        <option value="CO">Colombia</option>
-                        <option value="KM">Comoros</option>
-                        <option value="CG">Congo</option>
-                        <option value="CR">Costa Rica</option>
-                        <option value="HR">Croatia</option>
-                        <option value="CU">Cuba</option>
-                        <option value="CY">Cyprus</option>
-                        <option value="CZ">Czech Republic</option>
-                        <option value="DK">Denmark</option>
-                        <option value="DJ">Djibouti</option>
-                        <option value="DM">Dominica</option>
-                        <option value="DO">Dominican Republic</option>
-                        <option value="EC">Ecuador</option>
-                        <option value="EG">Egypt</option>
-                        <option value="SV">El Salvador</option>
-                        <option value="GQ">Equatorial Guinea</option>
-                        <option value="ER">Eritrea</option>
-                        <option value="EE">Estonia</option>
-                        <option value="ET">Ethiopia</option>
-                        <option value="FJ">Fiji</option>
-                        <option value="FI">Finland</option>
-                        <option value="FR">France</option>
-                        <option value="GA">Gabon</option>
-                        <option value="GM">Gambia</option>
-                        <option value="GE">Georgia</option>
-                        <option value="DE">Germany</option>
-                        <option value="GH">Ghana</option>
-                        <option value="GR">Greece</option>
-                        <option value="GD">Grenada</option>
-                        <option value="GT">Guatemala</option>
-                        <option value="GN">Guinea</option>
-                        <option value="GW">Guinea-Bissau</option>
-                        <option value="GY">Guyana</option>
-                        <option value="HT">Haiti</option>
-                        <option value="HN">Honduras</option>
-                        <option value="HK">Hong Kong</option>
-                        <option value="HU">Hungary</option>
-                        <option value="IS">Iceland</option>
-                        <option value="IN">India</option>
-                        <option value="ID">Indonesia</option>
-                        <option value="IR">Iran</option>
-                        <option value="IQ">Iraq</option>
-                        <option value="IE">Ireland</option>
-                        <option value="IL">Israel</option>
-                        <option value="IT">Italy</option>
-                        <option value="JM">Jamaica</option>
-                        <option value="JP">Japan</option>
-                        <option value="JO">Jordan</option>
-                        <option value="KZ">Kazakhstan</option>
-                        <option value="KE">Kenya</option>
-                        <option value="KI">Kiribati</option>
-                        <option value="KP">North Korea</option>
-                        <option value="KR">South Korea</option>
-                        <option value="KW">Kuwait</option>
-                        <option value="KG">Kyrgyzstan</option>
-                        <option value="LA">Laos</option>
-                        <option value="LV">Latvia</option>
-                        <option value="LB">Lebanon</option>
-                        <option value="LS">Lesotho</option>
-                        <option value="LR">Liberia</option>
-                        <option value="LY">Libya</option>
-                        <option value="LI">Liechtenstein</option>
-                        <option value="LT">Lithuania</option>
-                        <option value="LU">Luxembourg</option>
-                        <option value="MO">Macao</option>
-                        <option value="MK">Macedonia</option>
-                        <option value="MG">Madagascar</option>
-                        <option value="MW">Malawi</option>
-                        <option value="MY">Malaysia</option>
-                        <option value="MV">Maldives</option>
-                        <option value="ML">Mali</option>
-                        <option value="MT">Malta</option>
-                        <option value="MH">Marshall Islands</option>
-                        <option value="MQ">Martinique</option>
-                        <option value="MR">Mauritania</option>
-                        <option value="MU">Mauritius</option>
-                        <option value="MX">Mexico</option>
-                        <option value="FM">Micronesia</option>
-                        <option value="MD">Moldova</option>
-                        <option value="MC">Monaco</option>
-                        <option value="MN">Mongolia</option>
-                        <option value="ME">Montenegro</option>
-                        <option value="MA">Morocco</option>
-                        <option value="MZ">Mozambique</option>
-                        <option value="MM">Myanmar</option>
-                        <option value="NA">Namibia</option>
-                        <option value="NR">Nauru</option>
-                        <option value="NP">Nepal</option>
-                        <option value="NL">Netherlands</option>
-                        <option value="NZ">New Zealand</option>
-                        <option value="NI">Nicaragua</option>
-                        <option value="NE">Niger</option>
-                        <option value="NG">Nigeria</option>
-                        <option value="NO">Norway</option>
-                        <option value="OM">Oman</option>
-                        <option value="PK">Pakistan</option>
-                        <option value="PW">Palau</option>
-                        <option value="PS">Palestine</option>
-                        <option value="PA">Panama</option>
-                        <option value="PG">Papua New Guinea</option>
-                        <option value="PY">Paraguay</option>
-                        <option value="PE">Peru</option>
-                        <option value="PH">Philippines</option>
-                        <option value="PL">Poland</option>
-                        <option value="PT">Portugal</option>
-                        <option value="QA">Qatar</option>
-                        <option value="RE">Reunion</option>
-                        <option value="RO">Romania</option>
-                        <option value="RU">Russia</option>
-                        <option value="RW">Rwanda</option>
-                        <option value="KN">Saint Kitts and Nevis</option>
-                        <option value="LC">Saint Lucia</option>
-                        <option value="VC">Saint Vincent and the Grenadines</option>
-                        <option value="WS">Samoa</option>
-                        <option value="SM">San Marino</option>
-                        <option value="ST">Sao Tome and Principe</option>
-                        <option value="SA">Saudi Arabia</option>
-                        <option value="SN">Senegal</option>
-                        <option value="RS">Serbia</option>
-                        <option value="SC">Seychelles</option>
-                        <option value="SL">Sierra Leone</option>
-                        <option value="SG">Singapore</option>
-                        <option value="SK">Slovakia</option>
-                        <option value="SI">Slovenia</option>
-                        <option value="SB">Solomon Islands</option>
-                        <option value="SO">Somalia</option>
-                        <option value="ZA">South Africa</option>
-                        <option value="SS">South Sudan</option>
-                        <option value="ES">Spain</option>
-                        <option value="LK">Sri Lanka</option>
-                        <option value="SD">Sudan</option>
-                        <option value="SR">Suriname</option>
-                        <option value="SZ">Swaziland</option>
-                        <option value="SE">Sweden</option>
-                        <option value="CH">Switzerland</option>
-                        <option value="SY">Syria</option>
-                        <option value="TW">Taiwan</option>
-                        <option value="TJ">Tajikistan</option>
-                        <option value="TZ">Tanzania</option>
-                        <option value="TH">Thailand</option>
-                        <option value="TL">Timor-Leste</option>
-                        <option value="TG">Togo</option>
-                        <option value="TO">Tonga</option>
-                        <option value="TT">Trinidad and Tobago</option>
-                        <option value="TN">Tunisia</option>
-                        <option value="TR">Turkey</option>
-                        <option value="TM">Turkmenistan</option>
-                        <option value="TV">Tuvalu</option>
-                        <option value="UG">Uganda</option>
-                        <option value="UA">Ukraine</option>
-                        <option value="AE">United Arab Emirates</option>
-                        <option value="GB">United Kingdom</option>
-                        <option value="US">United States</option>
-                        <option value="UY">Uruguay</option>
-                        <option value="UZ">Uzbekistan</option>
-                        <option value="VU">Vanuatu</option>
-                        <option value="VE">Venezuela</option>
-                        <option value="VN">Vietnam</option>
-                        <option value="YE">Yemen</option>
-                        <option value="ZM">Zambia</option>
-                        <option value="ZW">Zimbabwe</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" placeholder="your@email.com" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="password-input">
-                        <input type="password" name="password" id="register-password" placeholder="••••••••" required>
-                        <button type="button" class="toggle-password" data-target="register-password">👁</button>
-                    </div>
-                    <div class="password-requirements">
-                        <div class="requirement" data-rule="length">○ Between 8-15 characters</div>
-                        <div class="requirement" data-rule="case">○ At least one upper and one lower case letter</div>
-                        <div class="requirement" data-rule="number">○ At least one number</div>
-                        <div class="requirement" data-rule="special">○ At least one special character</div>
-                    </div>
-                </div>
-                 
-                <div class="form-group checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="us_citizen" required>
-                        <span>By registering, I declare that I have carefully read, understood and accepted the entire text of the Company's <a href="#" id="legal-docs-link" class="legal-link">Legal Documents</a>.</span>
-                    </label>
-                </div>
-                
-                <button type="submit" class="auth-submit-new">Create Account</button>
-                
-                <div class="auth-divider-new">Or sign up with</div>
-                
-                <button type="button" class="google-btn-new" id="google-register">
-                    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-                    Google
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                Already have an account? <a href="/signin" class="signin-link">Sign in</a>
-            </div>
-        </div>
-    </div>
+    <div><div class="mobile-logo-name">Print<span>Free</span></div></div>
+  </a>
 </div>
 
-<!-- Terms & Conditions Modal -->
-<div id="terms-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Terms & Conditions</h2>
-            <button class="modal-close" id="close-modal">&times;</button>
+<div class="auth-page">
+  <!-- ===== LEFT: LIVE TRADING TERMINAL ===== -->
+  <div class="auth-left">
+    <div class="corner-glow cg-tl"></div>
+    <div class="corner-glow cg-br"></div>
+
+    <a href="/" class="lp-logo">
+      <div class="lp-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="6" height="6" fill="#fff"/><rect x="3" y="13" width="6" height="6" fill="#fff"/><rect x="13" y="3" width="6" height="6" fill="#fff"/><rect x="13" y="13" width="6" height="6" fill="#fff" opacity="0.4"/></svg>
+      </div>
+      <div>
+        <div class="lp-logo-name">Print<span>Free</span></div>
+        <div class="lp-logo-sub">Dubai-based Partnered Firm</div>
+      </div>
+    </a>
+
+    <div class="terminal">
+      <div class="pair-tabs" id="pairTabs">
+        <button class="pair-tab" data-pair="EURUSD" onclick="switchPair(this,'EURUSD')">EUR/USD</button>
+        <button class="pair-tab active" data-pair="XAUUSD" onclick="switchPair(this,'XAUUSD')">XAU/USD</button>
+        <button class="pair-tab" data-pair="BTCUSD" onclick="switchPair(this,'BTCUSD')">BTC/USD</button>
+      </div>
+      <div class="price-header">
+        <div class="price-sub" id="pairLabel">EUR / USD · SPOT</div>
+        <div class="price-header-row">
+          <div class="price-row">
+            <div class="price-main" id="mainPrice">1.08452</div>
+            <div class="price-badge up" id="changeBadge">+0.12%</div>
+          </div>
+          <div class="terminal-disclaimer" role="note">
+            Prices shown are indicative and not real-time trading quotes.
+          </div>
         </div>
-        <div class="modal-body">
-            <h3>General Trading Disclaimer</h3>
-            <ul>
-                <li>All trading activities are performed solely by the <strong>Client</strong> using their individual trading account.</li>
-                <li>The <strong>Company</strong> does not place, manage, modify, or control any trades on behalf of the Client.</li>
-            </ul>
-
-            <h4>Client Responsibilities</h4>
-            <p>The Client is solely responsible for:</p>
-            <ul>
-                <li>All trading decisions</li>
-                <li>All positions opened or closed</li>
-                <li>Any profits or losses incurred</li>
-            </ul>
-
-            <h4>Company Liability</h4>
-            <p>The Company shall not be held liable for any trading losses, damages, or negative account balances resulting from:</p>
-            <ul>
-                <li>Market volatility</li>
-                <li>Client trading decisions</li>
-                <li>Leverage usage</li>
-                <li>Technical issues beyond the Company's control</li>
-            </ul>
-
-            <h4>Confidentiality & Security</h4>
-            <p>The Client is responsible for maintaining the confidentiality and security of their:</p>
-            <ul>
-                <li>Login ID</li>
-                <li>Password</li>
-                <li>Trading credentials</li>
-            </ul>
-            <p>Any activity performed using the Client's credentials shall be deemed authorized by the Client.</p>
-            <p>The Company shall not be responsible for losses arising from:</p>
-            <ul>
-                <li>Unauthorized access caused by the Client's negligence</li>
-                <li>Sharing of account credentials with third parties</li>
-                <li>Use of unsecured devices or networks</li>
-            </ul>
-
-            <h4>Risk Acknowledgement</h4>
-            <ul>
-                <li>Trading involves significant risk and may result in the loss of all invested capital.</li>
-                <li>The Client confirms that they fully understand these risks and accept full responsibility for their trading outcomes.</li>
-                <li>By using the Company's platform and services, the Client expressly waives any right to claim compensation, damages, or legal action against the Company for losses incurred through trading activities.</li>
-            </ul>
-
-            <hr>
-
-            <h3>1. Introduction</h3>
-            <p>These Terms and Conditions ("Terms") govern the use of the website, platform, and services provided by <strong>Printfree</strong>, incorporated in <strong>Dubai</strong>.</p>
-            <p>By accessing, registering, or using our website or services, you confirm that:</p>
-            <ul>
-                <li>You have read, understood, and agreed to these Terms</li>
-                <li>You are legally permitted to access our services under the laws of your country of residence</li>
-            </ul>
-            <p>If you do not agree, you must not use our services.</p>
-
-            <h3>2. Eligibility</h3>
-            <p>You confirm that:</p>
-            <ul>
-                <li>You are at least 18 years old</li>
-                <li>You have full legal capacity to enter into binding agreements</li>
-                <li>You are not a resident of any jurisdiction where such services are restricted or prohibited</li>
-            </ul>
-            <p>It is your sole responsibility to ensure compliance with local laws.</p>
-
-            <h3>3. Nature of Services</h3>
-            <p>The Company provides:</p>
-            <ul>
-                <li>Access to trading platforms and related technology</li>
-                <li>Market execution infrastructure</li>
-                <li>Trading tools and account access</li>
-                <li>Educational and informational content (where applicable)</li>
-            </ul>
-            <p><strong>Note:</strong> The Company does not provide investment advice, portfolio management, or guaranteed returns.</p>
-
-            <h3>4. No Investment Advice</h3>
-            <p>All information provided:</p>
-            <ul>
-                <li>Is for informational purposes only</li>
-                <li>Does not constitute financial, legal, or investment advice</li>
-            </ul>
-            <p>You acknowledge that:</p>
-            <ul>
-                <li>Trading involves substantial risk</li>
-                <li>Past performance does not guarantee future results</li>
-                <li>You are solely responsible for all trading decisions</li>
-            </ul>
-
-            <h3>5. Risk Disclosure</h3>
-            <p>Trading leveraged products such as Forex, CFDs, commodities, indices, and digital assets involves a high level of risk and may not be suitable for all investors.</p>
-            <ul>
-                <li>You may lose part or all of your invested capital.</li>
-                <li>By using our services, you acknowledge that:
-                    <ul>
-                        <li>You fully understand the risks involved</li>
-                        <li>You accept all potential losses</li>
-                        <li>You trade at your own discretion and responsibility</li>
-                    </ul>
-                </li>
-            </ul>
-
-            <h3>6. Client Responsibility</h3>
-            <p>You are solely responsible for:</p>
-            <ul>
-                <li>Maintaining the confidentiality of your login credentials</li>
-                <li>All activity performed through your account</li>
-                <li>Ensuring accuracy of personal information</li>
-            </ul>
-            <p>The Company is not responsible for losses resulting from unauthorized access caused by your negligence.</p>
-
-            <h3>7. Deposits & Withdrawals</h3>
-            <ul>
-                <li>All deposits and withdrawals are subject to internal verification procedures.</li>
-                <li>Transactions may be delayed due to compliance, security, or technical reasons.</li>
-            </ul>
-            <p>The Company reserves the right to:</p>
-            <ul>
-                <li>Request additional verification documents</li>
-                <li>Suspend transactions if suspicious activity is detected</li>
-            </ul>
-
-            <h3>8. Prohibited Activities</h3>
-            <p>You agree <strong>NOT</strong> to:</p>
-            <ul>
-                <li>Use the platform for illegal purposes</li>
-                <li>Engage in market manipulation or abuse</li>
-                <li>Use automated systems without authorization</li>
-                <li>Attempt to exploit technical errors</li>
-            </ul>
-            <p><strong>Violation may result in account suspension or termination.</strong></p>
-
-            <h3>9. Jurisdiction & Restricted Regions</h3>
-            <ul>
-                <li>The Company does not actively market or solicit clients in jurisdictions where such services are restricted.</li>
-                <li>Users access the platform on their own initiative.</li>
-                <li>The Company shall not be liable for any breach of local regulations by the user.</li>
-            </ul>
-
-            <h3>10. Limitation of Liability</h3>
-            <p>To the maximum extent permitted by law:</p>
-            <ul>
-                <li>The Company shall not be liable for indirect, incidental, or consequential damages.</li>
-                <li>The Company is not responsible for losses caused by market volatility, technical failures, or third-party services.</li>
-                <li>Use of the platform is entirely at your own risk.</li>
-            </ul>
-
-            <h3>11. Force Majeure</h3>
-            <p>The Company shall not be liable for failure or delay due to events beyond its reasonable control, including but not limited to:</p>
-            <ul>
-                <li>Natural disasters</li>
-                <li>Internet failures</li>
-                <li>Regulatory actions</li>
-                <li>Acts of government</li>
-            </ul>
-
-            <h3>12. Account Suspension & Termination</h3>
-            <p>The Company may suspend or terminate accounts:</p>
-            <ul>
-                <li>Without prior notice</li>
-                <li>If these Terms are violated</li>
-                <li>For compliance or regulatory reasons</li>
-            </ul>
-
-            <h3>13. Amendments</h3>
-            <ul>
-                <li>The Company reserves the right to amend these Terms at any time.</li>
-                <li>Continued use of the platform constitutes acceptance of updated Terms.</li>
-            </ul>
-
-            <h3>14. Governing Law & Jurisdiction</h3>
-            <ul>
-                <li>These Terms shall be governed by and construed in accordance with the laws of the <strong>United Arab Emirates</strong>.</li>
-                <li>Any disputes shall be subject to the exclusive jurisdiction of the courts of the UAE.</li>
-            </ul>
-
-            <h3>15. Indemnification</h3>
-            <p>You agree to indemnify and hold harmless the Company from any claims, losses, damages, or legal expenses arising from:</p>
-            <ul>
-                <li>Your misuse of the platform</li>
-                <li>Violation of laws</li>
-                <li>Breach of these Terms</li>
-            </ul>
+      </div>
+      <div class="chart-area">
+        <canvas id="chartCanvas" height="110"></canvas>
+        <div class="chart-ylabels" id="chartYLabels"></div>
+      </div>
+      <div class="ba-row">
+        <div class="ba-box sell">
+          <div class="ba-lbl">BID</div>
+          <div class="ba-val bid" id="bidVal">1.08438</div>
+          <div class="ba-spread">spread: <span id="spreadVal">1.4</span> pip</div>
         </div>
+        <div class="ba-box buy">
+          <div class="ba-lbl">ASK</div>
+          <div class="ba-val ask" id="askVal">1.08452</div>
+          <div class="ba-spread">vol: <span id="volVal">2.4M</span></div>
+        </div>
+      </div>
+      <div class="book-section">
+        <div class="sec-label">Order Book</div>
+        <div class="book-cols"><span>Price</span><span style="text-align:right">Size</span><span style="text-align:right">Total</span></div>
+        <div class="book-rows" id="bookRows"></div>
+      </div>
+      <div class="feed-section">
+        <div class="sec-label">Recent Trades</div>
+        <div class="feed-rows" id="feedRows"></div>
+      </div>
     </div>
+
+    <div class="lp-footer">© 2026 PrintFree. Dubai-based. All rights reserved.</div>
+  </div>
+
+  <!-- ===== RIGHT: REGISTER FORM ===== -->
+  <div class="auth-right">
+    <div class="form-wrap">
+      <div class="form-eyebrow">New Account</div>
+      <h1 class="form-title">Create Account</h1>
+      <p class="form-subtitle">Join now — it only takes a minute.</p>
+
+      <form id="register-form" data-allowed-email-domains="{{ allowed_email_domains|join(',') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field">
+          <label>Country / Region</label>
+          <div class="field-wrap select-wrap">
+            <select name="country" required>
+              <option value="">Select your country…</option>
+              <option value="AF">Afghanistan</option><option value="AL">Albania</option><option value="DZ">Algeria</option><option value="AO">Angola</option><option value="AR">Argentina</option><option value="AM">Armenia</option><option value="AU">Australia</option><option value="AT">Austria</option><option value="AZ">Azerbaijan</option><option value="BS">Bahamas</option><option value="BH">Bahrain</option><option value="BD">Bangladesh</option><option value="BB">Barbados</option><option value="BY">Belarus</option><option value="BE">Belgium</option><option value="BZ">Belize</option><option value="BN">Brunei</option><option value="BG">Bulgaria</option><option value="CA">Canada</option><option value="CL">Chile</option><option value="CN">China</option><option value="CO">Colombia</option><option value="HR">Croatia</option><option value="CY">Cyprus</option><option value="CZ">Czech Republic</option><option value="DK">Denmark</option><option value="DO">Dominican Republic</option><option value="EC">Ecuador</option><option value="EG">Egypt</option><option value="EE">Estonia</option><option value="ET">Ethiopia</option><option value="FI">Finland</option><option value="FR">France</option><option value="GE">Georgia</option><option value="DE">Germany</option><option value="GH">Ghana</option><option value="GR">Greece</option><option value="GT">Guatemala</option><option value="HK">Hong Kong</option><option value="HU">Hungary</option><option value="IS">Iceland</option><option value="IN">India</option><option value="ID">Indonesia</option><option value="IQ">Iraq</option><option value="IE">Ireland</option><option value="IL">Israel</option><option value="IT">Italy</option><option value="JM">Jamaica</option><option value="JP">Japan</option><option value="JO">Jordan</option><option value="KZ">Kazakhstan</option><option value="KE">Kenya</option><option value="KR">South Korea</option><option value="KW">Kuwait</option><option value="LV">Latvia</option><option value="LB">Lebanon</option><option value="LY">Libya</option><option value="LT">Lithuania</option><option value="LU">Luxembourg</option><option value="MY">Malaysia</option><option value="MV">Maldives</option><option value="MT">Malta</option><option value="MX">Mexico</option><option value="MA">Morocco</option><option value="MM">Myanmar</option><option value="NP">Nepal</option><option value="NL">Netherlands</option><option value="NZ">New Zealand</option><option value="NG">Nigeria</option><option value="NO">Norway</option><option value="OM">Oman</option><option value="PK">Pakistan</option><option value="PS">Palestine</option><option value="PA">Panama</option><option value="PH">Philippines</option><option value="PL">Poland</option><option value="PT">Portugal</option><option value="QA">Qatar</option><option value="RO">Romania</option><option value="RU">Russia</option><option value="SA">Saudi Arabia</option><option value="SN">Senegal</option><option value="RS">Serbia</option><option value="SG">Singapore</option><option value="SK">Slovakia</option><option value="SI">Slovenia</option><option value="ZA">South Africa</option><option value="ES">Spain</option><option value="LK">Sri Lanka</option><option value="SE">Sweden</option><option value="CH">Switzerland</option><option value="SY">Syria</option><option value="TW">Taiwan</option><option value="TZ">Tanzania</option><option value="TH">Thailand</option><option value="TN">Tunisia</option><option value="TR">Turkey</option><option value="UA">Ukraine</option><option value="AE">United Arab Emirates</option><option value="GB">United Kingdom</option><option value="US">United States</option><option value="UZ">Uzbekistan</option><option value="VE">Venezuela</option><option value="VN">Vietnam</option><option value="YE">Yemen</option><option value="ZM">Zambia</option><option value="ZW">Zimbabwe</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <div class="field-wrap">
+            <input type="email" name="email" placeholder="your@gmail.com" required autocomplete="email">
+          </div>
+          <div id="email-error" class="field-error" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="field-wrap">
+            <input type="password" name="password" id="register-password" placeholder="••••••••" required autocomplete="new-password">
+            <button type="button" class="pw-toggle" data-target="register-password">👁</button>
+          </div>
+          <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+          <div class="pw-rules">
+            <div class="pw-rule" data-rule="length"><span class="rule-icon">○</span>Between 8–15 characters</div>
+            <div class="pw-rule" data-rule="case"><span class="rule-icon">○</span>Upper & lowercase letter</div>
+            <div class="pw-rule" data-rule="number"><span class="rule-icon">○</span>At least one number</div>
+            <div class="pw-rule" data-rule="special"><span class="rule-icon">○</span>At least one special character</div>
+          </div>
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="legal-check" name="us_citizen" required>
+          <label for="legal-check">I have read and accepted the <a href="#" id="legal-docs-link">Legal Documents & Terms</a> of PrintFree.</label>
+        </div>
+        <button type="submit" class="btn-submit" id="register-btn">
+          <span class="spinner"></span>
+          <span class="btn-text">Create Account →</span>
+        </button>
+        <div class="divider">or sign up with</div>
+        <button type="button" class="btn-google" id="google-register">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+      </form>
+      <div class="auth-switch">Already have an account? <a href="/signin">Sign in →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal-overlay" id="terms-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Terms & Conditions</h2>
+      <button class="modal-close-btn" id="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <h3>General Trading Disclaimer</h3>
+      <ul><li>All trading activities are performed solely by the <strong>Client</strong> using their individual trading account.</li><li>The <strong>Company</strong> does not place, manage, modify, or control any trades on behalf of the Client.</li></ul>
+      <h4>Client Responsibilities</h4><p>The Client is solely responsible for all trading decisions, positions opened or closed, and any profits or losses incurred.</p>
+      <h4>Risk Acknowledgement</h4><ul><li>Trading involves significant risk and may result in the loss of all invested capital.</li><li>The Client confirms they fully understand these risks and accept full responsibility for their trading outcomes.</li></ul>
+      <hr>
+      <h3>1. Introduction</h3><p>These Terms govern the use of the website, platform, and services provided by <strong>PrintFree</strong>, incorporated in <strong>Dubai</strong>. By registering, you confirm you have read, understood, and agreed to these Terms.</p>
+      <h3>2. Eligibility</h3><p>You confirm you are at least 18 years old, have full legal capacity to enter binding agreements, and are not a resident of any jurisdiction where such services are restricted.</p>
+      <h3>3. Risk Disclosure</h3><p>Trading leveraged products such as Forex, CFDs, commodities, indices, and digital assets involves a high level of risk. You may lose part or all of your invested capital.</p>
+      <h3>4. Client Responsibility</h3><p>You are solely responsible for maintaining the confidentiality of your login credentials and all activity performed through your account.</p>
+      <h3>5. Limitation of Liability</h3><p>To the maximum extent permitted by law, the Company shall not be liable for indirect, incidental, or consequential damages. Use of the platform is entirely at your own risk.</p>
+      <h3>6. Governing Law</h3><p>These Terms shall be governed by the laws of the <strong>United Arab Emirates</strong>. Any disputes shall be subject to the exclusive jurisdiction of the courts of the UAE.</p>
+    </div>
+  </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-<script>
-    document.getElementById('legal-docs-link').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('terms-modal').style.display = 'block';
-    });
-    document.getElementById('close-modal').addEventListener('click', function() {
-        document.getElementById('terms-modal').style.display = 'none';
-    });
-    window.addEventListener('click', function(e) {
-        const modal = document.getElementById('terms-modal');
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-</script>
+</body>
+</html>
 {% endblock %}

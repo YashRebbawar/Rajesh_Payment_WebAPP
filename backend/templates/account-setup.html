@@ -2,172 +2,315 @@
 
 {% block title %}Set up your {{ account_type|title }} account - PrintFree{% endblock %}
 
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cabinet+Grotesk:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="setup-container">
-    <button type="button" class="back-button" id="back-button" aria-label="Go back">←</button>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account-setup.css') }}">
 
-    <div class="setup-header">
-        <h1>Set up your account</h1>
-    </div>
-
-    <div class="setup-content">
-        <div class="setup-form-section">
-            <div class="account-tabs">
-                <button class="tab-btn" data-tab="real" disabled>Real</button>
-            </div>
-            <p class="tab-description">Trade with real money and withdraw any profit you may make</p>
-
-            <form id="setup-form" class="setup-form">
-                <div class="form-group">
-                    <label for="currency">Currency <span class="required">*</span></label>
-                    <select id="currency" name="currency" required>
-                        <option value="">Select Currency</option>
-                        <option value="USD">USD - United States Dollar</option>
-                        <!-- <option value="INR">INR - Indian Rupee</option> -->
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="nickname">Nickname <span class="required">*</span></label>
-                    <input type="text" id="nickname" name="nickname" placeholder="{{ account_type|title }}" maxlength="36" required>
-                    <small class="form-hint">Nicknames can't contain special characters: &lt;&gt;"&amp;^*@</small>
-                    <div class="char-count"><span id="char-count">0</span>/36</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="leverage">Max leverage <span class="required">*</span></label>
-                    <select id="leverage" name="leverage" required>
-                        <option value="">Select Leverage</option>
-                        <option value="1:100">1:100</option>
-                        <option value="1:200">1:200</option>
-                        <option value="1:300">1:300</option>
-                        <option value="1:400">1:400</option>
-                        <option value="1:500">1:500</option>
-                        <option value="1:1000">1:1000</option>
-                        <option value="1:2000">1:2000</option>
-                        <option value="1:Unlimited">1:Unlimited</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="platform">Platform <span class="required">*</span></label>
-                    <select id="platform" name="platform" required>
-                        <option value="">Select Platform</option>
-                        <option value="MT5">MT5</option>
-                        
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Trading password <span class="required">*</span></label>
-                    <div class="password-input-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Enter trading password" required>
-                        <button type="button" class="toggle-password" id="toggle-password"></button>
-                    </div>
-                    <div class="password-requirements">
-                        <div class="requirement" id="req-length">
-                            <span class="requirement-icon">○</span>
-                            <span>Between 8-15 characters</span>
-                        </div>
-                        <div class="requirement" id="req-case">
-                            <span class="requirement-icon">○</span>
-                            <span>At least one upper and one lower case letter</span>
-                        </div>
-                        <div class="requirement" id="req-number">
-                            <span class="requirement-icon">○</span>
-                            <span>At least one number</span>
-                        </div>
-                        <div class="requirement" id="req-special">
-                            <span class="requirement-icon">○</span>
-                            <span>At least one special character</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="create-account-btn">Create account</button>
-            </form>
+<nav id="navbar">
+  <a href="/" class="nav-logo">Print<span>Free</span></a>
+  <ul class="nav-links">
+    <li><a href="/#features">Invest</a></li>
+    <li><a href="/#security">Security</a></li>
+    <li><a href="/#testimonials">Testimonials</a></li>
+    <li><a href="/#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-cta">
+    {% if user %}
+    <div class="user-profile-wrapper">
+      <button class="profile-icon-btn" id="profile-toggle">
+        <div class="profile-icon">
+          <svg class="profile-icon-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+          </svg>
         </div>
-
-        <div class="setup-info-section">
-            <div class="account-info-card">
-                <h3>{{ account_type|title }}</h3>
-                {% if account_type == 'standard' %}
-                    <div class="info-row">
-                        <span class="info-label">Min deposit</span>
-                        <span class="info-value">10 USD</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Min spread</span>
-                        <span class="info-value">0.20 pips</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Max leverage</span>
-                        <span class="info-value">1:Unlimited</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Commission</span>
-                        <span class="info-value">No commission</span>
-                    </div>
-                {% elif account_type == 'pro' %}
-                    <div class="info-row">
-                        <span class="info-label">Min deposit</span>
-                        <span class="info-value">500 USD</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Min spread</span>
-                        <span class="info-value">0.10 pips</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Max leverage</span>
-                        <span class="info-value">1:Unlimited</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Commission</span>
-                        <span class="info-value">No commission</span>
-                    </div>
-                {% elif account_type == 'raw-spread' %}
-                    <div class="info-row">
-                        <span class="info-label">Min deposit</span>
-                        <span class="info-value">500 USD</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Min spread</span>
-                        <span class="info-value">0.00 pips</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Max leverage</span>
-                        <span class="info-value">1:Unlimited</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Commission</span>
-                        <span class="info-value">To 3.50 USD</span>
-                    </div>
-                {% elif account_type == 'zero' %}
-                    <div class="info-row">
-                        <span class="info-label">Min deposit</span>
-                        <span class="info-value">500 USD</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Min spread</span>
-                        <span class="info-value">0.00 pips</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Max leverage</span>
-                        <span class="info-value">1:Unlimited</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Commission</span>
-                        <span class="info-value">From 0.20 USD</span>
-                    </div>
-                {% endif %}
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-card-wrapper">
+          <div class="profile-card-main">
+            <div class="profile-card-header">
+              <div class="profile-card-header-left">Trading Account</div>
+              <div class="profile-card-header-right">
+                <span>&#9201;</span>
+                <span id="current-time"></span>
+              </div>
             </div>
+            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
+              <div class="profile-card-avatar">{{ user.email[0].upper() }}</div>
+              <div class="profile-card-name-block">
+                <h2 id="profile-name-text">{{ user.email.split('@')[0] }}</h2>
+                <div class="profile-card-status-row">
+                  <span class="profile-status-dot"></span>
+                  <span>{{ user.email }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="profile-card-actions">
+              <button class="profile-card-btn" onclick="window.location.href='/my-accounts'"><span>My Account</span></button>
+              <button class="profile-card-btn" onclick="window.location.href='/logout'"><span>Log out</span></button>
+            </div>
+          </div>
+          <div class="profile-intensity-card">
+            <span>Member Since:</span>
+            <span id="member-since"></span>
+          </div>
         </div>
+      </div>
     </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    {% else %}
+    <button class="btn-pill" onclick="window.location.href='/signin'">Get Started →</button>
+    {% endif %}
+  </div>
+  <button class="hamburger hamburger-mobile" id="hamburger-mobile" aria-label="Toggle menu" style="display:none;">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="/my-accounts" onclick="closeMobileNav()">My Accounts</a>
+  <a href="/accounts" onclick="closeMobileNav()">Open Account</a>
+  <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
+  <div class="mobile-nav-cta">
+    {% if user %}
+    <button class="btn-pill" onclick="window.location.href='/logout'; closeMobileNav()">Logout →</button>
+    {% else %}
+    <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
+    {% endif %}
+  </div>
 </div>
 
+<div class="pf-toast" id="pf-toast"></div>
+
+<div class="setup-container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="setup-header">
+    <div>
+      <div class="header-eyebrow">
+        
+        Account setup · Step 2 of 2
+      </div>
+      <h1>Configure your<br><em>{{ account_type|replace('-',' ')|title }}</em> account</h1>
+    </div>
+    
+  </div>
+
+  <!-- ═══ LEFT — FORM ═══ -->
+  <div class="setup-form-section" id="setup-form-section">
+    <div class="account-tabs">
+      <button class="tab-btn" disabled>Real</button>
+    </div>
+    <p class="tab-description">Trade with real money and withdraw any profit you make</p>
+
+    <form id="setup-form" class="setup-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <!-- §01 Account details -->
+      <div class="form-section">
+        <div class="section-title"><span class="section-num">01</span> Account details</div>
+
+        <!-- Currency -->
+        <div class="field" id="f-currency">
+          <label class="field-label" for="currency">Currency <span class="req">*</span></label>
+          <select id="currency" name="currency" required
+            onchange="toggleFilled('f-currency', this.value)">
+            <option value=""></option>
+            <option value="USD">USD — United States Dollar</option>
+          </select>
+        </div>
+
+        <!-- Nickname -->
+        <div class="field" id="f-nickname">
+          <label class="field-label" for="nickname">Nickname <span class="req">*</span></label>
+          <input type="text" id="nickname" name="nickname"
+            placeholder="" maxlength="36" required
+            oninput="
+              document.getElementById('char-count').textContent = this.value.length;
+              toggleFilled('f-nickname', this.value);
+            ">
+          <div class="char-count"><span id="char-count">0</span>/36</div>
+          <div class="field-hint">No special characters: &lt; &gt; " &amp; ^ * @</div>
+        </div>
+      </div>
+
+      <!-- §02 Trading config -->
+      <div class="form-section">
+        <div class="section-title"><span class="section-num">02</span> Trading configuration</div>
+
+        <!-- Leverage -->
+        <div class="field" id="f-leverage">
+          <label class="field-label" for="leverage">Max leverage <span class="req">*</span></label>
+          <select id="leverage" name="leverage" required
+            onchange="toggleFilled('f-leverage', this.value)">
+            <option value=""></option>
+            <option value="1:100">1:100</option>
+            <option value="1:200">1:200</option>
+            <option value="1:300">1:300</option>
+            <option value="1:400">1:400</option>
+            <option value="1:500">1:500</option>
+            <option value="1:1000">1:1000</option>
+            <option value="1:2000">1:2000</option>
+            <option value="1:Unlimited">1:Unlimited</option>
+          </select>
+        </div>
+
+        <!-- Platform -->
+        <div class="field" id="f-platform">
+          <label class="field-label" for="platform">Platform <span class="req">*</span></label>
+          <select id="platform" name="platform" required
+            onchange="toggleFilled('f-platform', this.value)">
+            <option value=""></option>
+            <option value="MT5">MT5</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- §03 Security -->
+      <div class="form-section">
+        <div class="section-title"><span class="section-num">03</span> Security</div>
+
+        <!-- Password -->
+        <div class="field" id="f-password">
+          <label class="field-label" for="password">Trading password <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" required
+              oninput="toggleFilled('f-password', this.value)">
+            <button type="button" class="toggle-password" id="toggle-password">👁</button>
+          </div>
+          <div class="strength-track"><div class="strength-bar" id="strength-bar"></div></div>
+          <div class="pw-requirements">
+            <div class="requirement" id="req-length">
+              <span class="requirement-icon">○</span><span>8–15 characters</span>
+            </div>
+            <div class="requirement" id="req-case">
+              <span class="requirement-icon">○</span><span>Upper &amp; lowercase</span>
+            </div>
+            <div class="requirement" id="req-number">
+              <span class="requirement-icon">○</span><span>One number</span>
+            </div>
+            <div class="requirement" id="req-special">
+              <span class="requirement-icon">○</span><span>Special character</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-row">
+        <button type="submit" class="create-account-btn" id="create-btn">
+          <span class="btn-text">Create account</span>
+          <span class="btn-arrow">→</span>
+          <div class="btn-spinner"></div>
+        </button>
+        <span class="submit-note">Ready in minutes</span>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ═══ RIGHT — PASSPORT ═══ -->
+  <div class="setup-info-section">
+
+    <div class="passport-card">
+      <div class="passport-bg">
+        <div class="pg-glow-1"></div>
+        <div class="pg-glow-2"></div>
+        <div class="pg-grid"></div>
+        <div class="pg-wm">
+          {% if account_type == 'standard' %}S
+          {% elif account_type == 'pro' %}P
+          {% elif account_type == 'raw-spread' %}R
+          {% else %}Z{% endif %}
+        </div>
+      </div>
+
+      <div class="passport-inner">
+        <div class="passport-top">
+          <div class="p-issuer">PrintFree · Live Account</div>
+          
+        </div>
+
+        <div class="passport-body">
+          <!-- Name block -->
+          <div>
+            <div class="p-type-label">Selected account type</div>
+            <div class="p-name">
+              {% if account_type == 'standard' %}<em>Standard</em> / Cent
+              {% elif account_type == 'pro' %}<em>Pro</em>
+              {% elif account_type == 'raw-spread' %}Raw <em>Spread</em>
+              {% elif account_type == 'zero' %}<em>Zero</em>
+              {% else %}{{ account_type|replace('-',' ')|title }}{% endif %}
+            </div>
+            <div class="p-tagline">
+              {% if account_type == 'standard' %}Most popular · Flexible lot sizing
+              {% elif account_type == 'pro' %}Zero commission · Tight spreads
+              {% elif account_type == 'raw-spread' %}Raw interbank spreads
+              {% elif account_type == 'zero' %}Zero spreads 95% of the day
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Mini candles -->
+          <div class="p-chart">
+            {% for h,r in [(0.4,''),(0.65,'r'),(0.9,''),(0.7,''),(0.5,'r'),(0.82,''),(1.0,''),(0.6,'r'),(0.76,''),(0.95,''),(0.42,'r'),(0.88,'')] %}
+            <div class="p-candle {{ r }}" style="height:{{ (h*30)|int }}px; animation-delay:{{ loop.index0*0.045 }}s;"></div>
+            {% endfor %}
+          </div>
+
+          <!-- Stats -->
+          <div class="p-stats">
+            {% if account_type == 'standard' %}
+            <div class="p-stat"><div class="p-stat-lbl">Min deposit</div><div class="p-stat-val">10 USD</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Spread from</div><div class="p-stat-val">0.20 pips</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Max leverage</div><div class="p-stat-val">1:Unlimited</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Commission</div><div class="p-stat-val">None</div></div>
+            {% elif account_type == 'pro' %}
+            <div class="p-stat"><div class="p-stat-lbl">Min deposit</div><div class="p-stat-val">500 USD</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Spread from</div><div class="p-stat-val">0.10 pips</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Max leverage</div><div class="p-stat-val">1:Unlimited</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Commission</div><div class="p-stat-val">None</div></div>
+            {% elif account_type == 'raw-spread' %}
+            <div class="p-stat"><div class="p-stat-lbl">Min deposit</div><div class="p-stat-val">500 USD</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Spread from</div><div class="p-stat-val">0.00 pips</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Max leverage</div><div class="p-stat-val">1:Unlimited</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Commission</div><div class="p-stat-val">3.50/lot</div></div>
+            {% elif account_type == 'zero' %}
+            <div class="p-stat"><div class="p-stat-lbl">Min deposit</div><div class="p-stat-val">500 USD</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Spread</div><div class="p-stat-val">0.00 pips</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Max leverage</div><div class="p-stat-val">1:Unlimited</div></div>
+            <div class="p-stat"><div class="p-stat-lbl">Commission</div><div class="p-stat-val">0.20 USD</div></div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- MRZ -->
+        <div class="passport-mrz">
+          <div class="mrz">P&lt;PFR{{ account_type|upper|replace('-','') }}&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+          <div class="mrz">ACCT0000000PFR000000&lt;0&lt;MT5LIVE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="#setup-form-section" class="jump-to-form-btn" id="jump-to-form-btn">
+      Continue to setup form <span aria-hidden="true">↓</span>
+    </a>
+
+  </div><!-- /info -->
+</div><!-- /container -->
+
 <script>
-const setupForm = document.getElementById('setup-form');
-setupForm.dataset.accountType = '{{ account_type }}';
+  /* Filled helper for floating labels */
+  function toggleFilled(id, val) {
+    document.getElementById(id).classList.toggle('filled', val !== '');
+  }
+  const setupForm = document.getElementById('setup-form');
+  setupForm.dataset.accountType = '{{ account_type }}';
 </script>
 <script src="{{ url_for('static', filename='js/account-setup.js') }}"></script>
 {% endblock %}

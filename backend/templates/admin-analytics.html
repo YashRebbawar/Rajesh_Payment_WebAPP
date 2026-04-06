@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% block title %}Analytics — PrintFree{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=Cabinet+Grotesk:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-pin-lock.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-analytics.css') }}">
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<script>
+/* Run before paint — prevents flash of wrong theme */
+(function(){
+  var t = localStorage.getItem('pf-analytics-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  document.body.classList.add('analytics-page');
+})();
+</script>
+{% include "_admin_pin_overlay.html" %}
+<div class="admin-pin-sensitive">
+
+<!-- HEADER -->
+<header class="analytics-header">
+  <a class="analytics-logo" href="/admin/dashboard">Print<span>Free</span></a>
+  <div class="analytics-header-actions">
+    <!-- Theme toggle -->
+    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle light / dark">
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+      <span class="tog-label" id="tog-label">DARK</span>
+    </button>
+
+    {% if user %}
+    <div class="user-profile-wrapper">
+      <button class="profile-icon-btn" id="profile-toggle">
+        <div class="profile-icon">
+          <svg class="profile-icon-svg" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"></circle>
+            <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+          </svg>
+        </div>
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-card-wrapper">
+          <div class="profile-card-main">
+            <div class="profile-card-header">
+              <div class="profile-card-header-left">Admin Account</div>
+            </div>
+            <div class="profile-card-content" data-user-created-at="{{ user.created_at.isoformat() if user.created_at else '' }}">
+              <div class="profile-card-avatar">{{ user.email[0].upper() }}</div>
+              <div class="profile-card-name-block">
+                <h2>{{ user.email.split('@')[0] }}</h2>
+                <div class="profile-card-status-row">
+                  <span class="profile-status-dot"></span>
+                  <span>{{ user.email }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="profile-card-actions">
+              <button class="profile-card-btn" onclick="window.location.href='/logout'">Log out</button>
+            </div>
+          </div>
+          <div class="profile-intensity-card">
+            <span>Member Since:</span><span id="member-since"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <button class="hamburger-menu" id="hamburger-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu">
+    {% if user %}
+    <div class="mobile-profile-section">
+      <div class="mobile-profile-icon">{{ user.email[0].upper() }}</div>
+      <div class="mobile-profile-info">
+        <h3>{{ user.email.split('@')[0] }}</h3>
+        <p>{{ user.email }}</p>
+      </div>
+      <button class="mobile-logout-btn" onclick="window.location.href='/logout'">Log out</button>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="analytics-ticker" aria-hidden="true">
+  <div class="analytics-ticker-track">
+    {% for _ in range(2) %}
+    <span class="ticker-seg">PLATFORM_FEE <span class="ticker-val t-fee">&#8377;0.00</span></span>
+    <span class="ticker-div">&#124;</span>
+    <span class="ticker-seg">DEPOSITS <span class="ticker-val t-dep">&#8377;0.00</span></span>
+    <span class="ticker-div">&#124;</span>
+    <span class="ticker-seg">TRANSACTIONS <span class="ticker-val t-txn">0</span></span>
+    <span class="ticker-div">&#124;</span>
+    <span class="ticker-seg">PAYOUT_RATE <span class="ticker-up">&#8593; 98%</span></span>
+    <span class="ticker-div">&#124;</span>
+    <span class="ticker-seg">STATUS <span class="ticker-up">&#9679; LIVE</span></span>
+    <span class="ticker-div">&#124;</span>
+    <span class="ticker-seg">UPDATED <span class="ticker-val t-time">&#8212;</span></span>
+    <span class="ticker-div">&#124;</span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- MAIN SHELL -->
+<main class="analytics-shell">
+
+  <!-- Loading banner -->
+  <div class="analytics-loading-banner is-hidden" id="analytics-loading-banner" aria-live="polite">
+    <div class="analytics-loading-spinner"></div>
+    <div class="analytics-loading-copy">
+      <strong id="analytics-loading-title">Loading analytics</strong>
+      <span id="analytics-loading-text">Fetching live data and preparing charts...</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="analytics-hero">
+    <div class="hero-copy">
+      <div class="analytics-kicker">Live Admin Analytics</div>
+      <h1>Data in.<br><em>Decisions out.</em></h1>
+      <p>Live metrics pulled from platform collections — revenue, account health, pending queues, and support threads in one terminal.</p>
+    </div>
+    <div class="analytics-hero-meta">
+      <div class="hero-pill">
+        <span class="pill-label">Data Window</span>
+        <div class="window-switcher" id="analytics-window-switcher">
+          <button type="button" class="window-btn active" data-window="daily">Daily</button>
+          <button type="button" class="window-btn" data-window="weekly">Weekly</button>
+          <button type="button" class="window-btn" data-window="monthly">Monthly</button>
+        </div>
+        <strong id="analytics-window-label">Last 14 days</strong>
+      </div>
+      <div class="hero-pill">
+        <span class="pill-label">Refresh</span>
+        <button type="button" id="analytics-refresh-btn">&#8635; Reload data</button>
+      </div>
+      <div class="hero-pill">
+        <span class="pill-label">Last Updated</span>
+        <strong id="analytics-generated-at">&#8212;</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE CARDS -->
+  <section class="a-section">
+    <div class="a-section-bar">
+      <span class="a-kicker">Topline</span>
+      <span class="a-bar-meta">Core metrics</span>
+    </div>
+    <div class="cards-grid" id="analytics-cards">
+      {% for _ in range(6) %}
+      <article class="metric-card metric-card-skeleton">
+        <div class="skeleton-line skeleton-kicker"></div>
+        <div class="skeleton-line skeleton-value"></div>
+        <div class="skeleton-line skeleton-text"></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- FEE SECTION -->
+  <section class="a-section">
+    <div class="a-section-bar">
+      <span class="a-kicker">Revenue</span>
+      <span class="a-bar-meta">Platform fee performance</span>
+    </div>
+    <div class="fee-layout">
+      <div class="fee-cards-grid" id="analytics-fee-cards">
+        {% for _ in range(6) %}
+        <article class="metric-card fee-card metric-card-skeleton">
+          <div class="skeleton-line skeleton-kicker"></div>
+          <div class="skeleton-line skeleton-value"></div>
+          <div class="skeleton-line skeleton-text"></div>
+        </article>
+        {% endfor %}
+      </div>
+      <article class="chart-card">
+        <div class="chart-head">
+          <span class="chart-kicker">Revenue Trend</span>
+          <h3>Platform Fee Growth</h3>
+        </div>
+        <div class="trend-chart chart-loading" id="chart-fee-growth"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="a-section">
+    <div class="a-section-bar charts-bar">
+      <div>
+        <span class="a-kicker">Trends &amp; Mix</span>
+        <h2 class="bar-title">Growth, accounts, deposits &amp; withdrawals</h2>
+      </div>
+      <div class="chart-mode-switcher">
+        <span class="chart-mode-label">View</span>
+        <div class="mode-buttons" id="chart-mode-switcher">
+          <button type="button" class="mode-btn active" data-mode="bar">Bars</button>
+          <button type="button" class="mode-btn" data-mode="line">Line</button>
+        </div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Acquisition</span><h3>Daily User Signups</h3></div>
+        <div class="trend-chart chart-loading" id="chart-user-growth"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Geography</span><h3>Users by Country</h3></div>
+        <div class="rank-chart chart-loading" id="chart-users-country"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Product</span><h3>Accounts by Type</h3></div>
+        <div class="rank-chart chart-loading" id="chart-accounts-type"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Platform Mix</span><h3>Accounts by Platform / Currency</h3></div>
+        <div class="rank-chart chart-loading" id="chart-accounts-platform"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Money In</span><h3>Deposit Volume Trend</h3></div>
+        <div class="trend-chart money-trend chart-loading" id="chart-deposit-volume"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Payment Rails</span><h3>Deposits by Method</h3></div>
+        <div class="rank-chart chart-loading" id="chart-deposits-method"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Money Out</span><h3>Withdrawal Volume Trend</h3></div>
+        <div class="trend-chart money-trend chart-loading" id="chart-withdrawal-volume"></div>
+      </article>
+      <article class="chart-card">
+        <div class="chart-head"><span class="chart-kicker">Payout Rails</span><h3>Withdrawals by Method</h3></div>
+        <div class="rank-chart chart-loading" id="chart-withdrawals-method"></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ACTION TABLES -->
+  <section class="a-section">
+    <div class="a-section-bar">
+      <span class="a-kicker">Action Queues</span>
+      <span class="a-bar-meta">Admins work from here</span>
+    </div>
+    <div class="tables-grid">
+      <article class="table-card">
+        <div class="chart-head"><span class="chart-kicker">Recovery</span><h3>No Account Yet</h3></div>
+        <div class="data-table chart-loading" id="table-users-no-account"></div>
+      </article>
+      <article class="table-card">
+        <div class="chart-head"><span class="chart-kicker">Provisioning</span><h3>Awaiting MT Setup</h3></div>
+        <div class="data-table chart-loading" id="table-awaiting-mt"></div>
+      </article>
+      <article class="table-card">
+        <div class="chart-head"><span class="chart-kicker">SLA Risk</span><h3>Aging Pending Approvals</h3></div>
+        <div class="data-table chart-loading" id="table-aging-approvals"></div>
+      </article>
+      <article class="table-card">
+        <div class="chart-head"><span class="chart-kicker">Support</span><h3>Unread Threads</h3></div>
+        <div class="data-table chart-loading" id="table-unread-support"></div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/admin-pin-lock.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin-analytics.js') }}"></script>
+
+<script>
+/* ════ THEME TOGGLE ════ */
+(function () {
+  var ROOT  = document.documentElement;
+  var BTN   = document.getElementById('theme-toggle');
+  var LABEL = document.getElementById('tog-label');
+  var STORE = 'pf-analytics-theme';
+
+  function applyTheme(theme) {
+    ROOT.setAttribute('data-theme', theme);
+    localStorage.setItem(STORE, theme);
+    if (LABEL) LABEL.textContent = theme === 'dark' ? 'DARK' : 'LIGHT';
+  }
+
+  /* Sync label with already-applied theme (set by pre-paint script) */
+  applyTheme(ROOT.getAttribute('data-theme') || 'dark');
+
+  if (BTN) {
+    BTN.addEventListener('click', function () {
+      var next = ROOT.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    });
+  }
+})();
+
+(function () {
+  var toggle = document.getElementById('hamburger-toggle');
+  var menu = document.getElementById('mobile-menu');
+
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener('click', function () {
+    toggle.classList.toggle('active');
+    menu.classList.toggle('active');
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!menu.classList.contains('active')) return;
+    if (menu.contains(event.target) || toggle.contains(event.target)) return;
+    toggle.classList.remove('active');
+    menu.classList.remove('active');
+  });
+})();
+
+(function () {
+  var toggle = document.getElementById('profile-toggle');
+  var dropdown = document.getElementById('profile-dropdown');
+  var memberSince = document.getElementById('member-since');
+  var profileContent = document.querySelector('.profile-card-content[data-user-created-at]');
+
+  if (profileContent && memberSince) {
+    var createdAt = profileContent.getAttribute('data-user-created-at');
+    if (createdAt) {
+      var date = new Date(createdAt);
+      if (!isNaN(date.getTime())) {
+        memberSince.textContent = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+      }
+    }
+  }
+
+  if (!toggle || !dropdown) return;
+
+  toggle.addEventListener('click', function (event) {
+    event.stopPropagation();
+    dropdown.classList.toggle('active');
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!dropdown.classList.contains('active')) return;
+    if (dropdown.contains(event.target) || toggle.contains(event.target)) return;
+    dropdown.classList.remove('active');
+  });
+})();
+
+/* ════ TICKER DATA UPDATE ════ */
+(function () {
+  var _orig = window.renderAnalytics;
+  window.renderAnalytics = function (summary, tables) {
+    if (_orig) _orig(summary, tables);
+    if (!summary) return;
+    var cards = summary.cards || [];
+    var fee = cards.find(function(c){ return c.title && c.title.toLowerCase().includes('fee'); });
+    var dep = cards.find(function(c){ return c.title && c.title.toLowerCase().includes('deposit'); });
+    var txn = cards.find(function(c){ return c.title && c.title.toLowerCase().includes('transaction'); });
+    var fmt = function(n){ return '\u20B9'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+    document.querySelectorAll('.t-fee').forEach(function(el){ if(fee) el.textContent = fmt(fee.value); });
+    document.querySelectorAll('.t-dep').forEach(function(el){ if(dep) el.textContent = fmt(dep.value); });
+    document.querySelectorAll('.t-txn').forEach(function(el){ if(txn) el.textContent = Number(txn.value||0).toLocaleString('en-IN'); });
+    if (summary.generated_at) {
+      var t = new Date(summary.generated_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      document.querySelectorAll('.t-time').forEach(function(el){ el.textContent = t; });
+    }
+  };
+})();
+</script>
+
+</div>{# /admin-pin-sensitive #}
+
+{% endblock %}

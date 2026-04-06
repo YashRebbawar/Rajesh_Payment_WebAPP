@@ -76,8 +76,35 @@
     font-size: 13px;
     font-weight: 700;
     color: #1e3a8a;
-    font-family: 'Courier New', monospace;
     word-break: break-all;
+    flex: 1;
+}
+
+.copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: #dbeafe;
+    border: 1px solid #2563eb;
+    border-radius: 4px;
+    color: #1e3a8a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    background: #bfdbfe;
+    border-color: #1e40af;
+}
+
+.copy-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
 }
 
 .payment-bank {
@@ -193,5 +220,222 @@
 
     .upi-value {
         font-size: 12px;
+    }
+}
+
+
+.bank-details-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    color: #1e3a8a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.bank-details-view-btn:hover {
+    background: #e0f2fe;
+    border-color: #1e40af;
+}
+
+.copy-bank-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    color: #1e3a8a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.copy-bank-btn:hover {
+    background: #e0f2fe;
+    border-color: #1e40af;
+}
+
+.copy-bank-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
+}
+
+.copy-bank-btn.copied svg {
+    display: none;
+}
+
+.copy-bank-btn.copied::after {
+    content: '✓';
+    font-weight: 700;
+}
+
+.bank-details-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-details-modal.active {
+    display: flex;
+}
+
+.bank-details-modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bank-details-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.bank-details-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1510;
+}
+
+.bank-details-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.bank-details-modal-close:hover {
+    color: #1a1510;
+}
+
+.bank-details-modal-body {
+    padding: 20px;
+}
+
+.bank-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.bank-detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.detail-copy-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.detail-copy-btn.copied {
+    background: #d1fae5;
+    border-color: #059669;
+    color: #047857;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1510;
+    padding: 10px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .bank-details-modal-content {
+        max-width: 95%;
+    }
+
+    .bank-details-modal-header {
+        padding: 16px;
+    }
+
+    .bank-details-modal-header h3 {
+        font-size: 16px;
+    }
+
+    .bank-details-modal-body {
+        padding: 16px;
+    }
+
+    .detail-value {
+        font-size: 13px;
     }
 }

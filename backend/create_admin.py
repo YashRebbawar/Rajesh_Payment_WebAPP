@@ -24,29 +24,38 @@ users_collection = db.users
 
 admin_email = "rppawar1811@gmail.com"
 admin_password = "Test@9823707060@4110"
+admin_security_pin = os.getenv('ADMIN_SECURITY_PIN')
+
+admin_updates = {
+    'password': generate_password_hash(admin_password),
+    'is_admin': True
+}
+if admin_security_pin:
+    admin_updates['security_pin_hash'] = generate_password_hash(admin_security_pin)
 
 existing_admin = users_collection.find_one({'email': admin_email})
 
 if existing_admin:
     users_collection.update_one(
         {'email': admin_email},
-        {'$set': {
-            'password': generate_password_hash(admin_password),
-            'is_admin': True
-        }}
+        {'$set': admin_updates}
     )
     print(f"Admin user updated: {admin_email}")
 else:
     users_collection.delete_many({'email': admin_email})
     admin_doc = {
         'email': admin_email,
-        'password': generate_password_hash(admin_password),
-        'is_admin': True,
+        **admin_updates,
         'country': None,
         'partner_code': None,
         'created_at': datetime.utcnow()
     }
     users_collection.insert_one(admin_doc)
     print(f"Admin user created: {admin_email}")
+
+if admin_security_pin:
+    print("Admin security PIN hash updated from ADMIN_SECURITY_PIN")
+else:
+    print("ADMIN_SECURITY_PIN not set; existing security_pin_hash was left unchanged")
 
 print("Admin setup complete!")
