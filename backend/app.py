@@ -53,7 +53,6 @@ if not MONGO_URI or MONGO_URI.strip() == '':
     raise Exception("MongoDB connection required. Please configure MONGO_URI in .env file")
 
 try:
-    # Handle URL encoding for special characters in password
     if 'mongodb+srv://' in MONGO_URI and '@' in MONGO_URI:
         prefix = MONGO_URI.split('://')[0] + '://'
         rest = MONGO_URI.split('://', 1)[1]
@@ -79,7 +78,7 @@ except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
     logger.error("Please check your MONGO_URI in .env file")
     logger.error("Make sure username, password, and cluster address are correct")
-    raise Exception(f"Failed to initialize MongoDB client: {e}")
+    raise RuntimeError(f"Failed to initialize MongoDB client: {e}")
 
 db = client.printfree
 users_collection = db.users

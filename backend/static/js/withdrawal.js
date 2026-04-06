@@ -116,6 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Payment method switching
+    paymentMethodBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            paymentMethodBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPaymentMethod = btn.dataset.method;
+            
+            if (currentPaymentMethod === 'upi') {
+                if (upiFields) upiFields.style.display = 'block';
+                if (bankFields) bankFields.style.display = 'none';
+            } else {
+                if (upiFields) upiFields.style.display = 'none';
+                if (bankFields) bankFields.style.display = 'block';
+            }
+            updateButtonState();
+        });
+    });
+
     function validateUpiId(upi) {
         return /^[a-zA-Z0-9._-]+@[a-zA-Z]{3,}$/.test(upi);
     }
