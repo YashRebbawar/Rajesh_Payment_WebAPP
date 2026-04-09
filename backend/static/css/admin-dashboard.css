@@ -415,6 +415,7 @@ body.admin-page::after {
 }
 .admin-user-card:hover { border-color: var(--bdr-md); box-shadow: 0 3px 14px rgba(26,21,16,.07); }
 .admin-user-card.expanded { border-color: var(--green-bd); box-shadow: 0 4px 18px rgba(45,122,79,.10); }
+.admin-user-card.account-tracked { border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,122,79,.14), 0 8px 24px rgba(45,122,79,.12); }
 
 .admin-user-header {
   display: flex; align-items: center;
@@ -467,6 +468,7 @@ body.admin-page::after {
 }
 .account-card:last-child { margin-bottom: 0; }
 .account-card:hover { border-color: var(--bdr-md); box-shadow: 0 6px 20px rgba(26,21,16,.09); }
+.account-card.account-tracked { border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,122,79,.16), 0 10px 28px rgba(45,122,79,.16); }
 
 /* ── LEFT dark panel ── */
 .card-left {
@@ -612,7 +614,7 @@ body.admin-page::after {
 .pending-payments-list { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── payment card ── */
-.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 0; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; }
+.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 0; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; cursor: pointer; }
 .pending-payment-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
 .deposit-payment::before    { background: linear-gradient(180deg, var(--green) 0%, var(--green-lt) 100%); }
 .withdrawal-payment::before { background: linear-gradient(180deg, var(--gold) 0%, #d4af37 100%); }

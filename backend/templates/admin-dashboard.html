@@ -203,7 +203,7 @@
     <div class="admin-users-list">
       {% for u in all_users %}
       {% set user_accounts = user_accounts_map.get(u._id|string, []) %}
-      <div class="admin-user-card">
+      <div class="admin-user-card" data-user-id="{{ u._id }}">
 
         {# ── Always-visible compact row ── #}
         <div class="admin-user-header">
@@ -344,6 +344,7 @@
         {% for payment in pending_payments %}
         {% set is_withdrawal = payment.get('withdrawal_id') or payment.get('type') == 'withdrawal_requested' %}
         <div class="pending-payment-card {% if is_withdrawal %}withdrawal-payment{% else %}deposit-payment{% endif %}"
+             data-user-id="{{ payment.get('user_id','') }}"
              data-user-email="{{ payment.user_email }}"
              data-currency="{{ payment.currency }}"
              data-account-id="{{ payment.get('account_id','') }}">
