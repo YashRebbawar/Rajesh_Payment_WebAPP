@@ -206,6 +206,61 @@ function initUserCards() {
   });
 }
 
+function focusAccountFromPendingCard(paymentCard) {
+  if (!paymentCard) return;
+
+  const accountId = paymentCard.dataset.accountId || '';
+  const userId = paymentCard.dataset.userId || '';
+  let userCard = null;
+  let accountCard = null;
+
+  if (accountId) {
+    accountCard = document.querySelector(`.account-card[data-account-id="${accountId}"]`);
+    userCard = accountCard?.closest('.admin-user-card') || null;
+  }
+
+  if (!userCard && userId) {
+    userCard = document.querySelector(`.admin-user-card[data-user-id="${userId}"]`);
+  }
+
+  if (!userCard) return;
+
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === 'users');
+    });
+    updateMobileDashboardTabState('users');
+  }
+
+  document.querySelectorAll('.admin-user-card.account-tracked').forEach(card => card.classList.remove('account-tracked'));
+  document.querySelectorAll('.account-card.account-tracked').forEach(card => card.classList.remove('account-tracked'));
+
+  userCard.classList.add('expanded', 'account-tracked');
+  userCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  accountCard = accountCard || (accountId ? userCard.querySelector(`.account-card[data-account-id="${accountId}"]`) : null);
+  if (accountCard) {
+    accountCard.classList.add('account-tracked');
+    setTimeout(() => {
+      accountCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
+  }
+
+  setTimeout(() => {
+    userCard.classList.remove('account-tracked');
+    accountCard?.classList.remove('account-tracked');
+  }, 2600);
+}
+
+function initPendingPaymentCardTracking() {
+  document.querySelectorAll('.pending-payment-card').forEach(card => {
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('button, a, input, select, textarea, label, form')) return;
+      focusAccountFromPendingCard(card);
+    });
+  });
+}
+
 /* ══ SEARCH / FILTER ══ */
 function filterUsers(q) {
   q = (q || '').toLowerCase().trim();
@@ -562,6 +617,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   initUserCards();
+  initPendingPaymentCardTracking();
 
   document.getElementById('admin-user-search')?.addEventListener('input', function () { filterUsers(this.value); });
   document.getElementById('mobile-admin-user-search')?.addEventListener('input', function () { filterUsers(this.value); });
