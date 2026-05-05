@@ -87,6 +87,9 @@ payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
 testimonials_collection = db.testimonials
+settings_collection = db.app_settings
+
+DEFAULT_USD_RATE = float(os.getenv('DEFAULT_USD_RATE', '85'))
 
 PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
 ADMIN_SECURITY_PIN_HASH = os.getenv('ADMIN_SECURITY_PIN_HASH')
@@ -294,6 +297,24 @@ def clear_admin_dashboard_context_cache(user=None):
         return
     admin_dashboard_context_cache.clear()
 
+def get_usd_rate_setting():
+    settings = settings_collection.find_one({'_id': 'usd_rate'})
+    try:
+        rate = float(settings.get('rate')) if settings else DEFAULT_USD_RATE
+    except (TypeError, ValueError):
+        rate = DEFAULT_USD_RATE
+    return round(rate, 4)
+
+def calculate_usdt_receive_amount(amount, usd_rate=None):
+    try:
+        rate = float(usd_rate if usd_rate is not None else get_usd_rate_setting())
+        base_amount = float(amount)
+    except (TypeError, ValueError):
+        return 0
+    if rate <= 0 or base_amount <= 0:
+        return 0
+    return round(base_amount / rate, 2)
+
 def build_admin_dashboard_context():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
@@ -358,7 +379,8 @@ def build_admin_dashboard_context():
         'all_users': all_users,
         'user_accounts_map': user_accounts_map,
         'pending_payments': pending_payments,
-        'unread_chat_users': unread_chat_users
+        'unread_chat_users': unread_chat_users,
+        'usd_rate': get_usd_rate_setting()
     }
 
 def get_admin_dashboard_context(user, warm_only=False):
@@ -1093,7 +1115,7 @@ def payment(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('payment.html', user=user, account=account)
+        return render_template('payment.html', user=user, account=account, usd_rate=get_usd_rate_setting())
     except (ValueError, Exception) as e:
         logger.error(f"Payment page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1162,6 +1184,10 @@ def initiate_payment():
             'created_at': get_current_ist_time(),
             'screenshot': None
         }
+        if currency == 'INR':
+            usd_rate = get_usd_rate_setting()
+            payment_doc['usd_rate'] = usd_rate
+            payment_doc['usdt_receive_amount'] = calculate_usdt_receive_amount(amount, usd_rate)
         result = payments_collection.insert_one(payment_doc)
         
         logger.info(f"Payment initiated for user {user['email']}: {amount} {currency}")
@@ -1339,6 +1365,9 @@ def payment_webhook():
                 'status': 'pending_approval',
                 'created_at': get_current_ist_time()
             }
+            if payment.get('usd_rate') and payment.get('usdt_receive_amount'):
+                notification_doc['usd_rate'] = payment['usd_rate']
+                notification_doc['usdt_receive_amount'] = payment['usdt_receive_amount']
             notifications_collection.insert_one(notification_doc)
             
             logger.info(f"Payment webhook received - Payment completed: {payment_id}")
@@ -1439,6 +1468,9 @@ def simulate_payment(payment_id):
             'status': 'pending_approval',
             'created_at': get_current_ist_time()
         }
+        if payment.get('usd_rate') and payment.get('usdt_receive_amount'):
+            notification_doc['usd_rate'] = payment['usd_rate']
+            notification_doc['usdt_receive_amount'] = payment['usdt_receive_amount']
         notifications_collection.insert_one(notification_doc)
         
         logger.info(f"Payment completed and admin notified: {payment_id}")
@@ -1463,6 +1495,38 @@ def get_admin_notifications():
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/usd-rate', methods=['GET', 'POST'])
+def admin_usd_rate():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'rate': get_usd_rate_setting()})
+
+    try:
+        data = request.get_json(silent=True) or {}
+        rate = float(data.get('rate'))
+        if rate <= 0:
+            return jsonify({'success': False, 'message': 'USD rate must be greater than 0'})
+
+        settings_collection.update_one(
+            {'_id': 'usd_rate'},
+            {'$set': {
+                'rate': round(rate, 4),
+                'updated_at': get_current_ist_time(),
+                'updated_by': user['_id']
+            }},
+            upsert=True
+        )
+        clear_admin_dashboard_context_cache(user)
+        return jsonify({'success': True, 'rate': round(rate, 4)})
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Enter a valid USD rate'})
+    except Exception as e:
+        logger.error(f"USD rate update error: {e}")
+        return jsonify({'success': False, 'message': 'Could not update USD rate'})
 
 @app.route('/api/admin/new-account-notifications', methods=['GET'])
 def get_new_account_notifications():
@@ -1652,7 +1716,8 @@ def admin_dashboard():
     dashboard_context = {
         'all_users': [],
         'user_accounts_map': {},
-        'pending_payments': []
+        'pending_payments': [],
+        'usd_rate': get_usd_rate_setting()
     }
     if admin_pin_verified:
         dashboard_context = get_admin_dashboard_context(user) or dashboard_context

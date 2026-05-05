@@ -330,6 +330,18 @@
       <span id="pending-payments-badge" class="notification-badge" {% if not pending_payments %}style="display:none;"{% endif %}>{{ pending_payments|length }}</span>
     </div>
 
+    <div class="usd-rate-control">
+      <div>
+        <span class="usd-rate-label">USD rate</span>
+        <span class="usd-rate-helper">Used to show INR deposit value in USDT.</span>
+      </div>
+      <div class="usd-rate-input-wrap">
+        <span>INR</span>
+        <input type="number" id="usd-rate-input" min="0.01" step="0.01" value="{{ '%.2f'|format(usd_rate|default(85)) }}" aria-label="USD rate">
+        <button type="button" id="save-usd-rate-btn">Save</button>
+      </div>
+    </div>
+
     {% if pending_payments %}
     <div class="payment-filters">
       <input type="text" id="payment-search" placeholder="Search by email…" class="payment-search-input">
@@ -369,6 +381,12 @@
               <span class="amount">{{ payment.amount }}</span>
               <span class="currency">{{ payment.currency }}</span>
             </div>
+            {% if payment.usdt_receive_amount %}
+            <div class="payment-usdt-estimate">
+              <span>{{ "%.2f"|format(payment.usdt_receive_amount) }} USDT</span>
+              <small>@ {{ "%.2f"|format(payment.usd_rate|default(usd_rate)) }} INR</small>
+            </div>
+            {% endif %}
             {% if payment.reference %}
             <div class="payment-reference"><span class="ref-value">{{ payment.reference }}</span></div>
             {% endif %}

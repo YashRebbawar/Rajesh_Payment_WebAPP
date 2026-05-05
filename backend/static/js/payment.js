@@ -72,6 +72,7 @@ function showToast(msg, type = 'error') {
 ══════════════════════════════════════════════════════ */
 let activeFeeRate = 0.019;
 let activeDisplayCurrency = 'USDT';
+let activeUsdRate = 0;
 
 function syncReceipt(baseAmount) {
     const fee   = baseAmount * activeFeeRate;
@@ -89,6 +90,8 @@ function syncReceipt(baseAmount) {
     setText('rcpt-base',      baseAmount > 0 ? baseAmount.toFixed(0) : '—');
     setText('rcpt-fee',       baseAmount > 0 ? fee.toFixed(2)        : '—');
     setText('rcpt-total-row', baseAmount > 0 ? total.toFixed(0)      : '—');
+
+    setText('rcpt-usdt-value', baseAmount > 0 && activeUsdRate > 0 ? (baseAmount / activeUsdRate).toFixed(2) : '0.00');
 
     // also update deposit summary display
     setText('deposit-value', total.toFixed(0));
@@ -112,6 +115,11 @@ function syncReceipt(baseAmount) {
     if (totalCurrencyEl) {
         totalCurrencyEl.textContent = activeDisplayCurrency;
     }
+
+    const usdtEstimateEl = document.getElementById('rcpt-usdt-estimate');
+    if (usdtEstimateEl) {
+        usdtEstimateEl.style.display = activeDisplayCurrency === 'INR' ? 'flex' : 'none';
+    }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -134,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
     const fiatCurrency       = accountCurrency === 'USD' ? 'INR' : accountCurrency;
+    activeUsdRate            = parseFloat(payButton.dataset.usdRate) || 0;
 
     const hamburger = document.getElementById('hamburger');
     const hamburgerMobile = document.getElementById('hamburger-mobile');
