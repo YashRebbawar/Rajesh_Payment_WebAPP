@@ -182,6 +182,7 @@
       data-account-id="{{ account._id }}"
       data-account-type="{{ account.account_type }}"
       data-currency="{{ account.currency }}"
+      data-usd-rate="{{ usd_rate }}"
       disabled>
       <span>Continue to payment</span>
       <span class="btn-arrow">→</span>
@@ -229,6 +230,13 @@
               <span class="rcpt-row-value" id="rcpt-total-row">—</span>
             </div>
           </div>
+        </div>
+        <div class="rcpt-usdt-estimate" id="rcpt-usdt-estimate">
+          <div>
+            <span class="rcpt-usdt-label">USDT you will receive</span>
+            <span class="rcpt-usdt-rate">Rate: 1 USDT = <span id="rcpt-usd-rate">{{ "%.2f"|format(usd_rate) }}</span> INR</span>
+          </div>
+          <span class="rcpt-usdt-value"><span id="rcpt-usdt-value">0.00</span> USDT</span>
         </div>
         <div class="terms-section">
           <div class="terms-item">

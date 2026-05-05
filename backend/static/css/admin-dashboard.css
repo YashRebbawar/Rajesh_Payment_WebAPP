@@ -601,6 +601,15 @@ body.admin-page::after {
    PAYMENT SECTION
 ══════════════════════════════════════════ */
 .payment-filters { display: flex; gap: 7px; flex-shrink: 0; }
+.usd-rate-control { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); }
+.usd-rate-label { display: block; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+.usd-rate-helper { display: block; margin-top: 3px; font-size: 11px; color: var(--ink-45); line-height: 1.25; }
+.usd-rate-input-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.usd-rate-input-wrap span { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; color: var(--ink-45); }
+.usd-rate-input-wrap input { width: 86px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--number-font); font-size: 13px; font-weight: 700; color: var(--ink); outline: none; }
+.usd-rate-input-wrap input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
+.usd-rate-input-wrap button { padding: 8px 12px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; cursor: pointer; }
+.usd-rate-input-wrap button:hover { background: var(--green); }
 .payment-search-input { flex: 1; padding: 8px 13px; border: 1.5px solid var(--border); border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--white); color: var(--ink); outline: none; transition: border-color .18s; }
 .payment-search-input::placeholder { color: var(--ink-25); }
 .payment-search-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
@@ -637,6 +646,9 @@ body.admin-page::after {
 .payment-amount .currency { font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink-45); }
 .payment-reference { background: var(--cream); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; }
 .ref-value { font-size: 11px; font-weight: 700; color: var(--ink); }
+.payment-usdt-estimate { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 5px 9px; border-radius: 8px; background: var(--green-bg); border: 1px solid var(--green-bd); }
+.payment-usdt-estimate span { font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; color: var(--green); }
+.payment-usdt-estimate small { font-size: 9px; color: var(--ink-45); }
 .payment-upi { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 0 16px; margin-bottom: 12px; }
 .upi-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-45); min-width: 40px; }
 .upi-value { font-size: 11px; color: var(--ink); font-weight: 600; }
@@ -809,6 +821,9 @@ body.admin-page::after {
   .payment-amount .currency { font-size: 10px; }
   .payment-actions button { padding: 6px 9px; font-size: 9px; }
   .pending-payments-section { flex: 1; overflow-y: auto; }
+  .usd-rate-control { flex-direction: column; align-items: stretch; gap: 10px; }
+  .usd-rate-input-wrap { width: 100%; }
+  .usd-rate-input-wrap input { flex: 1; width: auto; }
 }
 @media (max-width: 480px) {
   :root { --nav-h: 52px; }

@@ -357,6 +357,10 @@ body::after{
 .rcpt-row.total .rcpt-row-label{color:rgba(255,255,255,.65);font-size:11px;font-weight:800;}
 .rcpt-row.total .rcpt-row-value{color:#fff;font-family:'Fraunces',serif;font-size:18px;font-weight:700;letter-spacing:-.3px;}
 .rcpt-divider{height:1px;background:rgba(255,255,255,.08);margin:4px 0;}
+.rcpt-usdt-estimate{display:none;justify-content:space-between;align-items:center;gap:14px;margin:0 24px 16px;padding:13px 14px;border:1px solid rgba(74,222,128,.20);border-radius:10px;background:rgba(45,122,79,.14);}
+.rcpt-usdt-label{display:block;font-family:'Cabinet Grotesk',sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,.78);margin-bottom:4px;}
+.rcpt-usdt-rate{display:block;font-size:10px;color:rgba(255,255,255,.40);}
+.rcpt-usdt-value{font-family:'Fraunces',serif;font-size:19px;font-weight:800;color:#4ade80;white-space:nowrap;}
 
 /* Terms */
 .terms-section{padding:0 24px 22px;}
