@@ -384,7 +384,6 @@
             {% if payment.usdt_receive_amount %}
             <div class="payment-usdt-estimate">
               <span>{{ "%.2f"|format(payment.usdt_receive_amount) }} USDT</span>
-              <small>@ {{ "%.2f"|format(payment.usd_rate|default(usd_rate)) }} INR</small>
             </div>
             {% endif %}
             {% if payment.reference %}

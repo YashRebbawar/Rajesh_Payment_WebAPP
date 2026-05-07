@@ -141,6 +141,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountCurrency    = payButton.dataset.currency;
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
+    const fiatMinAmount      = parseFloat(payButton.dataset.fiatMinAmount) || (accountType === 'standard' ? 1000 : 50000);
+    const usdtMinAmount      = parseFloat(payButton.dataset.usdtMinAmount) || 100;
     const fiatCurrency       = accountCurrency === 'USD' ? 'INR' : accountCurrency;
     activeUsdRate            = parseFloat(payButton.dataset.usdRate) || 0;
 
@@ -178,29 +180,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const methodConfigs = {
         upi: {
             currency: fiatCurrency,
-            minAmount: accountType === 'standard' ? 1000 : 50000,
+            minAmount: fiatMinAmount,
             maxAmount: 100000,
             step: '1',
             feeRate: 0.016,
-            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
+            rangeText: `${fiatMinAmount.toLocaleString()} - 100,000 ${fiatCurrency}`,
             feeLabel: '1.6%'
         },
         imps: {
             currency: fiatCurrency,
-            minAmount: accountType === 'standard' ? 1000 : 50000,
+            minAmount: fiatMinAmount,
             maxAmount: 100000,
             step: '1',
             feeRate: 0.016,
-            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
+            rangeText: `${fiatMinAmount.toLocaleString()} - 100,000 ${fiatCurrency}`,
             feeLabel: '1.6%'
         },
         usdt: {
             currency: 'USDT',
-            minAmount: 100,
+            minAmount: usdtMinAmount,
             maxAmount: 10000,
             step: '0.01',
             feeRate: 0.019,
-            rangeText: '100 - 10,000 USDT',
+            rangeText: `${usdtMinAmount.toLocaleString()} - 10,000 USDT`,
             feeLabel: '1.9%'
         }
     };
