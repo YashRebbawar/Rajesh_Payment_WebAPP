@@ -28,6 +28,15 @@
         autocomplete="one-time-code"
         placeholder="Enter PIN">
       <p class="admin-pin-error" id="admin-pin-error" aria-live="polite"></p>
+      <div class="admin-pin-biometric" id="admin-pin-biometric" hidden>
+        <button type="button" class="admin-biometric-button" id="admin-biometric-unlock">
+          <span class="admin-biometric-icon" aria-hidden="true"><i class="fa-solid fa-fingerprint"></i></span>
+          <span>Use fingerprint or face</span>
+        </button>
+        <button type="button" class="admin-biometric-enroll" id="admin-biometric-enroll">
+          Enable fingerprint or face unlock on this device
+        </button>
+      </div>
       <div class="admin-pin-actions">
         <button type="submit" class="admin-pin-submit" id="admin-pin-submit" {% if not admin_pin_configured %}disabled{% endif %}>
           <span class="admin-pin-submit-text">Unlock Dashboard</span>

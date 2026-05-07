@@ -13,6 +13,25 @@ import re
 import copy
 from datetime import datetime, timezone, timedelta
 
+try:
+    from webauthn import (
+        generate_authentication_options,
+        generate_registration_options,
+        verify_authentication_response,
+        verify_registration_response,
+    )
+    from webauthn.helpers import options_to_json
+    from webauthn.helpers.structs import (
+        AuthenticatorSelectionCriteria,
+        PublicKeyCredentialDescriptor,
+        ResidentKeyRequirement,
+        UserVerificationRequirement,
+    )
+    from webauthn.helpers.exceptions import InvalidAuthenticationResponse, InvalidRegistrationResponse
+    WEBAUTHN_AVAILABLE = True
+except ImportError:
+    WEBAUTHN_AVAILABLE = False
+
 def get_current_ist_time():
     """Helper to get current Indian Standard Time"""
     ist = timezone(timedelta(hours=5, minutes=30))
@@ -103,6 +122,9 @@ ADMIN_PIN_MAX_ATTEMPTS = max(int(os.getenv('ADMIN_PIN_MAX_ATTEMPTS', '5')), 1)
 ADMIN_PIN_WINDOW_SECONDS = max(int(os.getenv('ADMIN_PIN_WINDOW_SECONDS', '300')), 60)
 ADMIN_PIN_LOCKOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_LOCKOUT_SECONDS', '300')), 60)
 ADMIN_PIN_IDLE_TIMEOUT_SECONDS = max(int(os.getenv('ADMIN_PIN_IDLE_TIMEOUT_SECONDS', '180')), 60)
+WEBAUTHN_RP_NAME = os.getenv('WEBAUTHN_RP_NAME', 'PrintFree Admin')
+WEBAUTHN_RP_ID = os.getenv('WEBAUTHN_RP_ID')
+WEBAUTHN_ORIGIN = os.getenv('WEBAUTHN_ORIGIN')
 
 admin_pin_attempt_store = {}
 admin_dashboard_context_cache = {}
@@ -308,6 +330,40 @@ def get_admin_pin_lockout(user):
         'locked_until': locked_until,
         'retry_after_seconds': retry_after_seconds
     }
+
+def b64url_encode(value):
+    return base64.urlsafe_b64encode(value).decode('utf-8').rstrip('=')
+
+def b64url_decode(value):
+    if not value:
+        return b''
+    padding = '=' * (-len(value) % 4)
+    return base64.urlsafe_b64decode(f'{value}{padding}')
+
+def get_webauthn_rp_id():
+    if WEBAUTHN_RP_ID:
+        return WEBAUTHN_RP_ID
+    return request.host.split(':', 1)[0]
+
+def get_webauthn_origin():
+    if WEBAUTHN_ORIGIN:
+        return WEBAUTHN_ORIGIN.rstrip('/')
+    return request.host_url.rstrip('/')
+
+def get_admin_biometric_credentials(user):
+    credentials = user.get('admin_biometric_credentials') if user else []
+    if not isinstance(credentials, list):
+        return []
+    return [
+        credential for credential in credentials
+        if credential.get('credential_id') and credential.get('public_key')
+    ]
+
+def get_admin_biometric_credential(user, credential_id):
+    for credential in get_admin_biometric_credentials(user):
+        if credential.get('credential_id') == credential_id:
+            return credential
+    return None
 
 def get_admin_dashboard_cache_key(user):
     return str(user.get('_id')) if user else 'anonymous'
@@ -650,6 +706,11 @@ def enforce_admin_pin_guard():
         '/api/admin/pin/status',
         '/api/admin/pin/verify',
         '/api/admin/pin/lock',
+        '/api/admin/biometric/status',
+        '/api/admin/biometric/register/options',
+        '/api/admin/biometric/register/verify',
+        '/api/admin/biometric/auth/options',
+        '/api/admin/biometric/auth/verify',
         '/api/admin/analytics/summary',
         '/api/admin/analytics/tables',
         '/logout'
@@ -921,6 +982,166 @@ def relock_admin_pin():
     reason = str(data.get('reason') or 'manual').strip() or 'manual'
     lock_admin_pin(reason)
     return jsonify({'success': True, 'message': 'Dashboard locked'})
+
+@app.route('/api/admin/biometric/status', methods=['GET'])
+def admin_biometric_status():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    return jsonify({
+        'success': True,
+        'available': WEBAUTHN_AVAILABLE,
+        'registered': len(get_admin_biometric_credentials(user)) > 0,
+        'verified': is_admin_pin_verified()
+    })
+
+@app.route('/api/admin/biometric/register/options', methods=['POST'])
+def admin_biometric_register_options():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if not is_admin_pin_verified():
+        return jsonify({'success': False, 'message': 'Unlock with PIN before enrolling biometrics'}), 423
+    if not WEBAUTHN_AVAILABLE:
+        return jsonify({'success': False, 'message': 'WebAuthn support is not installed on the server'}), 503
+
+    existing_credentials = [
+        PublicKeyCredentialDescriptor(id=b64url_decode(credential['credential_id']))
+        for credential in get_admin_biometric_credentials(user)
+    ]
+    options = generate_registration_options(
+        rp_id=get_webauthn_rp_id(),
+        rp_name=WEBAUTHN_RP_NAME,
+        user_id=str(user['_id']).encode('utf-8'),
+        user_name=user.get('email', 'admin'),
+        user_display_name=user.get('email', 'Admin'),
+        exclude_credentials=existing_credentials,
+        authenticator_selection=AuthenticatorSelectionCriteria(
+            resident_key=ResidentKeyRequirement.PREFERRED,
+            user_verification=UserVerificationRequirement.REQUIRED,
+        ),
+    )
+    session['admin_biometric_registration_challenge'] = b64url_encode(options.challenge)
+    return app.response_class(options_to_json(options), mimetype='application/json')
+
+@app.route('/api/admin/biometric/register/verify', methods=['POST'])
+def admin_biometric_register_verify():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if not is_admin_pin_verified():
+        return jsonify({'success': False, 'message': 'Unlock with PIN before enrolling biometrics'}), 423
+    if not WEBAUTHN_AVAILABLE:
+        return jsonify({'success': False, 'message': 'WebAuthn support is not installed on the server'}), 503
+
+    expected_challenge = session.pop('admin_biometric_registration_challenge', None)
+    if not expected_challenge:
+        return jsonify({'success': False, 'message': 'Biometric enrollment expired. Try again.'}), 400
+
+    try:
+        verification = verify_registration_response(
+            credential=request.json or {},
+            expected_challenge=b64url_decode(expected_challenge),
+            expected_origin=get_webauthn_origin(),
+            expected_rp_id=get_webauthn_rp_id(),
+            require_user_verification=True,
+        )
+    except (InvalidRegistrationResponse, ValueError) as error:
+        logger.warning(f"Admin biometric registration failed for {user['email']}: {error}")
+        return jsonify({'success': False, 'message': 'Biometric enrollment could not be verified'}), 400
+
+    credential_id = b64url_encode(verification.credential_id)
+    credential_record = {
+        'credential_id': credential_id,
+        'public_key': b64url_encode(verification.credential_public_key),
+        'sign_count': verification.sign_count,
+        'device_name': request.headers.get('User-Agent', 'Mobile device')[:160],
+        'created_at': get_current_ist_time(),
+        'last_used_at': None,
+    }
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$pull': {'admin_biometric_credentials': {'credential_id': credential_id}}}
+    )
+    users_collection.update_one(
+        {'_id': user['_id']},
+        {'$push': {'admin_biometric_credentials': credential_record}}
+    )
+    logger.info(f"Admin biometric credential enrolled for {user['email']}")
+    return jsonify({'success': True, 'message': 'Biometric unlock enabled on this device'})
+
+@app.route('/api/admin/biometric/auth/options', methods=['POST'])
+def admin_biometric_auth_options():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if not WEBAUTHN_AVAILABLE:
+        return jsonify({'success': False, 'message': 'WebAuthn support is not installed on the server'}), 503
+
+    credentials = get_admin_biometric_credentials(user)
+    if not credentials:
+        return jsonify({'success': False, 'message': 'No biometric device is enrolled yet'}), 404
+
+    options = generate_authentication_options(
+        rp_id=get_webauthn_rp_id(),
+        allow_credentials=[
+            PublicKeyCredentialDescriptor(id=b64url_decode(credential['credential_id']))
+            for credential in credentials
+        ],
+        user_verification=UserVerificationRequirement.REQUIRED,
+    )
+    session['admin_biometric_authentication_challenge'] = b64url_encode(options.challenge)
+    return app.response_class(options_to_json(options), mimetype='application/json')
+
+@app.route('/api/admin/biometric/auth/verify', methods=['POST'])
+def admin_biometric_auth_verify():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if not WEBAUTHN_AVAILABLE:
+        return jsonify({'success': False, 'message': 'WebAuthn support is not installed on the server'}), 503
+
+    expected_challenge = session.pop('admin_biometric_authentication_challenge', None)
+    if not expected_challenge:
+        return jsonify({'success': False, 'message': 'Biometric verification expired. Try again.'}), 400
+
+    credential_payload = request.json or {}
+    credential_id = credential_payload.get('id') or credential_payload.get('rawId')
+    stored_credential = get_admin_biometric_credential(user, credential_id)
+    if not stored_credential:
+        return jsonify({'success': False, 'message': 'This biometric device is not enrolled for the admin account'}), 401
+
+    try:
+        verification = verify_authentication_response(
+            credential=credential_payload,
+            expected_challenge=b64url_decode(expected_challenge),
+            expected_origin=get_webauthn_origin(),
+            expected_rp_id=get_webauthn_rp_id(),
+            credential_public_key=b64url_decode(stored_credential['public_key']),
+            credential_current_sign_count=int(stored_credential.get('sign_count') or 0),
+            require_user_verification=True,
+        )
+    except (InvalidAuthenticationResponse, ValueError) as error:
+        logger.warning(f"Admin biometric authentication failed for {user['email']}: {error}")
+        return jsonify({'success': False, 'message': 'Biometric verification failed'}), 401
+
+    mark_admin_pin_verified()
+    clear_admin_pin_failures(user)
+    users_collection.update_one(
+        {
+            '_id': user['_id'],
+            'admin_biometric_credentials.credential_id': credential_id
+        },
+        {
+            '$set': {
+                'admin_biometric_credentials.$.sign_count': verification.new_sign_count,
+                'admin_biometric_credentials.$.last_used_at': get_current_ist_time()
+            }
+        }
+    )
+    logger.info(f"Admin biometric verified for {user['email']}")
+    return jsonify({'success': True, 'message': 'Dashboard unlocked'})
 
 @app.route('/auth/google')
 def google_login():

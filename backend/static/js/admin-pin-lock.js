@@ -8,6 +8,9 @@
   const form = document.getElementById('admin-pin-form');
   const input = document.getElementById('admin-pin-input');
   const submitButton = document.getElementById('admin-pin-submit');
+  const biometricPanel = document.getElementById('admin-pin-biometric');
+  const biometricUnlockButton = document.getElementById('admin-biometric-unlock');
+  const biometricEnrollButton = document.getElementById('admin-biometric-enroll');
   const errorNode = document.getElementById('admin-pin-error');
   const statusNode = document.getElementById('admin-pin-status-text');
   const csrfToken = body.dataset.csrfToken || '';
@@ -17,8 +20,72 @@
 
   let locked = body.dataset.adminPinVerified !== 'true';
   let verifyInFlight = false;
+  let biometricRegistered = false;
+  let biometricSupported = false;
   let idleTimer = null;
   let blurLockTimer = null;
+
+  function base64UrlToBuffer(value) {
+    const padding = '='.repeat((4 - (value.length % 4)) % 4);
+    const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = window.atob(base64);
+    const output = new Uint8Array(raw.length);
+    for (let index = 0; index < raw.length; index += 1) {
+      output[index] = raw.charCodeAt(index);
+    }
+    return output.buffer;
+  }
+
+  function bufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+    return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  }
+
+  function prepareCredentialOptions(options) {
+    if (options.challenge) options.challenge = base64UrlToBuffer(options.challenge);
+    if (options.user?.id) options.user.id = base64UrlToBuffer(options.user.id);
+    if (Array.isArray(options.excludeCredentials)) {
+      options.excludeCredentials = options.excludeCredentials.map(credential => ({
+        ...credential,
+        id: base64UrlToBuffer(credential.id)
+      }));
+    }
+    if (Array.isArray(options.allowCredentials)) {
+      options.allowCredentials = options.allowCredentials.map(credential => ({
+        ...credential,
+        id: base64UrlToBuffer(credential.id)
+      }));
+    }
+    return options;
+  }
+
+  function credentialToJson(credential) {
+    const response = credential.response;
+    const output = {
+      id: credential.id,
+      rawId: bufferToBase64Url(credential.rawId),
+      type: credential.type,
+      clientExtensionResults: credential.getClientExtensionResults()
+    };
+
+    if (response.attestationObject) {
+      output.response = {
+        attestationObject: bufferToBase64Url(response.attestationObject),
+        clientDataJSON: bufferToBase64Url(response.clientDataJSON)
+      };
+      return output;
+    }
+
+    output.response = {
+      authenticatorData: bufferToBase64Url(response.authenticatorData),
+      clientDataJSON: bufferToBase64Url(response.clientDataJSON),
+      signature: bufferToBase64Url(response.signature),
+      userHandle: response.userHandle ? bufferToBase64Url(response.userHandle) : null
+    };
+    return output;
+  }
 
   function updateBodyState() {
     body.classList.add('admin-pin-page');
@@ -44,6 +111,23 @@
     if (!submitButton) return;
     submitButton.disabled = isLoading || !configured;
     submitButton.classList.toggle('is-loading', isLoading);
+  }
+
+  function setBiometricLoading(isLoading) {
+    if (biometricUnlockButton) biometricUnlockButton.disabled = isLoading;
+    if (biometricEnrollButton) biometricEnrollButton.disabled = isLoading;
+  }
+
+  function updateBiometricState() {
+    if (!biometricPanel) return;
+    const showPanel = biometricSupported && configured;
+    biometricPanel.hidden = !showPanel;
+    if (biometricUnlockButton) {
+      biometricUnlockButton.hidden = !biometricRegistered;
+    }
+    if (biometricEnrollButton) {
+      biometricEnrollButton.hidden = biometricRegistered;
+    }
   }
 
   function dispatchLockEvent(name, detail = {}) {
@@ -80,6 +164,28 @@
       throw error;
     }
     return data;
+  }
+
+  async function loadBiometricStatus() {
+    if (!window.PublicKeyCredential || !navigator.credentials) return;
+    try {
+      biometricSupported = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch (error) {
+      biometricSupported = false;
+    }
+    if (!biometricSupported) {
+      updateBiometricState();
+      return;
+    }
+    try {
+      const response = await fetch('/api/admin/biometric/status');
+      const data = await response.json();
+      biometricSupported = Boolean(data.available);
+      biometricRegistered = Boolean(data.registered);
+    } catch (error) {
+      biometricSupported = false;
+    }
+    updateBiometricState();
   }
 
   async function unlockDashboard(pin) {
@@ -119,6 +225,73 @@
     }
   }
 
+  async function enrollBiometric() {
+    const pin = (input?.value || '').trim();
+    if (!pin) {
+      setStatus('Enter the PIN first, then enable fingerprint or face unlock.', true);
+      input?.focus();
+      return;
+    }
+
+    setBiometricLoading(true);
+    setLoading(true);
+    setStatus('Starting biometric enrollment...');
+    try {
+      await postJson('/api/admin/pin/verify', { pin });
+      const options = await postJson('/api/admin/biometric/register/options', {});
+      const credential = await navigator.credentials.create({
+        publicKey: prepareCredentialOptions(options)
+      });
+      await postJson('/api/admin/biometric/register/verify', credentialToJson(credential));
+      biometricRegistered = true;
+      locked = false;
+      body.dataset.adminPinVerified = 'true';
+      updateBodyState();
+      updateBiometricState();
+      startIdleTimer();
+      dispatchLockEvent('admin-pin:unlocked');
+      if (input) input.value = '';
+      if (bootLocked) {
+        window.location.reload();
+        return;
+      }
+      if (statusNode) statusNode.textContent = 'Biometric unlock is enabled on this device.';
+    } catch (error) {
+      setStatus(error.data?.message || error.message || 'Unable to enable biometric unlock', true);
+    } finally {
+      setLoading(false);
+      setBiometricLoading(false);
+    }
+  }
+
+  async function unlockWithBiometric() {
+    setBiometricLoading(true);
+    setStatus('Waiting for fingerprint or face verification...');
+    try {
+      const options = await postJson('/api/admin/biometric/auth/options', {});
+      const credential = await navigator.credentials.get({
+        publicKey: prepareCredentialOptions(options)
+      });
+      await postJson('/api/admin/biometric/auth/verify', credentialToJson(credential));
+      locked = false;
+      body.dataset.adminPinVerified = 'true';
+      updateBodyState();
+      startIdleTimer();
+      dispatchLockEvent('admin-pin:unlocked');
+      if (bootLocked) {
+        window.location.reload();
+        return;
+      }
+      if (statusNode) {
+        statusNode.textContent = 'Dashboard unlocked with biometric verification.';
+      }
+    } catch (error) {
+      setStatus(error.data?.message || error.message || 'Biometric verification failed', true);
+    } finally {
+      setBiometricLoading(false);
+    }
+  }
+
   async function lockDashboard(reason) {
     if (locked || verifyInFlight) return;
     locked = true;
@@ -154,6 +327,9 @@
     });
   }
 
+  biometricEnrollButton?.addEventListener('click', enrollBiometric);
+  biometricUnlockButton?.addEventListener('click', unlockWithBiometric);
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       lockDashboard('visibility_hidden');
@@ -175,6 +351,7 @@
   };
 
   updateBodyState();
+  loadBiometricStatus();
   if (!locked) {
     startIdleTimer();
   } else {

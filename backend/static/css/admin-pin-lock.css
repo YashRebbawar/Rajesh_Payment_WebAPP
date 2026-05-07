@@ -155,6 +155,64 @@ body.admin-pin-locked .admin-pin-sensitive {
   font-size: 13px;
 }
 
+.admin-pin-biometric {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-biometric-button,
+.admin-biometric-enroll {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+.admin-biometric-button {
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f7f6f2;
+  font-size: 14px;
+}
+
+.admin-biometric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #7bd39c;
+  font-size: 18px;
+}
+
+.admin-biometric-enroll {
+  border: none;
+  background: transparent;
+  color: rgba(247, 246, 242, 0.72);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.admin-biometric-button:hover,
+.admin-biometric-enroll:hover {
+  transform: translateY(-1px);
+}
+
+.admin-biometric-button:disabled,
+.admin-biometric-enroll:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .admin-pin-actions {
   display: flex;
   align-items: center;
