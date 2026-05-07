@@ -22,6 +22,7 @@
   let verifyInFlight = false;
   let biometricRegistered = false;
   let biometricSupported = false;
+  let backendPinConfigured = configured;
   let idleTimer = null;
   let blurLockTimer = null;
 
@@ -135,7 +136,7 @@
 
   function updateBiometricState() {
     if (!biometricPanel) return;
-    const showPanel = biometricSupported && configured;
+    const showPanel = biometricSupported && backendPinConfigured;
     biometricPanel.hidden = !showPanel;
     if (biometricUnlockButton) {
       biometricUnlockButton.hidden = !biometricRegistered;
@@ -202,6 +203,7 @@
       const response = await fetch('/api/admin/biometric/status');
       const data = await response.json();
       biometricSupported = Boolean(data.available) && platformAuthenticatorAvailable;
+      backendPinConfigured = Boolean(data.pin_configured);
       biometricRegistered = Boolean(data.registered);
     } catch (error) {
       biometricSupported = false;
@@ -247,6 +249,11 @@
   }
 
   async function enrollBiometric() {
+    if (!backendPinConfigured) {
+      setStatus('Security PIN is not configured on the server.', true);
+      return;
+    }
+
     const pin = (input?.value || '').trim();
     if (!pin) {
       setStatus('Enter the PIN first, then enable fingerprint or face unlock.', true);

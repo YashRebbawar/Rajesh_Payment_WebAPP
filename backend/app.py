@@ -11,6 +11,7 @@ import logging
 import base64
 import re
 import copy
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
 try:
@@ -43,6 +44,7 @@ def get_current_utc_time():
     return get_current_ist_time()
 from dotenv import load_dotenv
 
+load_dotenv(Path(__file__).resolve().parent / '.env')
 load_dotenv()
 
 # Configure logging
@@ -993,6 +995,7 @@ def admin_biometric_status():
     return jsonify({
         'success': True,
         'available': WEBAUTHN_AVAILABLE,
+        'pin_configured': is_admin_pin_configured(user),
         'registered': len(get_admin_biometric_credentials(user)) > 0,
         'verified': is_admin_pin_verified()
     })
