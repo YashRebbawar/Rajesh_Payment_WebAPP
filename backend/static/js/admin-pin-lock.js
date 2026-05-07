@@ -25,6 +25,21 @@
   let idleTimer = null;
   let blurLockTimer = null;
 
+  function hasWebAuthnBrowserSupport() {
+    return Boolean(
+      window.isSecureContext &&
+      window.PublicKeyCredential &&
+      navigator.credentials &&
+      typeof navigator.credentials.create === 'function' &&
+      typeof navigator.credentials.get === 'function'
+    );
+  }
+
+  function isLikelyIOSBrowser() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
   function base64UrlToBuffer(value) {
     const padding = '='.repeat((4 - (value.length % 4)) % 4);
     const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -167,20 +182,26 @@
   }
 
   async function loadBiometricStatus() {
-    if (!window.PublicKeyCredential || !navigator.credentials) return;
-    try {
-      biometricSupported = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    } catch (error) {
-      biometricSupported = false;
-    }
-    if (!biometricSupported) {
+    if (!hasWebAuthnBrowserSupport()) {
       updateBiometricState();
       return;
     }
+
+    let platformAuthenticatorAvailable = isLikelyIOSBrowser();
+    try {
+      if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+        platformAuthenticatorAvailable =
+          platformAuthenticatorAvailable ||
+          await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      }
+    } catch (error) {
+      platformAuthenticatorAvailable = isLikelyIOSBrowser();
+    }
+
     try {
       const response = await fetch('/api/admin/biometric/status');
       const data = await response.json();
-      biometricSupported = Boolean(data.available);
+      biometricSupported = Boolean(data.available) && platformAuthenticatorAvailable;
       biometricRegistered = Boolean(data.registered);
     } catch (error) {
       biometricSupported = false;
@@ -242,6 +263,7 @@
       const credential = await navigator.credentials.create({
         publicKey: prepareCredentialOptions(options)
       });
+      if (!credential) throw new Error('Biometric enrollment was cancelled.');
       await postJson('/api/admin/biometric/register/verify', credentialToJson(credential));
       biometricRegistered = true;
       locked = false;
@@ -272,6 +294,7 @@
       const credential = await navigator.credentials.get({
         publicKey: prepareCredentialOptions(options)
       });
+      if (!credential) throw new Error('Biometric verification was cancelled.');
       await postJson('/api/admin/biometric/auth/verify', credentialToJson(credential));
       locked = false;
       body.dataset.adminPinVerified = 'true';

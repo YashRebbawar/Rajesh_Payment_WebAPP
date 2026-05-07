@@ -22,6 +22,7 @@ try:
     )
     from webauthn.helpers import options_to_json
     from webauthn.helpers.structs import (
+        AuthenticatorAttachment,
         AuthenticatorSelectionCriteria,
         PublicKeyCredentialDescriptor,
         ResidentKeyRequirement,
@@ -1018,6 +1019,7 @@ def admin_biometric_register_options():
         user_display_name=user.get('email', 'Admin'),
         exclude_credentials=existing_credentials,
         authenticator_selection=AuthenticatorSelectionCriteria(
+            authenticator_attachment=AuthenticatorAttachment.PLATFORM,
             resident_key=ResidentKeyRequirement.PREFERRED,
             user_verification=UserVerificationRequirement.REQUIRED,
         ),
