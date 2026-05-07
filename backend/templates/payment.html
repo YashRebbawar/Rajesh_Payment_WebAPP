@@ -144,7 +144,7 @@
         <div class="amount-field-label">Enter amount</div>
         <div class="amount-input-wrapper">
           <input type="number" id="amount" placeholder="0"
-            min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}"
+            min="{{ fiat_min_amount }}"
             max="100000"
             step="1"
             oninput="document.getElementById('amount-field').classList.toggle('filled', this.value !== '')">
@@ -183,6 +183,9 @@
       data-account-type="{{ account.account_type }}"
       data-currency="{{ account.currency }}"
       data-usd-rate="{{ usd_rate }}"
+      data-fiat-min-amount="{{ fiat_min_amount }}"
+      data-usdt-min-amount="{{ usdt_min_amount }}"
+      data-has-prior-account-type-deposit="{{ 'true' if has_prior_account_type_deposit else 'false' }}"
       disabled>
       <span>Continue to payment</span>
       <span class="btn-arrow">→</span>

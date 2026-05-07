@@ -29,6 +29,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+FIRST_DEPOSIT_MIN_ACCOUNT_TYPES = {'pro', 'raw-spread', 'zero'}
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 if not app.config['SECRET_KEY']:
@@ -151,6 +153,43 @@ try:
     logger.info("Database indexes created successfully")
 except Exception as e:
     logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
+
+def has_completed_deposit_for_account_type(user_id, account_type):
+    if account_type not in FIRST_DEPOSIT_MIN_ACCOUNT_TYPES:
+        return False
+
+    account_ids = [
+        account['_id']
+        for account in accounts_collection.find(
+            {'user_id': user_id, 'account_type': account_type},
+            {'_id': 1}
+        )
+    ]
+
+    deposit_match = [
+        {'account_type': account_type}
+    ]
+    if account_ids:
+        deposit_match.append({'account_id': {'$in': account_ids}})
+
+    return payments_collection.count_documents({
+        'user_id': user_id,
+        'type': 'deposit',
+        'status': 'completed',
+        '$or': deposit_match
+    }) > 0
+
+def get_deposit_min_amount(user_id, account, payment_method):
+    account_type = account.get('account_type')
+    has_prior_deposit = has_completed_deposit_for_account_type(user_id, account_type)
+
+    if account_type in FIRST_DEPOSIT_MIN_ACCOUNT_TYPES and has_prior_deposit:
+        return 0.01 if payment_method == 'usdt' else 1
+
+    if payment_method == 'usdt':
+        return 100
+
+    return 1000 if account_type == 'standard' else 50000
 
 DEFAULT_TESTIMONIALS = [
     {
@@ -1115,7 +1154,16 @@ def payment(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('payment.html', user=user, account=account, usd_rate=get_usd_rate_setting())
+        has_prior_deposit = has_completed_deposit_for_account_type(user['_id'], account.get('account_type'))
+        return render_template(
+            'payment.html',
+            user=user,
+            account=account,
+            usd_rate=get_usd_rate_setting(),
+            has_prior_account_type_deposit=has_prior_deposit,
+            fiat_min_amount=get_deposit_min_amount(user['_id'], account, 'imps'),
+            usdt_min_amount=get_deposit_min_amount(user['_id'], account, 'usdt')
+        )
     except (ValueError, Exception) as e:
         logger.error(f"Payment page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1154,12 +1202,13 @@ def initiate_payment():
         payment_method = (data.get('payment_method') or 'imps').lower()
 
         if payment_method == 'usdt':
-            if amount < 100 or amount > 10000:
-                return jsonify({'success': False, 'message': 'USDT deposit amount must be between 100 and 10000'})
+            min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
+            if amount < min_amount or amount > 10000:
+                return jsonify({'success': False, 'message': f'USDT deposit amount must be between {min_amount} and 10000'})
             currency = 'USDT'
             fee_rate = 0.019
         elif payment_method in ['imps']:
-            min_amount = 1000 if account.get('account_type') == 'standard' else 50000
+            min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
             max_amount = 100000
             if amount < min_amount or amount > max_amount:
                 return jsonify({'success': False, 'message': f'{payment_method.upper()} deposit amount must be between {min_amount} and {max_amount}'})
@@ -1174,6 +1223,7 @@ def initiate_payment():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': currency,
+            'account_type': account.get('account_type'),
             'payment_method': payment_method,
             'fee_rate': fee_rate,
             'fee_amount': round(amount * fee_rate, 2),
