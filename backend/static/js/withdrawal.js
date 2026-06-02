@@ -232,6 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
             slipUpi.textContent = destination || '-';
             slipUpi.classList.toggle('valid', destinationValid);
         }
+
+        const destinationLabel = document.querySelector('.s-upi-label');
+        if (destinationLabel) {
+            destinationLabel.textContent = selectedPaymentMethod === 'upi'
+                ? 'Destination UPI'
+                : 'Destination account';
+        }
     }
 
     function updateButtonState() {

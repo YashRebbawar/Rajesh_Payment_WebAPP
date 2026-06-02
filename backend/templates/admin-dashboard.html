@@ -18,7 +18,7 @@
 
 {# ═══ HEADER ═══ #}
 <div class="header-nav">
-  <div class="nav-logo">Print<span>Free</span></div>
+  <a href="/" class="nav-logo">Print<span>Free</span></a>
   
   {% if user %}
   <div class="admin-search-wrapper">
@@ -203,7 +203,7 @@
     <div class="admin-users-list">
       {% for u in all_users %}
       {% set user_accounts = user_accounts_map.get(u._id|string, []) %}
-      <div class="admin-user-card">
+      <div class="admin-user-card" data-user-id="{{ u._id }}">
 
         {# ── Always-visible compact row ── #}
         <div class="admin-user-header">
@@ -330,6 +330,18 @@
       <span id="pending-payments-badge" class="notification-badge" {% if not pending_payments %}style="display:none;"{% endif %}>{{ pending_payments|length }}</span>
     </div>
 
+    <div class="usd-rate-control">
+      <div>
+        <span class="usd-rate-label">USD rate</span>
+        <span class="usd-rate-helper">Used to show INR deposit value in USDT.</span>
+      </div>
+      <div class="usd-rate-input-wrap">
+        <span>INR</span>
+        <input type="number" id="usd-rate-input" min="0.01" step="0.01" value="{{ '%.2f'|format(usd_rate|default(85)) }}" aria-label="USD rate">
+        <button type="button" id="save-usd-rate-btn">Save</button>
+      </div>
+    </div>
+
     {% if pending_payments %}
     <div class="payment-filters">
       <input type="text" id="payment-search" placeholder="Search by email…" class="payment-search-input">
@@ -344,6 +356,7 @@
         {% for payment in pending_payments %}
         {% set is_withdrawal = payment.get('withdrawal_id') or payment.get('type') == 'withdrawal_requested' %}
         <div class="pending-payment-card {% if is_withdrawal %}withdrawal-payment{% else %}deposit-payment{% endif %}"
+             data-user-id="{{ payment.get('user_id','') }}"
              data-user-email="{{ payment.user_email }}"
              data-currency="{{ payment.currency }}"
              data-account-id="{{ payment.get('account_id','') }}">
@@ -368,6 +381,11 @@
               <span class="amount">{{ payment.amount }}</span>
               <span class="currency">{{ payment.currency }}</span>
             </div>
+            {% if payment.usdt_receive_amount %}
+            <div class="payment-usdt-estimate">
+              <span>{{ "%.2f"|format(payment.usdt_receive_amount) }} USDT</span>
+            </div>
+            {% endif %}
             {% if payment.reference %}
             <div class="payment-reference"><span class="ref-value">{{ payment.reference }}</span></div>
             {% endif %}

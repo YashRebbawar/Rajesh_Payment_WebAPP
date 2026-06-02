@@ -415,6 +415,7 @@ body.admin-page::after {
 }
 .admin-user-card:hover { border-color: var(--bdr-md); box-shadow: 0 3px 14px rgba(26,21,16,.07); }
 .admin-user-card.expanded { border-color: var(--green-bd); box-shadow: 0 4px 18px rgba(45,122,79,.10); }
+.admin-user-card.account-tracked { border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,122,79,.14), 0 8px 24px rgba(45,122,79,.12); }
 
 .admin-user-header {
   display: flex; align-items: center;
@@ -467,6 +468,7 @@ body.admin-page::after {
 }
 .account-card:last-child { margin-bottom: 0; }
 .account-card:hover { border-color: var(--bdr-md); box-shadow: 0 6px 20px rgba(26,21,16,.09); }
+.account-card.account-tracked { border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,122,79,.16), 0 10px 28px rgba(45,122,79,.16); }
 
 /* ── LEFT dark panel ── */
 .card-left {
@@ -599,6 +601,15 @@ body.admin-page::after {
    PAYMENT SECTION
 ══════════════════════════════════════════ */
 .payment-filters { display: flex; gap: 7px; flex-shrink: 0; }
+.usd-rate-control { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); }
+.usd-rate-label { display: block; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+.usd-rate-helper { display: block; margin-top: 3px; font-size: 11px; color: var(--ink-45); line-height: 1.25; }
+.usd-rate-input-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.usd-rate-input-wrap span { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; color: var(--ink-45); }
+.usd-rate-input-wrap input { width: 86px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: var(--number-font); font-size: 13px; font-weight: 700; color: var(--ink); outline: none; }
+.usd-rate-input-wrap input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
+.usd-rate-input-wrap button { padding: 8px 12px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; cursor: pointer; }
+.usd-rate-input-wrap button:hover { background: var(--green); }
 .payment-search-input { flex: 1; padding: 8px 13px; border: 1.5px solid var(--border); border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 12px; background: var(--white); color: var(--ink); outline: none; transition: border-color .18s; }
 .payment-search-input::placeholder { color: var(--ink-25); }
 .payment-search-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
@@ -612,7 +623,7 @@ body.admin-page::after {
 .pending-payments-list { display: flex; flex-direction: column; gap: 8px; }
 
 /* ── payment card ── */
-.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 0; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; }
+.pending-payment-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; padding: 0; position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; display: flex; flex-direction: column; cursor: pointer; }
 .pending-payment-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
 .deposit-payment::before    { background: linear-gradient(180deg, var(--green) 0%, var(--green-lt) 100%); }
 .withdrawal-payment::before { background: linear-gradient(180deg, var(--gold) 0%, #d4af37 100%); }
@@ -629,12 +640,14 @@ body.admin-page::after {
 .deposit-badge    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
 .withdrawal-badge { background: rgba(184,148,74,.10); color: var(--gold); border: 1px solid rgba(184,148,74,.22); }
 
-.payment-details { display: flex; justify-content: space-between; align-items: flex-start; padding: 0 16px 14px 16px; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-.payment-amount { display: flex; align-items: baseline; gap: 5px; }
-.payment-amount .amount { font-family: var(--number-font); font-size: 22px; font-weight: 700; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
-.payment-amount .currency { font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink-45); }
-.payment-reference { background: var(--cream); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; }
-.ref-value { font-size: 11px; font-weight: 700; color: var(--ink); }
+.payment-details { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 14px 16px; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.payment-amount { display: flex; align-items: baseline; gap: 5px; flex: 1 1 110px; min-width: 0; overflow: hidden; }
+.payment-amount .amount { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--number-font); font-size: 22px; font-weight: 700; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+.payment-amount .currency { flex-shrink: 0; font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink-45); }
+.payment-reference { display: flex; align-items: center; flex: 0 1 104px; max-width: 104px; min-height: 32px; background: var(--cream); border: 1px solid var(--border); padding: 5px 10px; border-radius: 8px; }
+.ref-value { display: block; font-size: 11px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.payment-usdt-estimate { display: flex; align-items: center; justify-content: center; flex: 0 1 108px; min-width: 96px; max-width: 108px; min-height: 32px; padding: 5px 10px; border-radius: 8px; background: var(--green-bg); border: 1px solid var(--green-bd); }
+.payment-usdt-estimate span { font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; color: var(--green); }
 .payment-upi { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 0 16px; margin-bottom: 12px; }
 .upi-label { font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .10em; text-transform: uppercase; color: var(--ink-45); min-width: 40px; }
 .upi-value { font-size: 11px; color: var(--ink); font-weight: 600; }
@@ -798,15 +811,21 @@ body.admin-page::after {
   .currency-filter { font-size: 10px; padding: 7px 10px; }
   .pending-payment-card { padding: 0; border-radius: 10px; margin-bottom: 10px; }
   .payment-header { padding: 12px 12px 10px 12px; }
-  .payment-details { padding: 0 12px 10px 12px; }
+  .payment-details { display: flex; align-items: center; padding: 0 12px 10px 12px; gap: 7px; }
+  .payment-reference { flex-basis: 92px; max-width: 92px; }
+  .ref-value { overflow-wrap: anywhere; }
   .payment-upi { padding: 0 12px; margin-bottom: 10px; }
   .payment-actions { padding: 10px 12px; gap: 6px; }
   .payment-username { font-size: 11px; }
   .payment-account { font-size: 9px; }
   .payment-amount .amount { font-size: 18px; }
   .payment-amount .currency { font-size: 10px; }
+  .payment-usdt-estimate { flex-basis: 100px; min-width: 92px; max-width: 100px; }
   .payment-actions button { padding: 6px 9px; font-size: 9px; }
   .pending-payments-section { flex: 1; overflow-y: auto; }
+  .usd-rate-control { flex-direction: column; align-items: stretch; gap: 10px; }
+  .usd-rate-input-wrap { width: 100%; }
+  .usd-rate-input-wrap input { flex: 1; width: auto; }
 }
 @media (max-width: 480px) {
   :root { --nav-h: 52px; }
@@ -826,4 +845,93 @@ body.admin-page::after {
   .account-details { grid-template-columns: 1fr; gap: 3px; }
   .detail-row { padding: 5px 7px; font-size: 9px; }
   .payment-actions button { padding: 5px 8px; font-size: 8px; }
+  .payment-details { gap: 6px; }
+  .payment-amount { flex-basis: 88px; min-width: 0; }
+  .payment-amount .amount { font-size: 16px; }
+  .payment-usdt-estimate { flex-basis: 92px; min-width: 86px; max-width: 92px; min-height: 32px; padding: 5px 7px; }
+  .payment-usdt-estimate span { font-size: 10px; white-space: nowrap; }
+  .payment-reference { flex-basis: 74px; max-width: 74px; min-height: 32px; padding: 5px 7px; }
+  .ref-value { font-size: 9px; overflow-wrap: normal; }
+}
+
+
+/* Maintenance Card Styles */
+.maintenance-card {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 1px solid #ffb74d;
+    color: #e65100;
+}
+
+.maintenance-card:hover {
+    box-shadow: 0 6px 20px rgba(255, 183, 77, 0.3);
+}
+
+.maintenance-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.maintenance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+}
+
+.maintenance-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.maintenance-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.maintenance-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.maintenance-toggle input:checked + .toggle-slider {
+    background-color: #ff9800;
+}
+
+.maintenance-toggle input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.maintenance-toggle input:focus + .toggle-slider {
+    box-shadow: 0 0 1px #ff9800;
 }

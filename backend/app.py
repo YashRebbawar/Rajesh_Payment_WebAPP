@@ -29,6 +29,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+FIRST_DEPOSIT_MIN_ACCOUNT_TYPES = {'pro', 'raw-spread', 'zero'}
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 if not app.config['SECRET_KEY']:
@@ -53,7 +55,6 @@ if not MONGO_URI or MONGO_URI.strip() == '':
     raise Exception("MongoDB connection required. Please configure MONGO_URI in .env file")
 
 try:
-    # Handle URL encoding for special characters in password
     if 'mongodb+srv://' in MONGO_URI and '@' in MONGO_URI:
         prefix = MONGO_URI.split('://')[0] + '://'
         rest = MONGO_URI.split('://', 1)[1]
@@ -79,7 +80,7 @@ except Exception as e:
     logger.error(f"MongoDB client initialization failed: {e}")
     logger.error("Please check your MONGO_URI in .env file")
     logger.error("Make sure username, password, and cluster address are correct")
-    raise Exception(f"Failed to initialize MongoDB client: {e}")
+    raise RuntimeError(f"Failed to initialize MongoDB client: {e}")
 
 db = client.printfree
 users_collection = db.users
@@ -88,6 +89,9 @@ payments_collection = db.payments
 notifications_collection = db.notifications
 chats_collection = db.chats
 testimonials_collection = db.testimonials
+settings_collection = db.app_settings
+
+DEFAULT_USD_RATE = float(os.getenv('DEFAULT_USD_RATE', '85'))
 
 PASSWORD_SPECIAL_RE = r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]"
 ADMIN_SECURITY_PIN_HASH = os.getenv('ADMIN_SECURITY_PIN_HASH')
@@ -150,6 +154,43 @@ try:
 except Exception as e:
     logger.warning(f"Could not create indexes on startup: {e}. They will be created on first use.")
 
+def has_completed_deposit_for_account_type(user_id, account_type):
+    if account_type not in FIRST_DEPOSIT_MIN_ACCOUNT_TYPES:
+        return False
+
+    account_ids = [
+        account['_id']
+        for account in accounts_collection.find(
+            {'user_id': user_id, 'account_type': account_type},
+            {'_id': 1}
+        )
+    ]
+
+    deposit_match = [
+        {'account_type': account_type}
+    ]
+    if account_ids:
+        deposit_match.append({'account_id': {'$in': account_ids}})
+
+    return payments_collection.count_documents({
+        'user_id': user_id,
+        'type': 'deposit',
+        'status': 'completed',
+        '$or': deposit_match
+    }) > 0
+
+def get_deposit_min_amount(user_id, account, payment_method):
+    account_type = account.get('account_type')
+    has_prior_deposit = has_completed_deposit_for_account_type(user_id, account_type)
+
+    if account_type in FIRST_DEPOSIT_MIN_ACCOUNT_TYPES and has_prior_deposit:
+        return 0.01 if payment_method == 'usdt' else 1
+
+    if payment_method == 'usdt':
+        return 100
+
+    return 1000 if account_type == 'standard' else 50000
+
 DEFAULT_TESTIMONIALS = [
     {
         'name': 'Ahmed Al-Mansouri',
@@ -168,639 +209,6 @@ DEFAULT_TESTIMONIALS = [
         'city': 'Cairo',
         'rating': 5,
         'comment': 'Best Dubai-based MT5 provider bar none. Reliable infrastructure, secure withdrawals, and excellent support team around the clock.'
-    }
-]
-
-ANALYTICS_SPEC_SECTIONS = [
-    {
-        'id': 'kpis',
-        'eyebrow': 'Top Row',
-        'title': 'Core KPI Cards',
-        'description': 'High-signal counters for the first fold of the analytics board.',
-        'widgets': [
-            {
-                'type': 'card',
-                'title': 'Total Users',
-                'metric': 'Count of all non-admin users',
-                'why': 'Shows total customer base size.',
-                'query': """db.users.aggregate([
-  { $match: { is_admin: { $ne: true } } },
-  { $count: "total_users" }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'New Users This Month',
-                'metric': 'Non-admin users created in the active month',
-                'why': 'Measures acquisition momentum.',
-                'query': """db.users.aggregate([
-  {
-    $match: {
-      is_admin: { $ne: true },
-      created_at: { $gte: monthStart, $lt: monthEnd }
-    }
-  },
-  { $count: "new_users_this_month" }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Total Trading Accounts',
-                'metric': 'Count of all account records',
-                'why': 'Shows total account inventory under management.',
-                'query': """db.trading_accounts.aggregate([
-  { $count: "total_accounts" }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Pending Approvals',
-                'metric': 'Pending deposits and withdrawals combined',
-                'why': 'Highlights immediate operational workload.',
-                'query': """db.notifications.aggregate([
-  { $match: { status: "pending_approval" } },
-  { $count: "pending_approvals" }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Platform Fee Earned',
-                'metric': 'Sum of completed deposit fee_amount',
-                'why': 'Tracks realized revenue.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "completed"
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      platform_fee_earned: { $sum: "$fee_amount" }
-    }
-  }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Unread Support Threads',
-                'metric': 'Unique user threads with unread admin messages',
-                'why': 'Shows support backlog without inflating counts per message.',
-                'query': """db.chats.aggregate([
-  { $match: { read: false } },
-  { $group: { _id: "$user_id" } },
-  { $count: "unread_support_threads" }
-])"""
-            }
-        ]
-    },
-    {
-        'id': 'user-charts',
-        'eyebrow': 'Acquisition',
-        'title': 'User Analytics',
-        'description': 'User growth, geography, signup source, and onboarding completion.',
-        'widgets': [
-            {
-                'type': 'chart',
-                'title': 'User Growth by Day',
-                'chart_title': 'Daily User Signups',
-                'metric': 'Daily non-admin user registrations',
-                'why': 'Core acquisition trend chart.',
-                'query': """db.users.aggregate([
-  {
-    $match: {
-      is_admin: { $ne: true },
-      created_at: { $gte: rangeStart, $lt: rangeEnd }
-    }
-  },
-  {
-    $group: {
-      _id: {
-        $dateToString: { format: "%Y-%m-%d", date: "$created_at" }
-      },
-      users: { $sum: 1 }
-    }
-  },
-  { $sort: { _id: 1 } }
-])"""
-            },
-            {
-                'type': 'chart',
-                'title': 'Users by Country',
-                'chart_title': 'Country Distribution of Registered Users',
-                'metric': 'User counts grouped by country',
-                'why': 'Shows strongest markets for targeting and support coverage.',
-                'query': """db.users.aggregate([
-  {
-    $match: {
-      is_admin: { $ne: true },
-      country: { $nin: [null, ""] }
-    }
-  },
-  { $group: { _id: "$country", users: { $sum: 1 } } },
-  { $sort: { users: -1 } },
-  { $limit: 10 }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Email vs Google Signup Split',
-                'metric': 'Registration source mix',
-                'why': 'Shows whether OAuth setup is driving adoption.',
-                'query': """db.users.aggregate([
-  { $match: { is_admin: { $ne: true } } },
-  {
-    $group: {
-      _id: {
-        $cond: [
-          { $ifNull: ["$google_id", false] },
-          "google_oauth",
-          "email_password"
-        ]
-      },
-      users: { $sum: 1 }
-    }
-  },
-  { $sort: { users: -1 } }
-])"""
-            },
-            {
-                'type': 'table',
-                'title': 'Users With No Account Yet',
-                'chart_title': 'Signup Without Account Creation',
-                'metric': 'Users who registered but never opened an account',
-                'why': 'Best conversion recovery list for sales/admin follow-up.',
-                'query': """db.users.aggregate([
-  { $match: { is_admin: { $ne: true } } },
-  {
-    $lookup: {
-      from: "trading_accounts",
-      localField: "_id",
-      foreignField: "user_id",
-      as: "accounts"
-    }
-  },
-  { $match: { "accounts.0": { $exists: false } } },
-  {
-    $project: {
-      email: 1,
-      name: 1,
-      country: 1,
-      created_at: 1
-    }
-  },
-  { $sort: { created_at: -1 } }
-])"""
-            }
-        ]
-    },
-    {
-        'id': 'account-ops',
-        'eyebrow': 'Provisioning',
-        'title': 'Account Analytics',
-        'description': 'Tracks account mix, MT readiness, and balance oversight.',
-        'widgets': [
-            {
-                'type': 'chart',
-                'title': 'Accounts by Type',
-                'chart_title': 'Account Mix by Product Type',
-                'metric': 'Count grouped by standard / pro / raw-spread / zero',
-                'why': 'Shows product demand.',
-                'query': """db.trading_accounts.aggregate([
-  { $group: { _id: "$account_type", accounts: { $sum: 1 } } },
-  { $sort: { accounts: -1 } }
-])"""
-            },
-            {
-                'type': 'chart',
-                'title': 'Accounts by Platform and Currency',
-                'chart_title': 'Platform-Currency Mix',
-                'metric': 'Count by platform and currency',
-                'why': 'Helps operational planning for platform and payment rails.',
-                'query': """db.trading_accounts.aggregate([
-  {
-    $group: {
-      _id: {
-        platform: "$platform",
-        currency: "$currency"
-      },
-      accounts: { $sum: 1 }
-    }
-  },
-  { $sort: { accounts: -1 } }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Accounts Missing MT Credentials',
-                'metric': 'Accounts where mt_login or mt_server is missing',
-                'why': 'Directly maps to setup backlog.',
-                'query': """db.trading_accounts.aggregate([
-  {
-    $match: {
-      $or: [
-        { mt_login: { $in: [null, ""] } },
-        { mt_server: { $in: [null, ""] } }
-      ]
-    }
-  },
-  { $count: "accounts_missing_mt_credentials" }
-])"""
-            },
-            {
-                'type': 'table',
-                'title': 'Awaiting MT Setup Queue',
-                'chart_title': 'Open MT Provisioning Queue',
-                'metric': 'Newest accounts that still need MT credentials',
-                'why': 'Operational action list for admins.',
-                'query': """db.trading_accounts.aggregate([
-  {
-    $match: {
-      $or: [
-        { mt_login: { $in: [null, ""] } },
-        { mt_server: { $in: [null, ""] } }
-      ]
-    }
-  },
-  {
-    $lookup: {
-      from: "users",
-      localField: "user_id",
-      foreignField: "_id",
-      as: "user"
-    }
-  },
-  { $unwind: "$user" },
-  {
-    $project: {
-      nickname: 1,
-      account_type: 1,
-      platform: 1,
-      created_at: 1,
-      user_email: "$user.email"
-    }
-  },
-  { $sort: { created_at: -1 } }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Average Account Balance',
-                'metric': 'Average balance across accounts with a balance field',
-                'why': 'Quick health check on funded account base.',
-                'query': """db.trading_accounts.aggregate([
-  { $match: { balance: { $type: "number" } } },
-  {
-    $group: {
-      _id: null,
-      average_balance: { $avg: "$balance" },
-      total_balance: { $sum: "$balance" }
-    }
-  }
-])"""
-            }
-        ]
-    },
-    {
-        'id': 'payments',
-        'eyebrow': 'Money In',
-        'title': 'Deposit Analytics',
-        'description': 'Revenue, method split, throughput, and approval efficiency for deposits.',
-        'widgets': [
-            {
-                'type': 'chart',
-                'title': 'Deposit Volume by Day',
-                'chart_title': 'Completed Deposit Volume Trend',
-                'metric': 'Daily completed deposit amount',
-                'why': 'Shows business flow and seasonality.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "completed",
-      approved_at: { $gte: rangeStart, $lt: rangeEnd }
-    }
-  },
-  {
-    $group: {
-      _id: {
-        $dateToString: { format: "%Y-%m-%d", date: "$approved_at" }
-      },
-      amount: { $sum: "$amount" },
-      fee: { $sum: "$fee_amount" },
-      count: { $sum: 1 }
-    }
-  },
-  { $sort: { _id: 1 } }
-])"""
-            },
-            {
-                'type': 'chart',
-                'title': 'Deposits by Payment Method',
-                'chart_title': 'Deposit Mix by Payment Rail',
-                'metric': 'Count and amount by upi / imps / usdt',
-                'why': 'Shows which rails carry volume and fee yield.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "completed"
-    }
-  },
-  {
-    $group: {
-      _id: "$payment_method",
-      amount: { $sum: "$amount" },
-      fee: { $sum: "$fee_amount" },
-      count: { $sum: 1 }
-    }
-  },
-  { $sort: { amount: -1 } }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Average Deposit Amount',
-                'metric': 'Average completed deposit ticket size',
-                'why': 'Useful for pricing, support load, and fraud review.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "completed"
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      avg_amount: { $avg: "$amount" },
-      max_amount: { $max: "$amount" },
-      min_amount: { $min: "$amount" }
-    }
-  }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Pending Deposit Value',
-                'metric': 'Total amount and fees tied up in pending deposits',
-                'why': 'Shows near-term approval impact.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "pending"
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      pending_amount: { $sum: "$amount" },
-      pending_fee: { $sum: "$fee_amount" },
-      pending_count: { $sum: 1 }
-    }
-  }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Average Deposit Approval Time',
-                'metric': 'Average minutes from submitted_at or created_at to approved_at',
-                'why': 'Measures ops speed and customer experience.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "deposit",
-      status: "completed",
-      approved_at: { $exists: true }
-    }
-  },
-  {
-    $project: {
-      duration_minutes: {
-        $divide: [
-          {
-            $subtract: [
-              "$approved_at",
-              { $ifNull: ["$submitted_at", "$created_at"] }
-            ]
-          },
-          1000 * 60
-        ]
-      }
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      avg_minutes: { $avg: "$duration_minutes" }
-    }
-  }
-])"""
-            }
-        ]
-    },
-    {
-        'id': 'withdrawals',
-        'eyebrow': 'Money Out',
-        'title': 'Withdrawal Analytics',
-        'description': 'Tracks completed, pending, rejected, and method-level withdrawal activity.',
-        'widgets': [
-            {
-                'type': 'chart',
-                'title': 'Withdrawal Volume by Day',
-                'chart_title': 'Completed Withdrawal Trend',
-                'metric': 'Daily completed withdrawal amount',
-                'why': 'Shows capital outflow and customer payout behavior.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "withdrawal",
-      status: "completed",
-      approved_at: { $gte: rangeStart, $lt: rangeEnd }
-    }
-  },
-  {
-    $group: {
-      _id: {
-        $dateToString: { format: "%Y-%m-%d", date: "$approved_at" }
-      },
-      amount: { $sum: "$amount" },
-      count: { $sum: 1 }
-    }
-  },
-  { $sort: { _id: 1 } }
-])"""
-            },
-            {
-                'type': 'chart',
-                'title': 'Withdrawal Method Split',
-                'chart_title': 'Withdrawals by UPI vs Bank Transfer',
-                'metric': 'Amount and count by payout method',
-                'why': 'Useful for payout operations planning.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "withdrawal",
-      status: "completed"
-    }
-  },
-  {
-    $group: {
-      _id: "$payment_method",
-      amount: { $sum: "$amount" },
-      count: { $sum: 1 }
-    }
-  },
-  { $sort: { amount: -1 } }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Pending Withdrawal Queue',
-                'metric': 'Pending withdrawal count and amount',
-                'why': 'Shows payout backlog.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "withdrawal",
-      status: "pending"
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      pending_amount: { $sum: "$amount" },
-      pending_count: { $sum: 1 }
-    }
-  }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Rejected Withdrawals',
-                'metric': 'Rejected payout count and amount',
-                'why': 'Surfaces friction and policy issues.',
-                'query': """db.payments.aggregate([
-  {
-    $match: {
-      type: "withdrawal",
-      status: "rejected"
-    }
-  },
-  {
-    $group: {
-      _id: null,
-      rejected_amount: { $sum: "$amount" },
-      rejected_count: { $sum: 1 }
-    }
-  }
-])"""
-            }
-        ]
-    },
-    {
-        'id': 'ops-support',
-        'eyebrow': 'Service Desk',
-        'title': 'Operations and Support',
-        'description': 'Combines admin queue health, support backlog, and user experience signals.',
-        'widgets': [
-            {
-                'type': 'table',
-                'title': 'Oldest Pending Approval',
-                'chart_title': 'Aging Pending Approvals',
-                'metric': 'Oldest unresolved pending_approval notifications',
-                'why': 'Makes SLA breaches visible immediately.',
-                'query': """db.notifications.aggregate([
-  { $match: { status: "pending_approval" } },
-  {
-    $project: {
-      type: 1,
-      user_email: 1,
-      account_nickname: 1,
-      created_at: 1,
-      age_minutes: {
-        $divide: [
-          { $subtract: [now, "$created_at"] },
-          1000 * 60
-        ]
-      }
-    }
-  },
-  { $sort: { created_at: 1 } },
-  { $limit: 20 }
-])"""
-            },
-            {
-                'type': 'table',
-                'title': 'Users With Unread Chats',
-                'chart_title': 'Unread Support Threads',
-                'metric': 'Users grouped with unread_count',
-                'why': 'Lets admins prioritize support responses.',
-                'query': """db.chats.aggregate([
-  { $match: { read: false } },
-  {
-    $group: {
-      _id: "$user_id",
-      unread_count: { $sum: 1 },
-      last_message_at: { $max: "$created_at" }
-    }
-  },
-  {
-    $lookup: {
-      from: "users",
-      localField: "_id",
-      foreignField: "_id",
-      as: "user"
-    }
-  },
-  { $unwind: "$user" },
-  {
-    $project: {
-      unread_count: 1,
-      last_message_at: 1,
-      user_email: "$user.email",
-      user_name: "$user.name"
-    }
-  },
-  { $sort: { unread_count: -1, last_message_at: -1 } }
-])"""
-            },
-            {
-                'type': 'card',
-                'title': 'Testimonials Submitted',
-                'metric': 'Users who completed the testimonial flow',
-                'why': 'Soft trust/engagement signal.',
-                'query': """db.users.aggregate([
-  {
-    $match: {
-      is_admin: { $ne: true },
-      testimonial_submitted: true
-    }
-  },
-  { $count: "testimonial_submitters" }
-])"""
-            },
-            {
-                'type': 'chart',
-                'title': 'Average Testimonial Rating',
-                'chart_title': 'Customer Rating Distribution',
-                'metric': 'Average rating and rating buckets from active testimonials',
-                'why': 'Qualitative sentiment in a quantitative format.',
-                'query': """db.testimonials.aggregate([
-  { $match: { is_active: true } },
-  {
-    $group: {
-      _id: "$rating",
-      testimonials: { $sum: 1 },
-      avg_rating: { $avg: "$rating" }
-    }
-  },
-  { $sort: { _id: 1 } }
-])"""
-            }
-        ]
     }
 ]
 
@@ -928,6 +336,24 @@ def clear_admin_dashboard_context_cache(user=None):
         return
     admin_dashboard_context_cache.clear()
 
+def get_usd_rate_setting():
+    settings = settings_collection.find_one({'_id': 'usd_rate'})
+    try:
+        rate = float(settings.get('rate')) if settings else DEFAULT_USD_RATE
+    except (TypeError, ValueError):
+        rate = DEFAULT_USD_RATE
+    return round(rate, 4)
+
+def calculate_usdt_receive_amount(amount, usd_rate=None):
+    try:
+        rate = float(usd_rate if usd_rate is not None else get_usd_rate_setting())
+        base_amount = float(amount)
+    except (TypeError, ValueError):
+        return 0
+    if rate <= 0 or base_amount <= 0:
+        return 0
+    return round(base_amount / rate, 2)
+
 def build_admin_dashboard_context():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
     all_accounts = list(accounts_collection.find().sort('created_at', -1))
@@ -992,7 +418,8 @@ def build_admin_dashboard_context():
         'all_users': all_users,
         'user_accounts_map': user_accounts_map,
         'pending_payments': pending_payments,
-        'unread_chat_users': unread_chat_users
+        'unread_chat_users': unread_chat_users,
+        'usd_rate': get_usd_rate_setting()
     }
 
 def get_admin_dashboard_context(user, warm_only=False):
@@ -1018,14 +445,13 @@ def check_db_connection():
 def should_prompt_for_testimonial(user):
     return bool(user and not user.get('is_admin') and not user.get('testimonial_submitted'))
 
-def get_active_testimonials(limit=6):
-    raw_testimonials = list(
-        testimonials_collection.find({'is_active': True})
-        .sort([('display_order', 1), ('created_at', -1)])
-        .limit(limit)
-    )
+def get_active_testimonials(limit=None):
+    query = testimonials_collection.find({'is_active': True}).sort([('display_order', 1), ('created_at', -1)])
+    if limit is not None:
+        query = query.limit(limit)
+    raw_testimonials = list(query)
     if not raw_testimonials:
-        return DEFAULT_TESTIMONIALS[:limit]
+        return DEFAULT_TESTIMONIALS[:limit] if limit is not None else DEFAULT_TESTIMONIALS[:]
 
     testimonials = []
     for testimonial in raw_testimonials:
@@ -1044,7 +470,7 @@ def get_verified_traders_count():
 
 def get_social_proof_stats():
     """Get stats for landing page social proof: average rating and verified trader count"""
-    testimonials = get_active_testimonials(6)
+    testimonials = get_active_testimonials()
     verified_count = get_verified_traders_count()
     
     if testimonials:
@@ -1066,9 +492,6 @@ def inject_global_template_flags():
     return {
         'show_testimonial_prompt': show_testimonial_prompt,
     }
-
-def get_admin_analytics_spec():
-    return ANALYTICS_SPEC_SECTIONS
 
 def build_daily_series(raw_rows, start_dt, days, value_keys):
     series_map = {row['_id']: row for row in raw_rows}
@@ -1199,7 +622,7 @@ def calculate_platform_fee(payment):
 
     payment_method = str(payment.get('payment_method') or '').lower()
     currency = str(payment.get('currency') or '').upper()
-    fee_rate = 0.019 if payment_method == 'usdt' or currency == 'USDT' else 0.014
+    fee_rate = 0.019 if payment_method == 'usdt' or currency == 'USDT' else 0.016
 
     try:
         amount = float(payment.get('amount') or 0)
@@ -1731,7 +1154,16 @@ def payment(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('payment.html', user=user, account=account)
+        has_prior_deposit = has_completed_deposit_for_account_type(user['_id'], account.get('account_type'))
+        return render_template(
+            'payment.html',
+            user=user,
+            account=account,
+            usd_rate=get_usd_rate_setting(),
+            has_prior_account_type_deposit=has_prior_deposit,
+            fiat_min_amount=get_deposit_min_amount(user['_id'], account, 'imps'),
+            usdt_min_amount=get_deposit_min_amount(user['_id'], account, 'usdt')
+        )
     except (ValueError, Exception) as e:
         logger.error(f"Payment page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1770,17 +1202,18 @@ def initiate_payment():
         payment_method = (data.get('payment_method') or 'imps').lower()
 
         if payment_method == 'usdt':
-            if amount < 100 or amount > 10000:
-                return jsonify({'success': False, 'message': 'USDT deposit amount must be between 100 and 10000'})
+            min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
+            if amount < min_amount or amount > 10000:
+                return jsonify({'success': False, 'message': f'USDT deposit amount must be between {min_amount} and 10000'})
             currency = 'USDT'
             fee_rate = 0.019
         elif payment_method in ['imps']:
-            min_amount = 1000 if account.get('account_type') == 'standard' else 50000
+            min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
             max_amount = 100000
             if amount < min_amount or amount > max_amount:
                 return jsonify({'success': False, 'message': f'{payment_method.upper()} deposit amount must be between {min_amount} and {max_amount}'})
             currency = 'INR' if account['currency'] == 'USD' else account['currency']
-            fee_rate = 0.014
+            fee_rate = 0.016
         else:
             return jsonify({'success': False, 'message': 'Invalid payment method'})
         
@@ -1790,6 +1223,7 @@ def initiate_payment():
             'account_id': ObjectId(data['account_id']),
             'amount': amount,
             'currency': currency,
+            'account_type': account.get('account_type'),
             'payment_method': payment_method,
             'fee_rate': fee_rate,
             'fee_amount': round(amount * fee_rate, 2),
@@ -1800,6 +1234,10 @@ def initiate_payment():
             'created_at': get_current_ist_time(),
             'screenshot': None
         }
+        if currency == 'INR':
+            usd_rate = get_usd_rate_setting()
+            payment_doc['usd_rate'] = usd_rate
+            payment_doc['usdt_receive_amount'] = calculate_usdt_receive_amount(amount, usd_rate)
         result = payments_collection.insert_one(payment_doc)
         
         logger.info(f"Payment initiated for user {user['email']}: {amount} {currency}")
@@ -1977,6 +1415,9 @@ def payment_webhook():
                 'status': 'pending_approval',
                 'created_at': get_current_ist_time()
             }
+            if payment.get('usd_rate') and payment.get('usdt_receive_amount'):
+                notification_doc['usd_rate'] = payment['usd_rate']
+                notification_doc['usdt_receive_amount'] = payment['usdt_receive_amount']
             notifications_collection.insert_one(notification_doc)
             
             logger.info(f"Payment webhook received - Payment completed: {payment_id}")
@@ -2077,6 +1518,9 @@ def simulate_payment(payment_id):
             'status': 'pending_approval',
             'created_at': get_current_ist_time()
         }
+        if payment.get('usd_rate') and payment.get('usdt_receive_amount'):
+            notification_doc['usd_rate'] = payment['usd_rate']
+            notification_doc['usdt_receive_amount'] = payment['usdt_receive_amount']
         notifications_collection.insert_one(notification_doc)
         
         logger.info(f"Payment completed and admin notified: {payment_id}")
@@ -2101,6 +1545,38 @@ def get_admin_notifications():
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/usd-rate', methods=['GET', 'POST'])
+def admin_usd_rate():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'rate': get_usd_rate_setting()})
+
+    try:
+        data = request.get_json(silent=True) or {}
+        rate = float(data.get('rate'))
+        if rate <= 0:
+            return jsonify({'success': False, 'message': 'USD rate must be greater than 0'})
+
+        settings_collection.update_one(
+            {'_id': 'usd_rate'},
+            {'$set': {
+                'rate': round(rate, 4),
+                'updated_at': get_current_ist_time(),
+                'updated_by': user['_id']
+            }},
+            upsert=True
+        )
+        clear_admin_dashboard_context_cache(user)
+        return jsonify({'success': True, 'rate': round(rate, 4)})
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Enter a valid USD rate'})
+    except Exception as e:
+        logger.error(f"USD rate update error: {e}")
+        return jsonify({'success': False, 'message': 'Could not update USD rate'})
 
 @app.route('/api/admin/new-account-notifications', methods=['GET'])
 def get_new_account_notifications():
@@ -2290,7 +1766,8 @@ def admin_dashboard():
     dashboard_context = {
         'all_users': [],
         'user_accounts_map': {},
-        'pending_payments': []
+        'pending_payments': [],
+        'usd_rate': get_usd_rate_setting()
     }
     if admin_pin_verified:
         dashboard_context = get_admin_dashboard_context(user) or dashboard_context
@@ -3264,7 +2741,7 @@ def get_stats():
 
 @app.route('/api/admin/commission-stats', methods=['GET'])
 def get_commission_stats():
-    """Get total platform fees (1.4% of all completed deposits)"""
+    """Get total platform fees (1.6% of standard completed deposits)"""
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
@@ -3279,7 +2756,7 @@ def get_commission_stats():
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
-        platform_fee = total_amount * 0.014
+        platform_fee = total_amount * 0.016
         transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
         
         pending_deposits = list(payments_collection.aggregate([
@@ -3288,7 +2765,7 @@ def get_commission_stats():
         ]))
         
         pending_total = pending_deposits[0]['total'] if pending_deposits else 0
-        pending_fee = pending_total * 0.014
+        pending_fee = pending_total * 0.016
         
         # Calculate monthly commission
         now = get_current_utc_time()
@@ -3312,7 +2789,7 @@ def get_commission_stats():
         ]))
         
         monthly_amount = monthly_deposits[0]['total'] if monthly_deposits else 0
-        monthly_fee = monthly_amount * 0.014
+        monthly_fee = monthly_amount * 0.016
         
         return jsonify({
             'success': True,

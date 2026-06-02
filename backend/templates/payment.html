@@ -144,7 +144,7 @@
         <div class="amount-field-label">Enter amount</div>
         <div class="amount-input-wrapper">
           <input type="number" id="amount" placeholder="0"
-            min="{% if account.account_type == 'standard' %}1000{% else %}50000{% endif %}"
+            min="{{ fiat_min_amount }}"
             max="100000"
             step="1"
             oninput="document.getElementById('amount-field').classList.toggle('filled', this.value !== '')">
@@ -169,7 +169,7 @@
           <div class="fee-tooltip">
             <div class="tooltip-content">
               <div class="tooltip-row"><span>Base amount:</span><span id="tooltip-amount">0</span></div>
-              <div class="tooltip-row"><span>Fee (1.4%):</span><span id="tooltip-fee">0</span></div>
+              <div class="tooltip-row"><span>Fee (1.6%):</span><span id="tooltip-fee">0</span></div>
               <div class="tooltip-divider"></div>
               <div class="tooltip-row tooltip-total"><span>Total:</span><span id="tooltip-total">0</span></div>
             </div>
@@ -182,6 +182,10 @@
       data-account-id="{{ account._id }}"
       data-account-type="{{ account.account_type }}"
       data-currency="{{ account.currency }}"
+      data-usd-rate="{{ usd_rate }}"
+      data-fiat-min-amount="{{ fiat_min_amount }}"
+      data-usdt-min-amount="{{ usdt_min_amount }}"
+      data-has-prior-account-type-deposit="{{ 'true' if has_prior_account_type_deposit else 'false' }}"
       disabled>
       <span>Continue to payment</span>
       <span class="btn-arrow">→</span>
@@ -220,7 +224,7 @@
               <span class="rcpt-row-value" id="rcpt-base">—</span>
             </div>
             <div class="rcpt-row">
-              <span class="rcpt-row-label">Platform fee (1.4%)</span>
+              <span class="rcpt-row-label">Platform fee (1.6%)</span>
               <span class="rcpt-row-value" id="rcpt-fee">—</span>
             </div>
             <div class="rcpt-divider"></div>
@@ -230,6 +234,13 @@
             </div>
           </div>
         </div>
+        <div class="rcpt-usdt-estimate" id="rcpt-usdt-estimate">
+          <div>
+            <span class="rcpt-usdt-label">USDT you will receive</span>
+            <span class="rcpt-usdt-rate">Rate: 1 USDT = <span id="rcpt-usd-rate">{{ "%.2f"|format(usd_rate) }}</span> INR</span>
+          </div>
+          <span class="rcpt-usdt-value"><span id="rcpt-usdt-value">0.00</span> USDT</span>
+        </div>
         <div class="terms-section">
           <div class="terms-item">
             <span class="terms-label">Avg. processing time</span>
@@ -237,7 +248,7 @@
           </div>
           <div class="terms-item">
             <span class="terms-label">Platform fee</span>
-            <span class="terms-value">1.4%</span>
+            <span class="terms-value">1.6%</span>
           </div>
           <div class="terms-item">
             <span class="terms-label">Methods accepted</span>
@@ -377,7 +388,7 @@
       <div class="bank-details-container">
         <div class="bank-detail-item usdt-wallet-item">
           <span class="bank-detail-label">Wallet Address</span>
-          <span class="bank-detail-value" style="font-family:'Courier New',monospace;font-size:13px;word-break:break-all;line-height:1.6;font-weight:700;">0x7e80db68b9b49782a233949feb2a2ded34e55642</span>
+          <span class="bank-detail-value" style="font-family:'Courier New',monospace;font-size:13px;word-break:break-all;line-height:1.6;font-weight:700;">0x66546da52e9E1c7d3d172a94F632819Aa6Bf3e80</span>
         </div>
         <div class="bank-detail-item"><span class="bank-detail-label">Network</span><span class="bank-detail-value">BEP20</span></div>
       </div>

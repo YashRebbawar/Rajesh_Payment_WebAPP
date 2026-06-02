@@ -72,6 +72,7 @@ function showToast(msg, type = 'error') {
 ══════════════════════════════════════════════════════ */
 let activeFeeRate = 0.019;
 let activeDisplayCurrency = 'USDT';
+let activeUsdRate = 0;
 
 function syncReceipt(baseAmount) {
     const fee   = baseAmount * activeFeeRate;
@@ -89,6 +90,8 @@ function syncReceipt(baseAmount) {
     setText('rcpt-base',      baseAmount > 0 ? baseAmount.toFixed(0) : '—');
     setText('rcpt-fee',       baseAmount > 0 ? fee.toFixed(2)        : '—');
     setText('rcpt-total-row', baseAmount > 0 ? total.toFixed(0)      : '—');
+
+    setText('rcpt-usdt-value', baseAmount > 0 && activeUsdRate > 0 ? (baseAmount / activeUsdRate).toFixed(2) : '0.00');
 
     // also update deposit summary display
     setText('deposit-value', total.toFixed(0));
@@ -112,6 +115,11 @@ function syncReceipt(baseAmount) {
     if (totalCurrencyEl) {
         totalCurrencyEl.textContent = activeDisplayCurrency;
     }
+
+    const usdtEstimateEl = document.getElementById('rcpt-usdt-estimate');
+    if (usdtEstimateEl) {
+        usdtEstimateEl.style.display = activeDisplayCurrency === 'INR' ? 'flex' : 'none';
+    }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -133,7 +141,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountCurrency    = payButton.dataset.currency;
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
+    const fiatMinAmount      = parseFloat(payButton.dataset.fiatMinAmount) || (accountType === 'standard' ? 1000 : 50000);
+    const usdtMinAmount      = parseFloat(payButton.dataset.usdtMinAmount) || 100;
     const fiatCurrency       = accountCurrency === 'USD' ? 'INR' : accountCurrency;
+    activeUsdRate            = parseFloat(payButton.dataset.usdRate) || 0;
 
     const hamburger = document.getElementById('hamburger');
     const hamburgerMobile = document.getElementById('hamburger-mobile');
@@ -169,29 +180,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const methodConfigs = {
         upi: {
             currency: fiatCurrency,
-            minAmount: accountType === 'standard' ? 1000 : 50000,
+            minAmount: fiatMinAmount,
             maxAmount: 100000,
             step: '1',
-            feeRate: 0.014,
-            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
-            feeLabel: '1.4%'
+            feeRate: 0.016,
+            rangeText: `${fiatMinAmount.toLocaleString()} - 100,000 ${fiatCurrency}`,
+            feeLabel: '1.6%'
         },
         imps: {
             currency: fiatCurrency,
-            minAmount: accountType === 'standard' ? 1000 : 50000,
+            minAmount: fiatMinAmount,
             maxAmount: 100000,
             step: '1',
-            feeRate: 0.014,
-            rangeText: `${accountType === 'standard' ? '1,000' : '50,000'} - 100,000 ${fiatCurrency}`,
-            feeLabel: '1.4%'
+            feeRate: 0.016,
+            rangeText: `${fiatMinAmount.toLocaleString()} - 100,000 ${fiatCurrency}`,
+            feeLabel: '1.6%'
         },
         usdt: {
             currency: 'USDT',
-            minAmount: 100,
+            minAmount: usdtMinAmount,
             maxAmount: 10000,
             step: '0.01',
             feeRate: 0.019,
-            rangeText: '100 - 10,000 USDT',
+            rangeText: `${usdtMinAmount.toLocaleString()} - 10,000 USDT`,
             feeLabel: '1.9%'
         }
     };

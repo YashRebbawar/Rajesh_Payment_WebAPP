@@ -357,6 +357,10 @@ body::after{
 .rcpt-row.total .rcpt-row-label{color:rgba(255,255,255,.65);font-size:11px;font-weight:800;}
 .rcpt-row.total .rcpt-row-value{color:#fff;font-family:'Fraunces',serif;font-size:18px;font-weight:700;letter-spacing:-.3px;}
 .rcpt-divider{height:1px;background:rgba(255,255,255,.08);margin:4px 0;}
+.rcpt-usdt-estimate{display:none;justify-content:space-between;align-items:center;gap:14px;margin:0 24px 16px;padding:13px 14px;border:1px solid rgba(74,222,128,.20);border-radius:10px;background:rgba(45,122,79,.14);}
+.rcpt-usdt-label{display:block;font-family:'Cabinet Grotesk',sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,.78);margin-bottom:4px;}
+.rcpt-usdt-rate{display:block;font-size:10px;color:rgba(255,255,255,.40);}
+.rcpt-usdt-value{font-family:'Fraunces',serif;font-size:19px;font-weight:800;color:#4ade80;white-space:nowrap;}
 
 /* Terms */
 .terms-section{padding:0 24px 22px;}
@@ -631,4 +635,135 @@ body::after{
   .usdt-wallet-item{flex-direction:column;align-items:flex-start;gap:6px;}
   .usdt-wallet-item .bank-detail-label{padding-top:0;}
   .usdt-wallet-item .bank-detail-value{font-size:10px;line-height:1.5;}
+}
+
+
+/* Maintenance Mode Styles */
+.payment-method-option.maintenance-mode {
+    position: relative;
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+.payment-method-option.maintenance-mode::after {
+    content: 'Maintenance';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 152, 0, 0.95);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .payment-method-option.maintenance-mode::after {
+        font-size: 8px;
+        padding: 2px 6px;
+    }
+}
+
+.payment-method-option.maintenance-mode:hover {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+}
+
+
+/* Maintenance Alert Card */
+.maintenance-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+}
+
+.maintenance-alert.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.maintenance-alert-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 400px;
+    border-left: 4px solid #ff6b6b;
+}
+
+.maintenance-alert-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.maintenance-alert-text h3 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.maintenance-alert-text p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.maintenance-alert-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.maintenance-alert-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .maintenance-alert {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .maintenance-alert-content {
+        padding: 16px;
+        max-width: none;
+    }
+    
+    .maintenance-alert-icon {
+        font-size: 28px;
+    }
+    
+    .maintenance-alert-text h3 {
+        font-size: 14px;
+    }
+    
+    .maintenance-alert-text p {
+        font-size: 13px;
+    }
 }

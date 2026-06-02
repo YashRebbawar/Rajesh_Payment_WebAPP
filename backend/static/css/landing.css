@@ -967,8 +967,14 @@ footer {
 }
 .footer-cols-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 32px;
+  align-items: start;
+}
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .footer-brand {
   font-family: 'Fraunces', serif;
@@ -994,6 +1000,79 @@ footer {
   transition: color 0.2s;
 }
 .footer-col a:hover { color: rgba(255,255,255,0.8); }
+.footer-contact-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.footer-contact-block + .footer-contact-block {
+  margin-top: 24px;
+}
+.footer-contact-title {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  margin: 0 0 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.footer-telegram-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 0;
+}
+.footer-telegram-link {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 160px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.72) !important;
+  transition: transform 0.2s, color 0.2s, background 0.2s, border-color 0.2s;
+}
+.footer-telegram-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(39, 167, 231, 0.28);
+  background: linear-gradient(180deg, #37aee2 0%, #229ed9 100%);
+  box-shadow: 0 10px 22px rgba(34, 158, 217, 0.22);
+}
+.footer-telegram-badge svg {
+  width: 18px;
+  height: 18px;
+  color: #ffffff;
+}
+.footer-telegram-link span {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-align: left;
+}
+.footer-telegram-link:hover {
+  transform: translateY(-2px);
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.14);
+}
+.footer-telegram-link:hover .footer-telegram-badge {
+  background: linear-gradient(180deg, #45b8eb 0%, #229ed9 100%);
+  border-color: rgba(69, 184, 235, 0.5);
+}
 .footer-bottom {
   max-width: 1160px; margin: 0 auto;
   padding-top: 24px;
@@ -1231,7 +1310,8 @@ footer {
     gap: 32px;
   }
   .footer-cols-row {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
   }
 }
 
@@ -1361,8 +1441,8 @@ footer {
     padding-bottom: 32px;
   }
   .footer-cols-row {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
   .footer-brand { font-size: 20px; }
   .footer-bottom {

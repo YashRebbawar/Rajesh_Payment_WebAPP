@@ -206,6 +206,61 @@ function initUserCards() {
   });
 }
 
+function focusAccountFromPendingCard(paymentCard) {
+  if (!paymentCard) return;
+
+  const accountId = paymentCard.dataset.accountId || '';
+  const userId = paymentCard.dataset.userId || '';
+  let userCard = null;
+  let accountCard = null;
+
+  if (accountId) {
+    accountCard = document.querySelector(`.account-card[data-account-id="${accountId}"]`);
+    userCard = accountCard?.closest('.admin-user-card') || null;
+  }
+
+  if (!userCard && userId) {
+    userCard = document.querySelector(`.admin-user-card[data-user-id="${userId}"]`);
+  }
+
+  if (!userCard) return;
+
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === 'users');
+    });
+    updateMobileDashboardTabState('users');
+  }
+
+  document.querySelectorAll('.admin-user-card.account-tracked').forEach(card => card.classList.remove('account-tracked'));
+  document.querySelectorAll('.account-card.account-tracked').forEach(card => card.classList.remove('account-tracked'));
+
+  userCard.classList.add('expanded', 'account-tracked');
+  userCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  accountCard = accountCard || (accountId ? userCard.querySelector(`.account-card[data-account-id="${accountId}"]`) : null);
+  if (accountCard) {
+    accountCard.classList.add('account-tracked');
+    setTimeout(() => {
+      accountCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
+  }
+
+  setTimeout(() => {
+    userCard.classList.remove('account-tracked');
+    accountCard?.classList.remove('account-tracked');
+  }, 2600);
+}
+
+function initPendingPaymentCardTracking() {
+  document.querySelectorAll('.pending-payment-card').forEach(card => {
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('button, a, input, select, textarea, label, form')) return;
+      focusAccountFromPendingCard(card);
+    });
+  });
+}
+
 /* ══ SEARCH / FILTER ══ */
 function filterUsers(q) {
   q = (q || '').toLowerCase().trim();
@@ -378,9 +433,45 @@ function getCsrfToken() {
   const token = document.querySelector('input[name="csrf_token"]')?.value;
   if (!token) {
     const meta = document.querySelector('meta[name="csrf-token"]');
-    return meta ? meta.getAttribute('content') : '';
+    return meta ? meta.getAttribute('content') : (document.body?.dataset.csrfToken || '');
   }
   return token;
+}
+
+async function saveUsdRate() {
+  const input = document.getElementById('usd-rate-input');
+  const btn = document.getElementById('save-usd-rate-btn');
+  if (!input) return;
+
+  const rate = parseFloat(input.value);
+  if (!rate || rate <= 0) {
+    showErrorMessage('Enter a valid USD rate');
+    return;
+  }
+
+  try {
+    if (btn) btn.disabled = true;
+    const csrfToken = getCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+
+    const data = await fetch('/api/admin/usd-rate', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ rate })
+    }).then(r => r.json());
+
+    if (data.success) {
+      input.value = Number(data.rate).toFixed(2);
+      showSuccessMessage('USD rate updated');
+    } else {
+      showErrorMessage(data.message || 'Could not update USD rate');
+    }
+  } catch {
+    showErrorMessage('Failed to update USD rate');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 async function approvePayment(paymentId) {
@@ -562,11 +653,16 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   initUserCards();
+  initPendingPaymentCardTracking();
 
   document.getElementById('admin-user-search')?.addEventListener('input', function () { filterUsers(this.value); });
   document.getElementById('mobile-admin-user-search')?.addEventListener('input', function () { filterUsers(this.value); });
   document.getElementById('payment-search')?.addEventListener('input', filterPayments);
   document.getElementById('currency-filter')?.addEventListener('change', filterPayments);
+  document.getElementById('save-usd-rate-btn')?.addEventListener('click', saveUsdRate);
+  document.getElementById('usd-rate-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveUsdRate();
+  });
 
   document.getElementById('unified-edit-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeUnifiedEditModal(); });
   document.getElementById('balance-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeBalanceModal(); });
