@@ -21,6 +21,7 @@
     <li><a href="#features">Invest</a></li>
     <li><a href="#security">Security</a></li>
     <li><a href="#testimonials">Testimonials</a></li>
+    <li><button class="nav-link-button announcement-trigger" type="button">Announcements</button></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <div class="nav-cta">
@@ -43,6 +44,7 @@
   <a href="/my-accounts" onclick="closeMobileNav()">My Accounts</a>
   {% endif %}
   <a href="/accounts" onclick="closeMobileNav()">Open Account</a>
+  <button class="mobile-nav-link announcement-trigger" type="button">Announcements</button>
   <a href="/#faq" onclick="closeMobileNav()">FAQ</a>
   <div class="mobile-nav-cta">
     {% if user %}
@@ -53,6 +55,19 @@
     {% else %}
     <button class="btn-pill" onclick="window.location.href='/signin'; closeMobileNav()">Get Started →</button>
     {% endif %}
+  </div>
+</div>
+
+<!-- Announcements Modal -->
+<div class="modal-overlay announcement-modal" id="announcementModal" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
+  <div class="modal-box announcement-modal-box">
+    <button class="modal-close" id="announcementClose" type="button" aria-label="Close announcements">&times;</button>
+    <h3 class="modal-title" id="announcementTitle">Announcements</h3>
+    <picture class="announcement-picture">
+      <source media="(max-width: 640px)" srcset="{{ url_for('static', filename='images/Challenge_img_1.png') }}">
+      <img src="{{ url_for('static', filename='images/Challenge_img_2.png') }}" alt="PrintFree challenge announcement">
+    </picture>
+    <a class="announcement-register-btn" href="https://docs.google.com/forms/d/e/1FAIpQLScLMdEQvNVdn3tT3j8RDh8LbrF6YLPEGHWE_iN6rDcr9EJokw/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer">Register Now</a>
   </div>
 </div>
 

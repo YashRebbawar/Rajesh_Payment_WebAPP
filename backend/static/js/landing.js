@@ -52,6 +52,35 @@ if (hamburgerMobile) {
 // Close on Escape key
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileNav(); });
 
+// Announcements modal
+const announcementModal = document.getElementById('announcementModal');
+const announcementClose = document.getElementById('announcementClose');
+const announcementTriggers = document.querySelectorAll('.announcement-trigger');
+
+if (announcementModal && announcementClose && announcementTriggers.length) {
+  const closeAnnouncement = () => {
+    announcementModal.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+
+  announcementTriggers.forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      closeMobileNav();
+      announcementModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      announcementClose.focus();
+    });
+  });
+
+  announcementClose.addEventListener('click', closeAnnouncement);
+  announcementModal.addEventListener('click', e => {
+    if (e.target === announcementModal) closeAnnouncement();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeAnnouncement();
+  });
+}
+
 // ─── Navbar scroll ───────────────────────────────────────────
 window.addEventListener('scroll', () => {
   document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
