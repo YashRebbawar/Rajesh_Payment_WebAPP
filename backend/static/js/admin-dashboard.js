@@ -285,8 +285,19 @@ function filterUsersByReferralCode(code) {
   });
 }
 
+let activeQuickFilter = null;
+
 function applyQuickReferralFilter(code) {
-  filterUsersByReferralCode(code);
+  const btn = document.querySelector('.quick-filter-btn');
+  if (activeQuickFilter === code) {
+    activeQuickFilter = null;
+    filterUsersByReferralCode('');
+    if (btn) btn.classList.remove('active');
+  } else {
+    activeQuickFilter = code;
+    filterUsersByReferralCode(code);
+    if (btn) btn.classList.add('active');
+  }
 }
 
 function filterPayments() {

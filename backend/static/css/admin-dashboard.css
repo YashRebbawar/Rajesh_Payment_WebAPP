@@ -416,6 +416,12 @@ body.admin-page::after {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(184,148,74,.25);
 }
+.quick-filter-btn.active {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(184,148,74,.25);
+}
 .quick-filter-btn svg {
   flex-shrink: 0;
 }
@@ -817,6 +823,8 @@ body.admin-page::after {
   .section-header h2 { font-size: 20px; }
   .section-header > div { justify-content: flex-end; }
   .quick-filter-btn { padding: 6px 8px; border-radius: 7px; min-width: 32px; }
+  .quick-filter-btn:hover { transform: none; }
+  .quick-filter-btn.active { transform: none; }
   .quick-filter-btn svg { width: 14px; height: 14px; }
   .quick-filter-text { display: none; }
   .notification-badge { min-width: 20px; height: 20px; padding: 0 7px; font-size: 9px; }
