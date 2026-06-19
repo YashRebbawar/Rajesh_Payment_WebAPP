@@ -30,23 +30,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPromptView() {
         promptView.hidden = false;
         formView.hidden = true;
-        if (form) form.hidden = false;
         successView.hidden = true;
+        if (form) form.style.display = '';
     }
 
     function showFormView() {
         promptView.hidden = true;
         formView.hidden = false;
-        if (form) form.hidden = false;
         successView.hidden = true;
+        if (form) form.style.display = '';
         setTimeout(() => nameInput?.focus(), 80);
     }
 
     function showSuccessView() {
         promptView.hidden = true;
         formView.hidden = false;
-        if (form) form.hidden = true;
         successView.hidden = false;
+        if (form) form.style.display = 'none';
     }
 
     function setError(field, message) {
