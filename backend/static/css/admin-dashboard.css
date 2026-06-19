@@ -390,6 +390,36 @@ body.admin-page::after {
 }
 @keyframes countPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 
+.quick-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--gold);
+  background: rgba(184,148,74,.08);
+  color: var(--gold);
+  cursor: pointer;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.quick-filter-btn:hover {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(184,148,74,.25);
+}
+.quick-filter-btn svg {
+  flex-shrink: 0;
+}
+
 .notification-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 8px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; line-height: 1; background: var(--red); color: #fff; border-radius: 999px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(26,21,16,.14); animation: blink 2s infinite; }
 @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.65;} }
 
@@ -438,6 +468,7 @@ body.admin-page::after {
 .user-details h3 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 13px; font-weight: 800; color: var(--ink); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-email { font-size: 11px; color: var(--ink-45); margin: 1px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .admin-badge { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; background: var(--red); color: #fff; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
+.referral-badge { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; background: var(--gold); color: #fff; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; }
 .new-user-badge, .new-account-badge-small { font-family: 'Cabinet Grotesk', sans-serif; font-size: 8px; font-weight: 800; background: var(--green); color: #fff; padding: 2px 7px; border-radius: 20px; flex-shrink: 0; animation: blink 2s infinite; }
 
 .account-count-pill { font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800; background: var(--cream); color: var(--ink-45); border: 1px solid var(--border); padding: 3px 9px; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
@@ -782,8 +813,12 @@ body.admin-page::after {
   .stats-card-note { font-size: 11px; }
   .meta-label { font-size: 7px; }
   .meta-value { font-size: 11px; }
-  .section-header { padding: 12px 14px 10px; align-items: flex-start; }
+  .section-header { padding: 12px 14px 10px; align-items: center; }
   .section-header h2 { font-size: 20px; }
+  .section-header > div { justify-content: flex-end; }
+  .quick-filter-btn { padding: 6px 8px; border-radius: 7px; min-width: 32px; }
+  .quick-filter-btn svg { width: 14px; height: 14px; }
+  .quick-filter-text { display: none; }
   .notification-badge { min-width: 20px; height: 20px; padding: 0 7px; font-size: 9px; }
   #pending-payments-badge { display: none; }
   .user-count-widget { min-width: 55px; padding: 3px 7px; }

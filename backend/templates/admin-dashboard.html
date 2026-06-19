@@ -189,6 +189,12 @@
     <div class="section-header">
       <h2><em>Users</em> & <em>Accounts</em></h2>
       <div style="display:flex;align-items:center;gap:12px;">
+        <button class="quick-filter-btn" onclick="applyQuickReferralFilter('PratikFxPro')" title="Filter by PratikFxPro">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 3h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"></path><path d="M9 3H5a2 2 0 0 0-2 2v4m6 0v10a2 2 0 0 0 2 2h4"></path>
+          </svg>
+          <span class="quick-filter-text">PratikFxPro</span>
+        </button>
         <div class="user-count-widget">
           <div class="user-count-number">{{ all_users|length }}</div>
           <div class="user-count-label">Active Users</div>
@@ -220,6 +226,7 @@
               <div class="user-name-row">
                 <h3>{{ u.email.split('@')[0] }}</h3>
                 {% if u.is_admin %}<span class="admin-badge">Admin</span>{% endif %}
+                {% if u.referral_code %}<span class="referral-badge" title="Referral Code">{{ u.referral_code }}</span>{% endif %}
                 <span class="new-user-badge" data-user-id="{{ u._id }}" style="display:none;">New</span>
               </div>
               <p class="user-email">{{ u.email }}</p>

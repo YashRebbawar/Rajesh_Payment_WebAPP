@@ -61,6 +61,8 @@ registerForm?.addEventListener('submit',async function(e){
   const csrfToken = formData.get('csrf_token');
   const data=Object.fromEntries(formData);
   data.email = email;
+  const referralCode = document.getElementById('referral-code')?.value?.trim() || '';
+  if (referralCode) data.referral_code = referralCode;
   delete data.csrf_token;
   try{
     const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrfToken},body:JSON.stringify(data)});

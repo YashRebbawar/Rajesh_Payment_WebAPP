@@ -272,6 +272,23 @@ function filterUsers(q) {
   });
 }
 
+function filterUsersByReferralCode(code) {
+  code = (code || '').toLowerCase().trim();
+  if (!code) {
+    document.querySelectorAll('.admin-user-card').forEach(card => card.style.display = '');
+    return;
+  }
+  document.querySelectorAll('.admin-user-card').forEach(card => {
+    const referralBadge = card.querySelector('.referral-badge');
+    const referralCode = referralBadge ? referralBadge.textContent.toLowerCase() : '';
+    card.style.display = referralCode.includes(code) ? '' : 'none';
+  });
+}
+
+function applyQuickReferralFilter(code) {
+  filterUsersByReferralCode(code);
+}
+
 function filterPayments() {
   const q   = (document.getElementById('payment-search')?.value || '').toLowerCase();
   const cur = document.getElementById('currency-filter')?.value || 'all';
