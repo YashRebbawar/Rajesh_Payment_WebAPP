@@ -129,11 +129,14 @@ function updateMobileDashboardTabState(tab) {
 }
 
 /* ══ COMMISSION STATS ══ */
-async function loadCommissionStats(year = null, month = null) {
+async function loadCommissionStats(year = null, month = null, referralCode = null) {
   if (!isAdminPinUnlocked()) return;
   try {
-    let url = '/api/admin/commission-stats';
-    if (year && month) url += `?year=${year}&month=${month}`;
+    const params = new URLSearchParams();
+    if (year && month) { params.set('year', year); params.set('month', month); }
+    if (referralCode) params.set('referral_code', referralCode);
+    const qs = params.toString();
+    const url = '/api/admin/commission-stats' + (qs ? '?' + qs : '');
     const data = await fetch(url).then(r => r.json());
     if (!data.success) return;
     const fmt = n => '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -156,6 +159,11 @@ function getSelectedCommissionPeriod() {
   return { year, month };
 }
 
+function refreshCommissionWidget() {
+  const { year, month } = getSelectedCommissionPeriod();
+  loadCommissionStats(year, month, activeQuickFilter);
+}
+
 function populateMonthSelector() {
   const sel = document.getElementById('month-selector');
   if (!sel) return;
@@ -173,8 +181,7 @@ function populateMonthSelector() {
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function () {
-    const { year, month } = getSelectedCommissionPeriod();
-    loadCommissionStats(year, month);
+    refreshCommissionWidget();
   });
 }
 
@@ -298,6 +305,7 @@ function applyQuickReferralFilter(code) {
     filterUsersByReferralCode(code);
     if (btn) btn.classList.add('active');
   }
+  refreshCommissionWidget();
 }
 
 function filterPayments() {
@@ -591,8 +599,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (dashboardPollingStarted || !isAdminPinUnlocked()) return;
     dashboardPollingStarted = true;
     const refreshDashboardMetrics = () => {
-      const { year, month } = getSelectedCommissionPeriod();
-      loadCommissionStats(year, month);
+      refreshCommissionWidget();
       loadUsersNoAccountType();
     };
 

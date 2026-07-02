@@ -2753,18 +2753,34 @@ def get_commission_stats():
     try:
         year = request.args.get('year', type=int)
         month = request.args.get('month', type=int)
-        
+        referral_code = (request.args.get('referral_code') or '').strip()
+
+        # Build user_id filter when referral_code is provided
+        referral_user_ids = None
+        if referral_code:
+            referral_users = users_collection.find(
+                {'referral_code': {'$regex': f'^{referral_code}$', '$options': 'i'}},
+                {'_id': 1}
+            )
+            referral_user_ids = [u['_id'] for u in referral_users]
+
+        def base_match(status, txn_type):
+            q = {'status': status, 'type': txn_type}
+            if referral_user_ids is not None:
+                q['user_id'] = {'$in': referral_user_ids}
+            return q
+
         total_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$match': base_match('completed', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
         platform_fee = total_amount * 0.016
-        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        transaction_count = payments_collection.count_documents(base_match('completed', 'deposit'))
         
         pending_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'pending', 'type': 'deposit'}},
+            {'$match': base_match('pending', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
@@ -2783,12 +2799,12 @@ def get_commission_stats():
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_end = None
         
-        match_query = {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}
+        monthly_match = {**base_match('completed', 'deposit'), 'approved_at': {'$gte': month_start}}
         if month_end:
-            match_query['approved_at']['$lt'] = month_end
+            monthly_match['approved_at']['$lt'] = month_end
         
         monthly_deposits = list(payments_collection.aggregate([
-            {'$match': match_query},
+            {'$match': monthly_match},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
