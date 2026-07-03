@@ -510,6 +510,42 @@ async function saveUsdRate() {
   }
 }
 
+async function saveWithdrawalRate() {
+  const input = document.getElementById('withdrawal-rate-input');
+  const btn = document.getElementById('save-withdrawal-rate-btn');
+  if (!input) return;
+
+  const rate = parseFloat(input.value);
+  if (!rate || rate <= 0 || rate > 100) {
+    showErrorMessage('Enter a valid withdrawal rate (0–100)');
+    return;
+  }
+
+  try {
+    if (btn) btn.disabled = true;
+    const csrfToken = getCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+
+    const data = await fetch('/api/admin/withdrawal-rate', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ rate })
+    }).then(r => r.json());
+
+    if (data.success) {
+      input.value = Number(data.rate).toFixed(2);
+      showSuccessMessage('Withdrawal rate updated');
+    } else {
+      showErrorMessage(data.message || 'Could not update withdrawal rate');
+    }
+  } catch {
+    showErrorMessage('Failed to update withdrawal rate');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function approvePayment(paymentId) {
   showConfirmModal('Approve payment?', "Approve and credit the user's account?", async () => {
     try {
@@ -698,6 +734,17 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('usd-rate-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') saveUsdRate();
   });
+  document.getElementById('save-withdrawal-rate-btn')?.addEventListener('click', saveWithdrawalRate);
+  document.getElementById('withdrawal-rate-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveWithdrawalRate();
+  });
+  // Load current withdrawal rate
+  fetch('/api/admin/withdrawal-rate').then(r => r.json()).then(data => {
+    if (data.success) {
+      const inp = document.getElementById('withdrawal-rate-input');
+      if (inp) inp.value = Number(data.rate).toFixed(2);
+    }
+  }).catch(() => {});
 
   document.getElementById('unified-edit-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeUnifiedEditModal(); });
   document.getElementById('balance-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeBalanceModal(); });

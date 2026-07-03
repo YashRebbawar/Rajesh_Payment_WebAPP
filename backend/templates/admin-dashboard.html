@@ -349,6 +349,18 @@
       </div>
     </div>
 
+    <div class="usd-rate-control">
+      <div>
+        <span class="usd-rate-label">Withdrawal rate</span>
+        <span class="usd-rate-helper">% of withdrawal amount the user receives.</span>
+      </div>
+      <div class="usd-rate-input-wrap">
+        <span>%</span>
+        <input type="number" id="withdrawal-rate-input" min="0.01" max="100" step="0.01" value="95" aria-label="Withdrawal rate">
+        <button type="button" id="save-withdrawal-rate-btn">Save</button>
+      </div>
+    </div>
+
     {% if pending_payments %}
     <div class="payment-filters">
       <input type="text" id="payment-search" placeholder="Search by email…" class="payment-search-input">

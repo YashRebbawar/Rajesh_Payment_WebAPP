@@ -169,7 +169,9 @@
     <button class="continue-button" id="continue-button" disabled
       data-currency="{{ account.currency }}"
       data-account-id="{{ account._id }}"
-      data-account-balance="{{ account.balance|default(0) }}">
+      data-account-balance="{{ account.balance|default(0) }}"
+      data-withdrawal-rate="{{ withdrawal_rate }}"
+      data-usd-rate="{{ usd_rate }}">
       <span>Continue</span>
       <span class="btn-arrow">&rarr;</span>
     </button>
@@ -206,7 +208,8 @@
         </div>
         <div class="settle-terms">
           <div class="terms-item"><span class="terms-label">Processing time</span><span class="terms-value" id="processing-time">~15 minutes</span></div>
-          <div class="terms-item"><span class="terms-label">Withdrawal fee</span><span class="terms-value free">0% Free</span></div>
+          <div class="terms-item"><span class="terms-label">Withdrawal rate</span><span class="terms-value" id="withdrawal-rate-display">&#8377;{{ withdrawal_rate }}/USDT</span></div>
+          <div class="terms-item"><span class="terms-label">You'll receive</span><span class="terms-value" id="s-receive-amount">—</span></div>
           <div class="terms-item"><span class="terms-label">Method</span><span class="terms-value" id="method-display">UPI</span></div>
         </div>
         <div class="settle-mrz">
@@ -248,8 +251,12 @@
         <span class="detail-value" id="confirm-account-holder">-</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Fee</span>
-        <span class="detail-value" style="color:var(--green);font-weight:800;">0% Free</span>
+        <span class="detail-label">Withdrawal rate</span>
+        <span class="detail-value" id="confirm-rate">{{ withdrawal_rate }}%</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">You'll receive</span>
+        <span class="detail-value" id="confirm-receive">—</span>
       </div>
     </div>
     <div class="confirmation-actions">

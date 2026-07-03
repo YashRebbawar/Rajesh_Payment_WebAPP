@@ -336,6 +336,14 @@ def clear_admin_dashboard_context_cache(user=None):
         return
     admin_dashboard_context_cache.clear()
 
+def get_withdrawal_rate_setting():
+    settings = settings_collection.find_one({'_id': 'withdrawal_rate'})
+    try:
+        rate = float(settings.get('rate')) if settings else 95.0
+    except (TypeError, ValueError):
+        rate = 95.0
+    return round(rate, 4)
+
 def get_usd_rate_setting():
     settings = settings_collection.find_one({'_id': 'usd_rate'})
     try:
@@ -1181,7 +1189,7 @@ def withdrawal(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('withdrawal.html', user=user, account=account)
+        return render_template('withdrawal.html', user=user, account=account, withdrawal_rate=get_withdrawal_rate_setting(), usd_rate=get_usd_rate_setting())
     except (ValueError, Exception) as e:
         logger.error(f"Withdrawal page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1549,6 +1557,34 @@ def get_admin_notifications():
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/withdrawal-rate', methods=['GET', 'POST'])
+def admin_withdrawal_rate():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'rate': get_withdrawal_rate_setting()})
+
+    try:
+        data = request.get_json(silent=True) or {}
+        rate = float(data.get('rate'))
+        if rate <= 0 or rate > 100:
+            return jsonify({'success': False, 'message': 'Withdrawal rate must be between 0 and 100'})
+
+        settings_collection.update_one(
+            {'_id': 'withdrawal_rate'},
+            {'$set': {'rate': round(rate, 4), 'updated_at': get_current_ist_time(), 'updated_by': user['_id']}},
+            upsert=True
+        )
+        clear_admin_dashboard_context_cache(user)
+        return jsonify({'success': True, 'rate': round(rate, 4)})
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Enter a valid withdrawal rate'})
+    except Exception as e:
+        logger.error(f"Withdrawal rate update error: {e}")
+        return jsonify({'success': False, 'message': 'Could not update withdrawal rate'})
 
 @app.route('/api/admin/usd-rate', methods=['GET', 'POST'])
 def admin_usd_rate():
