@@ -336,6 +336,14 @@ def clear_admin_dashboard_context_cache(user=None):
         return
     admin_dashboard_context_cache.clear()
 
+def get_withdrawal_rate_setting():
+    settings = settings_collection.find_one({'_id': 'withdrawal_rate'})
+    try:
+        rate = float(settings.get('rate')) if settings else 95.0
+    except (TypeError, ValueError):
+        rate = 95.0
+    return round(rate, 4)
+
 def get_usd_rate_setting():
     settings = settings_collection.find_one({'_id': 'usd_rate'})
     try:
@@ -721,7 +729,8 @@ def register():
     user = get_current_user()
     if user:
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
-    response = render_template('register.html', user=user, allowed_email_domains=ALLOWED_EMAIL_DOMAINS)
+    referral_code = request.args.get('ref', '')
+    response = render_template('register.html', user=user, allowed_email_domains=ALLOWED_EMAIL_DOMAINS, referral_code=referral_code)
     return response
 
 @app.route('/my-accounts')
@@ -781,16 +790,19 @@ def api_register():
     
     country_map = {'AF': 'Afghanistan', 'AL': 'Albania', 'DZ': 'Algeria', 'AD': 'Andorra', 'AO': 'Angola', 'AG': 'Antigua and Barbuda', 'AR': 'Argentina', 'AM': 'Armenia', 'AU': 'Australia', 'AT': 'Austria', 'AZ': 'Azerbaijan', 'BS': 'Bahamas', 'BH': 'Bahrain', 'BD': 'Bangladesh', 'BB': 'Barbados', 'BY': 'Belarus', 'BE': 'Belgium', 'BZ': 'Belize', 'BJ': 'Benin', 'BT': 'Bhutan', 'BO': 'Bolivia', 'BA': 'Bosnia and Herzegovina', 'BW': 'Botswana', 'BR': 'Brazil', 'BN': 'Brunei', 'BG': 'Bulgaria', 'BF': 'Burkina Faso', 'BI': 'Burundi', 'KH': 'Cambodia', 'CM': 'Cameroon', 'CA': 'Canada', 'CV': 'Cape Verde', 'CF': 'Central African Republic', 'TD': 'Chad', 'CL': 'Chile', 'CN': 'China', 'CO': 'Colombia', 'KM': 'Comoros', 'CG': 'Congo', 'CR': 'Costa Rica', 'HR': 'Croatia', 'CU': 'Cuba', 'CY': 'Cyprus', 'CZ': 'Czech Republic', 'DK': 'Denmark', 'DJ': 'Djibouti', 'DM': 'Dominica', 'DO': 'Dominican Republic', 'EC': 'Ecuador', 'EG': 'Egypt', 'SV': 'El Salvador', 'GQ': 'Equatorial Guinea', 'ER': 'Eritrea', 'EE': 'Estonia', 'ET': 'Ethiopia', 'FJ': 'Fiji', 'FI': 'Finland', 'FR': 'France', 'GA': 'Gabon', 'GM': 'Gambia', 'GE': 'Georgia', 'DE': 'Germany', 'GH': 'Ghana', 'GR': 'Greece', 'GD': 'Grenada', 'GT': 'Guatemala', 'GN': 'Guinea', 'GW': 'Guinea-Bissau', 'GY': 'Guyana', 'HT': 'Haiti', 'HN': 'Honduras', 'HK': 'Hong Kong', 'HU': 'Hungary', 'IS': 'Iceland', 'IN': 'India', 'ID': 'Indonesia', 'IR': 'Iran', 'IQ': 'Iraq', 'IE': 'Ireland', 'IL': 'Israel', 'IT': 'Italy', 'JM': 'Jamaica', 'JP': 'Japan', 'JO': 'Jordan', 'KZ': 'Kazakhstan', 'KE': 'Kenya', 'KI': 'Kiribati', 'KP': 'North Korea', 'KR': 'South Korea', 'KW': 'Kuwait', 'KG': 'Kyrgyzstan', 'LA': 'Laos', 'LV': 'Latvia', 'LB': 'Lebanon', 'LS': 'Lesotho', 'LR': 'Liberia', 'LY': 'Libya', 'LI': 'Liechtenstein', 'LT': 'Lithuania', 'LU': 'Luxembourg', 'MO': 'Macao', 'MK': 'Macedonia', 'MG': 'Madagascar', 'MW': 'Malawi', 'MY': 'Malaysia', 'MV': 'Maldives', 'ML': 'Mali', 'MT': 'Malta', 'MH': 'Marshall Islands', 'MQ': 'Martinique', 'MR': 'Mauritania', 'MU': 'Mauritius', 'MX': 'Mexico', 'FM': 'Micronesia', 'MD': 'Moldova', 'MC': 'Monaco', 'MN': 'Mongolia', 'ME': 'Montenegro', 'MA': 'Morocco', 'MZ': 'Mozambique', 'MM': 'Myanmar', 'NA': 'Namibia', 'NR': 'Nauru', 'NP': 'Nepal', 'NL': 'Netherlands', 'NZ': 'New Zealand', 'NI': 'Nicaragua', 'NE': 'Niger', 'NG': 'Nigeria', 'NO': 'Norway', 'OM': 'Oman', 'PK': 'Pakistan', 'PW': 'Palau', 'PS': 'Palestine', 'PA': 'Panama', 'PG': 'Papua New Guinea', 'PY': 'Paraguay', 'PE': 'Peru', 'PH': 'Philippines', 'PL': 'Poland', 'PT': 'Portugal', 'QA': 'Qatar', 'RE': 'Reunion', 'RO': 'Romania', 'RU': 'Russia', 'RW': 'Rwanda', 'KN': 'Saint Kitts and Nevis', 'LC': 'Saint Lucia', 'VC': 'Saint Vincent and the Grenadines', 'WS': 'Samoa', 'SM': 'San Marino', 'ST': 'Sao Tome and Principe', 'SA': 'Saudi Arabia', 'SN': 'Senegal', 'RS': 'Serbia', 'SC': 'Seychelles', 'SL': 'Sierra Leone', 'SG': 'Singapore', 'SK': 'Slovakia', 'SI': 'Slovenia', 'SB': 'Solomon Islands', 'SO': 'Somalia', 'ZA': 'South Africa', 'SS': 'South Sudan', 'ES': 'Spain', 'LK': 'Sri Lanka', 'SD': 'Sudan', 'SR': 'Suriname', 'SZ': 'Swaziland', 'SE': 'Sweden', 'CH': 'Switzerland', 'SY': 'Syria', 'TW': 'Taiwan', 'TJ': 'Tajikistan', 'TZ': 'Tanzania', 'TH': 'Thailand', 'TL': 'Timor-Leste', 'TG': 'Togo', 'TO': 'Tonga', 'TT': 'Trinidad and Tobago', 'TN': 'Tunisia', 'TR': 'Turkey', 'TM': 'Turkmenistan', 'TV': 'Tuvalu', 'UG': 'Uganda', 'UA': 'Ukraine', 'AE': 'United Arab Emirates', 'GB': 'United Kingdom', 'US': 'United States', 'UY': 'Uruguay', 'UZ': 'Uzbekistan', 'VU': 'Vanuatu', 'VE': 'Venezuela', 'VN': 'Vietnam', 'YE': 'Yemen', 'ZM': 'Zambia', 'ZW': 'Zimbabwe'}
     
+    referral_code = (data.get('referral_code') or '').strip()
+    
     user_doc = {
         'email': email,
         'password': generate_password_hash(data['password']),
         'country': country_map.get(data.get('country'), data.get('country')),
+        'referral_code': referral_code if referral_code else None,
         'created_at': get_current_ist_time(),
         'testimonial_submitted': False
     }
     result = users_collection.insert_one(user_doc)
     
-    logger.info(f"New user registered: {email}")
+    logger.info(f"New user registered: {email}" + (f" with referral code: {referral_code}" if referral_code else ""))
     return jsonify({'success': True, 'redirect': '/signin'})
 
 @app.route('/api/signin', methods=['POST'])
@@ -1177,7 +1189,7 @@ def withdrawal(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('withdrawal.html', user=user, account=account)
+        return render_template('withdrawal.html', user=user, account=account, withdrawal_rate=get_withdrawal_rate_setting(), usd_rate=get_usd_rate_setting())
     except (ValueError, Exception) as e:
         logger.error(f"Withdrawal page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1545,6 +1557,34 @@ def get_admin_notifications():
         notif['user_id'] = str(notif['user_id'])
     
     return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/admin/withdrawal-rate', methods=['GET', 'POST'])
+def admin_withdrawal_rate():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'rate': get_withdrawal_rate_setting()})
+
+    try:
+        data = request.get_json(silent=True) or {}
+        rate = float(data.get('rate'))
+        if rate <= 0 or rate > 100:
+            return jsonify({'success': False, 'message': 'Withdrawal rate must be between 0 and 100'})
+
+        settings_collection.update_one(
+            {'_id': 'withdrawal_rate'},
+            {'$set': {'rate': round(rate, 4), 'updated_at': get_current_ist_time(), 'updated_by': user['_id']}},
+            upsert=True
+        )
+        clear_admin_dashboard_context_cache(user)
+        return jsonify({'success': True, 'rate': round(rate, 4)})
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Enter a valid withdrawal rate'})
+    except Exception as e:
+        logger.error(f"Withdrawal rate update error: {e}")
+        return jsonify({'success': False, 'message': 'Could not update withdrawal rate'})
 
 @app.route('/api/admin/usd-rate', methods=['GET', 'POST'])
 def admin_usd_rate():
@@ -2749,18 +2789,34 @@ def get_commission_stats():
     try:
         year = request.args.get('year', type=int)
         month = request.args.get('month', type=int)
-        
+        referral_code = (request.args.get('referral_code') or '').strip()
+
+        # Build user_id filter when referral_code is provided
+        referral_user_ids = None
+        if referral_code:
+            referral_users = users_collection.find(
+                {'referral_code': {'$regex': f'^{referral_code}$', '$options': 'i'}},
+                {'_id': 1}
+            )
+            referral_user_ids = [u['_id'] for u in referral_users]
+
+        def base_match(status, txn_type):
+            q = {'status': status, 'type': txn_type}
+            if referral_user_ids is not None:
+                q['user_id'] = {'$in': referral_user_ids}
+            return q
+
         total_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$match': base_match('completed', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
         platform_fee = total_amount * 0.016
-        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        transaction_count = payments_collection.count_documents(base_match('completed', 'deposit'))
         
         pending_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'pending', 'type': 'deposit'}},
+            {'$match': base_match('pending', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
@@ -2779,12 +2835,12 @@ def get_commission_stats():
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_end = None
         
-        match_query = {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}
+        monthly_match = {**base_match('completed', 'deposit'), 'approved_at': {'$gte': month_start}}
         if month_end:
-            match_query['approved_at']['$lt'] = month_end
+            monthly_match['approved_at']['$lt'] = month_end
         
         monthly_deposits = list(payments_collection.aggregate([
-            {'$match': match_query},
+            {'$match': monthly_match},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
