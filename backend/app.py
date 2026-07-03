@@ -40,6 +40,7 @@ is_production = os.getenv('FLASK_ENV') == 'production' or os.getenv('RENDER_URL'
 app.config['SESSION_COOKIE_SECURE'] = is_production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 
@@ -818,6 +819,7 @@ def api_signin():
     
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
+        session.permanent = True
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         if user.get('is_admin'):
             lock_admin_pin('signin')
@@ -1006,6 +1008,7 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
+        session.permanent = True
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         if user.get('is_admin'):
             lock_admin_pin('google_signin')
