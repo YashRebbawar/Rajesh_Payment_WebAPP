@@ -2,8 +2,22 @@
   const body = document.body;
   if (!body || body.dataset.userAuthenticated !== 'true') return;
 
-  const isMobileLike = window.matchMedia('(max-width: 820px), (pointer: coarse)').matches;
-  if (!isMobileLike) return;
+  const isAdminPinLocked = body.dataset.adminPinPage === 'true' && body.dataset.adminPinVerified !== 'true';
+  if (isAdminPinLocked) {
+    document.addEventListener('admin-pin:unlocked', function () {
+      window.setTimeout(function () {
+        if (!window.PrintFreeMobileNotificationsStarted) startMobileBrowserNotifications();
+      }, 250);
+    }, { once: true });
+    return;
+  }
+
+  startMobileBrowserNotifications();
+})();
+
+function startMobileBrowserNotifications() {
+  window.PrintFreeMobileNotificationsStarted = true;
+  const body = document.body;
 
   const role = body.dataset.userIsAdmin === 'true' ? 'admin' : 'user';
   const userId = body.dataset.userId || role;
@@ -254,4 +268,4 @@
     createEnableButton();
     pollNotificationFeed();
   }
-})();
+}
