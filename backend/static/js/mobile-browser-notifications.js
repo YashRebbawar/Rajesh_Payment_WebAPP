@@ -88,23 +88,30 @@ function startMobileBrowserNotifications() {
       return;
     }
 
-    try {
-      const notification = new Notification(event.title, {
-        body: event.body,
-        icon: '/static/images/Printfree_logo.png',
-        badge: '/static/images/Printfree_logo.png',
-        tag: event.id,
-        renotify: event.priority === 'high',
-        data: { url: event.url || '/' }
-      });
+    const options = {
+      body: event.body,
+      icon: '/static/images/Printfree_logo.png',
+      badge: '/static/images/Printfree_logo.png',
+      tag: event.id,
+      renotify: event.priority === 'high',
+      data: { url: event.url || '/' }
+    };
 
-      notification.onclick = function () {
-        window.focus();
-        if (event.url) window.location.href = event.url;
-        notification.close();
-      };
-    } catch (error) {
-      showToast(event.title, event.body, event.url);
+    if ('serviceWorker' in navigator && swRegistration) {
+      swRegistration.showNotification(event.title, options).catch(function () {
+        showToast(event.title, event.body, event.url);
+      });
+    } else {
+      try {
+        const notification = new Notification(event.title, options);
+        notification.onclick = function () {
+          window.focus();
+          if (event.url) window.location.href = event.url;
+          notification.close();
+        };
+      } catch (error) {
+        showToast(event.title, event.body, event.url);
+      }
     }
   }
 
@@ -260,7 +267,17 @@ function startMobileBrowserNotifications() {
     document.head.appendChild(style);
   }
 
+  let swRegistration = null;
+
+  function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('/static/sw.js').then(function (reg) {
+      swRegistration = reg;
+    }).catch(function () {});
+  }
+
   injectStyles();
+  registerServiceWorker();
 
   if (notificationPermission() === 'granted') {
     pollNotificationFeed();

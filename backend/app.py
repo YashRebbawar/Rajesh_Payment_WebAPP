@@ -3062,6 +3062,14 @@ def periodic_cleanup():
         cleanup_old_chats_and_notifications()
         app.last_cleanup = current_time
 
+@app.route('/static/sw.js')
+def service_worker():
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
