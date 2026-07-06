@@ -11,7 +11,7 @@
   const errorNode = document.getElementById('admin-pin-error');
   const statusNode = document.getElementById('admin-pin-status-text');
   const csrfToken = body.dataset.csrfToken || '';
-  const configured = body.dataset.adminPinConfigured === 'true';
+  let configured = body.dataset.adminPinConfigured === 'true';
   const bootLocked = body.dataset.adminPinBootLocked === 'true';
   const idleTimeoutMs = Number(body.dataset.adminPinIdleTimeout || '0') * 1000;
 
@@ -44,6 +44,43 @@
     if (!submitButton) return;
     submitButton.disabled = isLoading || !configured;
     submitButton.classList.toggle('is-loading', isLoading);
+  }
+
+  function syncConfiguredState(nextConfigured) {
+    configured = !!nextConfigured;
+    body.dataset.adminPinConfigured = configured ? 'true' : 'false';
+    setLoading(false);
+    if (!configured) {
+      setStatus('Security PIN is not configured on the server.', true);
+    } else if (statusNode && locked) {
+      statusNode.textContent = 'Session protected with live relock on blur and inactivity.';
+      setStatus('');
+    }
+  }
+
+  async function refreshPinStatus() {
+    try {
+      const response = await fetch('/api/admin/pin/status', {
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) return;
+
+      syncConfiguredState(data.configured);
+      if (data.verified) {
+        locked = false;
+        body.dataset.adminPinVerified = 'true';
+        updateBodyState();
+        startIdleTimer();
+        dispatchLockEvent('admin-pin:unlocked');
+      }
+      if (data.retry_after_seconds) {
+        setStatus(`Locked after repeated PIN failures. Try again in ${data.retry_after_seconds}s.`, true);
+      }
+    } catch (error) {
+      console.error('Admin PIN status refresh failed:', error);
+    }
   }
 
   function dispatchLockEvent(name, detail = {}) {
@@ -175,6 +212,8 @@
   };
 
   updateBodyState();
+  setLoading(false);
+  refreshPinStatus();
   if (!locked) {
     startIdleTimer();
   } else {

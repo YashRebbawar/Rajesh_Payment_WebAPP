@@ -638,6 +638,37 @@ body.admin-page::after {
    PAYMENT SECTION
 ══════════════════════════════════════════ */
 .payment-filters { display: flex; gap: 7px; flex-shrink: 0; }
+
+/* compact rates bar */
+.rates-bar {
+  display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap;
+}
+.rate-inline {
+  flex: 1 1 210px; min-width: 0; display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border: 1.5px solid var(--border);
+  border-radius: 10px; background: var(--white);
+}
+.rate-inline-label {
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 9px; font-weight: 800;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-45);
+  white-space: nowrap; flex-shrink: 0;
+}
+.rate-inline input {
+  flex: 1 0 82px; min-width: 82px; width: 82px; padding: 5px 7px;
+  border: 1.5px solid var(--border); border-radius: 7px;
+  font-family: var(--number-font); font-size: 12px; font-weight: 700;
+  color: var(--ink); outline: none; background: var(--cream);
+}
+.rate-inline input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); background: var(--white); }
+.rate-inline button {
+  padding: 5px 9px; border: 0; border-radius: 7px;
+  background: var(--ink); color: #fff;
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 10px; font-weight: 800;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+.rate-inline button:hover { background: var(--green); }
+
+/* keep old usd-rate-control for any other usage */
 .usd-rate-control { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); }
 .usd-rate-label { display: block; font-family: 'Cabinet Grotesk', sans-serif; font-size: 11px; font-weight: 800; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
 .usd-rate-helper { display: block; margin-top: 3px; font-size: 11px; color: var(--ink-45); line-height: 1.25; }

@@ -353,6 +353,137 @@ def get_usd_rate_setting():
         rate = DEFAULT_USD_RATE
     return round(rate, 4)
 
+def notification_time_value(doc):
+    return doc.get('approved_at') or doc.get('rejected_at') or doc.get('submitted_at') or doc.get('created_at') or get_current_ist_time()
+
+def notification_iso(value):
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return get_current_ist_time().isoformat()
+
+def build_mobile_notification_event(event_id, event_type, title, body, url, created_at, priority='normal'):
+    return {
+        'id': event_id,
+        'type': event_type,
+        'title': title,
+        'body': body,
+        'url': url,
+        'priority': priority,
+        'created_at': notification_iso(created_at)
+    }
+
+def build_admin_mobile_notification_feed(admin_user):
+    events = []
+
+    pending_approvals = list(notifications_collection.find(
+        {'status': 'pending_approval'}
+    ).sort('created_at', -1).limit(20))
+    for notif in pending_approvals:
+        approval_type = 'Withdrawal' if notif.get('type') == 'withdrawal_requested' else 'Deposit'
+        amount = notif.get('amount', '')
+        currency = notif.get('currency', '')
+        user_email = notif.get('user_email', 'User')
+        events.append(build_mobile_notification_event(
+            f"admin-approval-{notif['_id']}",
+            'admin_pending_approval',
+            f"{approval_type} approval pending",
+            f"{user_email}: {amount} {currency}".strip(),
+            '/admin/dashboard',
+            notif.get('created_at'),
+            'high'
+        ))
+
+    new_accounts = list(notifications_collection.find(
+        {'type': 'new_account_opened', 'status': 'unread'}
+    ).sort('created_at', -1).limit(10))
+    for notif in new_accounts:
+        events.append(build_mobile_notification_event(
+            f"admin-account-{notif['_id']}",
+            'admin_new_account',
+            'New account needs MT details',
+            f"{notif.get('user_email', 'User')}: {notif.get('account_nickname', 'Account')}",
+            '/admin/dashboard',
+            notif.get('created_at')
+        ))
+
+    chat_users = chats_collection.aggregate([
+        {'$match': {'admin_id': admin_user['_id'], 'read': False}},
+        {'$group': {'_id': '$user_id', 'pending_count': {'$sum': 1}, 'last_message_time': {'$max': '$created_at'}}},
+        {'$sort': {'last_message_time': -1}},
+        {'$limit': 10}
+    ])
+    for chat_user in chat_users:
+        chat_profile = users_collection.find_one({'_id': chat_user['_id']})
+        if not chat_profile:
+            continue
+        name = chat_profile.get('name', chat_profile.get('email', 'User').split('@')[0])
+        events.append(build_mobile_notification_event(
+            f"admin-chat-{chat_user['_id']}-{chat_user['last_message_time'].timestamp() if isinstance(chat_user.get('last_message_time'), datetime) else chat_user.get('pending_count', 0)}",
+            'admin_pending_chat',
+            'Support chat pending',
+            f"{name} has {chat_user.get('pending_count', 0)} unread message(s)",
+            '/admin/dashboard',
+            chat_user.get('last_message_time')
+        ))
+
+    return events
+
+def build_user_mobile_notification_feed(user):
+    events = []
+
+    mt_notifications = list(notifications_collection.find({
+        'user_id': user['_id'],
+        'type': 'mt_credentials_updated'
+    }).sort('created_at', -1).limit(10))
+    for notif in mt_notifications:
+        events.append(build_mobile_notification_event(
+            f"user-mt-{notif['_id']}",
+            'mt_credentials_updated',
+            'MT credentials are ready',
+            f"{notif.get('account_nickname', 'Your account')} credentials have been updated.",
+            '/my-accounts',
+            notif.get('created_at'),
+            'high'
+        ))
+
+    payments = list(payments_collection.find({
+        'user_id': user['_id'],
+        'status': {'$in': ['pending', 'completed', 'rejected']}
+    }).sort('created_at', -1).limit(20))
+    for payment in payments:
+        payment_type = payment.get('type', 'deposit')
+        type_label = 'Withdrawal' if payment_type == 'withdrawal' else 'Deposit'
+        status = payment.get('status')
+        account = accounts_collection.find_one({'_id': payment.get('account_id')})
+        account_name = account.get('nickname') if account else 'Your account'
+
+        if status == 'completed':
+            title = f"{type_label} approved"
+            body = f"{account_name}: {payment.get('amount', '')} {payment.get('currency', '')}"
+            priority = 'high'
+        elif status == 'rejected':
+            title = f"{type_label} rejected"
+            body = f"{account_name}: please check your account notifications."
+            priority = 'high'
+        else:
+            if payment_type != 'withdrawal' and not (payment.get('submitted_at') or payment.get('screenshot')):
+                continue
+            title = f"{type_label} pending approval"
+            body = f"{account_name}: {payment.get('amount', '')} {payment.get('currency', '')}"
+            priority = 'normal'
+
+        events.append(build_mobile_notification_event(
+            f"user-payment-{payment['_id']}-{status}",
+            f"user_payment_{status}",
+            title,
+            body.strip(),
+            '/my-accounts',
+            notification_time_value(payment),
+            priority
+        ))
+
+    return events
+
 def calculate_usdt_receive_amount(amount, usd_rate=None):
     try:
         rate = float(usd_rate if usd_rate is not None else get_usd_rate_setting())
@@ -1799,6 +1930,31 @@ def get_user_notifications():
     notifications.sort(key=lambda x: x['created_at'], reverse=True)
     return jsonify({'success': True, 'notifications': notifications[:10], 'count': len(notifications[:10])})
 
+@app.route('/api/mobile-notification-feed', methods=['GET'])
+def get_mobile_notification_feed():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    try:
+        if user.get('is_admin'):
+            events = build_admin_mobile_notification_feed(user)
+            poll_interval_ms = 15000
+        else:
+            events = build_user_mobile_notification_feed(user)
+            poll_interval_ms = 30000
+
+        events.sort(key=lambda item: item.get('created_at', ''), reverse=True)
+        return jsonify({
+            'success': True,
+            'role': 'admin' if user.get('is_admin') else 'user',
+            'events': events[:30],
+            'poll_interval_ms': poll_interval_ms
+        })
+    except Exception as e:
+        logger.error(f"Mobile notification feed error: {e}")
+        return jsonify({'success': False, 'message': 'Could not load notifications'}), 500
+
 @app.route('/admin/dashboard')
 def admin_dashboard():
     user = get_current_user()
@@ -2905,6 +3061,14 @@ def periodic_cleanup():
     if (current_time - app.last_cleanup).total_seconds() > 3600:
         cleanup_old_chats_and_notifications()
         app.last_cleanup = current_time
+
+@app.route('/static/sw.js')
+def service_worker():
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
 
 @app.route('/health')
 def health_check():
