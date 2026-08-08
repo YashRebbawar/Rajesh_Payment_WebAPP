@@ -275,7 +275,8 @@ function filterUsers(q) {
     const name  = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
     const email = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
     const accountNames = Array.from(card.querySelectorAll('.account-name')).map(el => el.textContent.toLowerCase()).join(' ');
-    card.style.display = (name.includes(q) || email.includes(q) || accountNames.includes(q)) ? '' : 'none';
+    const mtLogins = Array.from(card.querySelectorAll('.detail-row')).filter(row => row.querySelector('span:first-child')?.textContent.trim() === 'MT Login').map(row => row.querySelector('span:last-child')?.textContent.toLowerCase() || '').join(' ');
+    card.style.display = (name.includes(q) || email.includes(q) || accountNames.includes(q) || mtLogins.includes(q)) ? '' : 'none';
   });
 }
 
