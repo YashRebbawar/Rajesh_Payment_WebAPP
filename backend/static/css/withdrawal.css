@@ -230,12 +230,22 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .success-btn{width:100%;padding:14px;border-radius:100px;border:none;cursor:pointer;margin-top:24px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:800;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(26,21,16,.18);transition:all .28s;}
 .success-btn:hover{background:var(--blue);transform:translateY(-2px);box-shadow:0 10px 30px rgba(45,122,79,.22);}
 
+/* Withdrawal timing notice */
+.withdrawal-timing-notice{grid-column:1/-1;display:flex;gap:14px;align-items:flex-start;padding:16px 20px;margin-bottom:36px;background:rgba(184,148,74,.08);border:1.5px solid rgba(184,148,74,.28);border-radius:14px;color:var(--ink-70);font-size:13px;line-height:1.5;animation:hdrIn .65s .05s cubic-bezier(.22,1,.36,1) both;}
+.withdrawal-timing-notice svg{color:var(--gold);margin-top:1px;}
+.timing-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;}
+.timing-row:last-child{margin-bottom:0;}
+.timing-badge{font-family:'Cabinet Grotesk',sans-serif;font-size:9px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.timing-fast{background:rgba(45,122,79,.12);color:var(--green);border:1px solid rgba(45,122,79,.22);}
+.timing-slow{background:rgba(184,148,74,.12);color:var(--gold);border:1px solid rgba(184,148,74,.28);}
+
 /* Responsive */
 @media(max-width:860px){
-  .account-container{grid-template-columns:1fr;padding:0 20px 60px;gap:0;}
-  .header-section{flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;}
-  .right-section{grid-row:3;margin:32px 0 24px;}
-  .left-section{grid-row:2;}
+  .account-container{grid-template-columns:1fr;padding:0 20px 60px;gap:0;display:flex;flex-direction:column;}
+  .header-section{flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;order:1;width:100%;}
+  .left-section{order:2;width:100%;}
+  .withdrawal-timing-notice{order:3;width:100%;margin-bottom:-6px;margin-top:15px;}
+  .right-section{order:4;width:100%;position:static;margin:0 0 24px;}
   .s-total-amount{font-size:36px;}
 }
 @media(max-width:580px){
