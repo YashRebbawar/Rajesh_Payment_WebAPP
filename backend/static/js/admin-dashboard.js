@@ -129,11 +129,14 @@ function updateMobileDashboardTabState(tab) {
 }
 
 /* ══ COMMISSION STATS ══ */
-async function loadCommissionStats(year = null, month = null) {
+async function loadCommissionStats(year = null, month = null, referralCode = null) {
   if (!isAdminPinUnlocked()) return;
   try {
-    let url = '/api/admin/commission-stats';
-    if (year && month) url += `?year=${year}&month=${month}`;
+    const params = new URLSearchParams();
+    if (year && month) { params.set('year', year); params.set('month', month); }
+    if (referralCode) params.set('referral_code', referralCode);
+    const qs = params.toString();
+    const url = '/api/admin/commission-stats' + (qs ? '?' + qs : '');
     const data = await fetch(url).then(r => r.json());
     if (!data.success) return;
     const fmt = n => '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -156,6 +159,11 @@ function getSelectedCommissionPeriod() {
   return { year, month };
 }
 
+function refreshCommissionWidget() {
+  const { year, month } = getSelectedCommissionPeriod();
+  loadCommissionStats(year, month, activeQuickFilter);
+}
+
 function populateMonthSelector() {
   const sel = document.getElementById('month-selector');
   if (!sel) return;
@@ -173,8 +181,7 @@ function populateMonthSelector() {
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function () {
-    const { year, month } = getSelectedCommissionPeriod();
-    loadCommissionStats(year, month);
+    refreshCommissionWidget();
   });
 }
 
@@ -268,8 +275,38 @@ function filterUsers(q) {
     const name  = card.querySelector('.user-details h3')?.textContent.toLowerCase() || '';
     const email = card.querySelector('.user-email')?.textContent.toLowerCase() || '';
     const accountNames = Array.from(card.querySelectorAll('.account-name')).map(el => el.textContent.toLowerCase()).join(' ');
-    card.style.display = (name.includes(q) || email.includes(q) || accountNames.includes(q)) ? '' : 'none';
+    const mtLogins = Array.from(card.querySelectorAll('.detail-row')).filter(row => row.querySelector('span:first-child')?.textContent.trim() === 'MT Login').map(row => row.querySelector('span:last-child')?.textContent.toLowerCase() || '').join(' ');
+    card.style.display = (name.includes(q) || email.includes(q) || accountNames.includes(q) || mtLogins.includes(q)) ? '' : 'none';
   });
+}
+
+function filterUsersByReferralCode(code) {
+  code = (code || '').toLowerCase().trim();
+  if (!code) {
+    document.querySelectorAll('.admin-user-card').forEach(card => card.style.display = '');
+    return;
+  }
+  document.querySelectorAll('.admin-user-card').forEach(card => {
+    const referralBadge = card.querySelector('.referral-badge');
+    const referralCode = referralBadge ? referralBadge.textContent.toLowerCase() : '';
+    card.style.display = referralCode.includes(code) ? '' : 'none';
+  });
+}
+
+let activeQuickFilter = null;
+
+function applyQuickReferralFilter(code) {
+  const btn = document.querySelector('.quick-filter-btn');
+  if (activeQuickFilter === code) {
+    activeQuickFilter = null;
+    filterUsersByReferralCode('');
+    if (btn) btn.classList.remove('active');
+  } else {
+    activeQuickFilter = code;
+    filterUsersByReferralCode(code);
+    if (btn) btn.classList.add('active');
+  }
+  refreshCommissionWidget();
 }
 
 function filterPayments() {
@@ -474,6 +511,42 @@ async function saveUsdRate() {
   }
 }
 
+async function saveWithdrawalRate() {
+  const input = document.getElementById('withdrawal-rate-input');
+  const btn = document.getElementById('save-withdrawal-rate-btn');
+  if (!input) return;
+
+  const rate = parseFloat(input.value);
+  if (!rate || rate <= 0 || rate > 100) {
+    showErrorMessage('Enter a valid withdrawal rate (0–100)');
+    return;
+  }
+
+  try {
+    if (btn) btn.disabled = true;
+    const csrfToken = getCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+
+    const data = await fetch('/api/admin/withdrawal-rate', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ rate })
+    }).then(r => r.json());
+
+    if (data.success) {
+      input.value = Number(data.rate).toFixed(2);
+      showSuccessMessage('Withdrawal rate updated');
+    } else {
+      showErrorMessage(data.message || 'Could not update withdrawal rate');
+    }
+  } catch {
+    showErrorMessage('Failed to update withdrawal rate');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function approvePayment(paymentId) {
   showConfirmModal('Approve payment?', "Approve and credit the user's account?", async () => {
     try {
@@ -563,8 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (dashboardPollingStarted || !isAdminPinUnlocked()) return;
     dashboardPollingStarted = true;
     const refreshDashboardMetrics = () => {
-      const { year, month } = getSelectedCommissionPeriod();
-      loadCommissionStats(year, month);
+      refreshCommissionWidget();
       loadUsersNoAccountType();
     };
 
@@ -663,6 +735,17 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('usd-rate-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') saveUsdRate();
   });
+  document.getElementById('save-withdrawal-rate-btn')?.addEventListener('click', saveWithdrawalRate);
+  document.getElementById('withdrawal-rate-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveWithdrawalRate();
+  });
+  // Load current withdrawal rate
+  fetch('/api/admin/withdrawal-rate').then(r => r.json()).then(data => {
+    if (data.success) {
+      const inp = document.getElementById('withdrawal-rate-input');
+      if (inp) inp.value = Number(data.rate).toFixed(2);
+    }
+  }).catch(() => {});
 
   document.getElementById('unified-edit-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeUnifiedEditModal(); });
   document.getElementById('balance-modal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeBalanceModal(); });

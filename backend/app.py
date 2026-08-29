@@ -40,6 +40,7 @@ is_production = os.getenv('FLASK_ENV') == 'production' or os.getenv('RENDER_URL'
 app.config['SESSION_COOKIE_SECURE'] = is_production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 
@@ -336,6 +337,14 @@ def clear_admin_dashboard_context_cache(user=None):
         return
     admin_dashboard_context_cache.clear()
 
+def get_withdrawal_rate_setting():
+    settings = settings_collection.find_one({'_id': 'withdrawal_rate'})
+    try:
+        rate = float(settings.get('rate')) if settings else 95.0
+    except (TypeError, ValueError):
+        rate = 95.0
+    return round(rate, 4)
+
 def get_usd_rate_setting():
     settings = settings_collection.find_one({'_id': 'usd_rate'})
     try:
@@ -343,6 +352,137 @@ def get_usd_rate_setting():
     except (TypeError, ValueError):
         rate = DEFAULT_USD_RATE
     return round(rate, 4)
+
+def notification_time_value(doc):
+    return doc.get('approved_at') or doc.get('rejected_at') or doc.get('submitted_at') or doc.get('created_at') or get_current_ist_time()
+
+def notification_iso(value):
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return get_current_ist_time().isoformat()
+
+def build_mobile_notification_event(event_id, event_type, title, body, url, created_at, priority='normal'):
+    return {
+        'id': event_id,
+        'type': event_type,
+        'title': title,
+        'body': body,
+        'url': url,
+        'priority': priority,
+        'created_at': notification_iso(created_at)
+    }
+
+def build_admin_mobile_notification_feed(admin_user):
+    events = []
+
+    pending_approvals = list(notifications_collection.find(
+        {'status': 'pending_approval'}
+    ).sort('created_at', -1).limit(20))
+    for notif in pending_approvals:
+        approval_type = 'Withdrawal' if notif.get('type') == 'withdrawal_requested' else 'Deposit'
+        amount = notif.get('amount', '')
+        currency = notif.get('currency', '')
+        user_email = notif.get('user_email', 'User')
+        events.append(build_mobile_notification_event(
+            f"admin-approval-{notif['_id']}",
+            'admin_pending_approval',
+            f"{approval_type} approval pending",
+            f"{user_email}: {amount} {currency}".strip(),
+            '/admin/dashboard',
+            notif.get('created_at'),
+            'high'
+        ))
+
+    new_accounts = list(notifications_collection.find(
+        {'type': 'new_account_opened', 'status': 'unread'}
+    ).sort('created_at', -1).limit(10))
+    for notif in new_accounts:
+        events.append(build_mobile_notification_event(
+            f"admin-account-{notif['_id']}",
+            'admin_new_account',
+            'New account needs MT details',
+            f"{notif.get('user_email', 'User')}: {notif.get('account_nickname', 'Account')}",
+            '/admin/dashboard',
+            notif.get('created_at')
+        ))
+
+    chat_users = chats_collection.aggregate([
+        {'$match': {'admin_id': admin_user['_id'], 'read': False}},
+        {'$group': {'_id': '$user_id', 'pending_count': {'$sum': 1}, 'last_message_time': {'$max': '$created_at'}}},
+        {'$sort': {'last_message_time': -1}},
+        {'$limit': 10}
+    ])
+    for chat_user in chat_users:
+        chat_profile = users_collection.find_one({'_id': chat_user['_id']})
+        if not chat_profile:
+            continue
+        name = chat_profile.get('name', chat_profile.get('email', 'User').split('@')[0])
+        events.append(build_mobile_notification_event(
+            f"admin-chat-{chat_user['_id']}-{chat_user['last_message_time'].timestamp() if isinstance(chat_user.get('last_message_time'), datetime) else chat_user.get('pending_count', 0)}",
+            'admin_pending_chat',
+            'Support chat pending',
+            f"{name} has {chat_user.get('pending_count', 0)} unread message(s)",
+            '/admin/dashboard',
+            chat_user.get('last_message_time')
+        ))
+
+    return events
+
+def build_user_mobile_notification_feed(user):
+    events = []
+
+    mt_notifications = list(notifications_collection.find({
+        'user_id': user['_id'],
+        'type': 'mt_credentials_updated'
+    }).sort('created_at', -1).limit(10))
+    for notif in mt_notifications:
+        events.append(build_mobile_notification_event(
+            f"user-mt-{notif['_id']}",
+            'mt_credentials_updated',
+            'MT credentials are ready',
+            f"{notif.get('account_nickname', 'Your account')} credentials have been updated.",
+            '/my-accounts',
+            notif.get('created_at'),
+            'high'
+        ))
+
+    payments = list(payments_collection.find({
+        'user_id': user['_id'],
+        'status': {'$in': ['pending', 'completed', 'rejected']}
+    }).sort('created_at', -1).limit(20))
+    for payment in payments:
+        payment_type = payment.get('type', 'deposit')
+        type_label = 'Withdrawal' if payment_type == 'withdrawal' else 'Deposit'
+        status = payment.get('status')
+        account = accounts_collection.find_one({'_id': payment.get('account_id')})
+        account_name = account.get('nickname') if account else 'Your account'
+
+        if status == 'completed':
+            title = f"{type_label} approved"
+            body = f"{account_name}: {payment.get('amount', '')} {payment.get('currency', '')}"
+            priority = 'high'
+        elif status == 'rejected':
+            title = f"{type_label} rejected"
+            body = f"{account_name}: please check your account notifications."
+            priority = 'high'
+        else:
+            if payment_type != 'withdrawal' and not (payment.get('submitted_at') or payment.get('screenshot')):
+                continue
+            title = f"{type_label} pending approval"
+            body = f"{account_name}: {payment.get('amount', '')} {payment.get('currency', '')}"
+            priority = 'normal'
+
+        events.append(build_mobile_notification_event(
+            f"user-payment-{payment['_id']}-{status}",
+            f"user_payment_{status}",
+            title,
+            body.strip(),
+            '/my-accounts',
+            notification_time_value(payment),
+            priority
+        ))
+
+    return events
 
 def calculate_usdt_receive_amount(amount, usd_rate=None):
     try:
@@ -721,7 +861,8 @@ def register():
     user = get_current_user()
     if user:
         return redirect(url_for('admin_dashboard') if user.get('is_admin') else url_for('my_accounts'))
-    response = render_template('register.html', user=user, allowed_email_domains=ALLOWED_EMAIL_DOMAINS)
+    referral_code = request.args.get('ref', '')
+    response = render_template('register.html', user=user, allowed_email_domains=ALLOWED_EMAIL_DOMAINS, referral_code=referral_code)
     return response
 
 @app.route('/my-accounts')
@@ -781,16 +922,19 @@ def api_register():
     
     country_map = {'AF': 'Afghanistan', 'AL': 'Albania', 'DZ': 'Algeria', 'AD': 'Andorra', 'AO': 'Angola', 'AG': 'Antigua and Barbuda', 'AR': 'Argentina', 'AM': 'Armenia', 'AU': 'Australia', 'AT': 'Austria', 'AZ': 'Azerbaijan', 'BS': 'Bahamas', 'BH': 'Bahrain', 'BD': 'Bangladesh', 'BB': 'Barbados', 'BY': 'Belarus', 'BE': 'Belgium', 'BZ': 'Belize', 'BJ': 'Benin', 'BT': 'Bhutan', 'BO': 'Bolivia', 'BA': 'Bosnia and Herzegovina', 'BW': 'Botswana', 'BR': 'Brazil', 'BN': 'Brunei', 'BG': 'Bulgaria', 'BF': 'Burkina Faso', 'BI': 'Burundi', 'KH': 'Cambodia', 'CM': 'Cameroon', 'CA': 'Canada', 'CV': 'Cape Verde', 'CF': 'Central African Republic', 'TD': 'Chad', 'CL': 'Chile', 'CN': 'China', 'CO': 'Colombia', 'KM': 'Comoros', 'CG': 'Congo', 'CR': 'Costa Rica', 'HR': 'Croatia', 'CU': 'Cuba', 'CY': 'Cyprus', 'CZ': 'Czech Republic', 'DK': 'Denmark', 'DJ': 'Djibouti', 'DM': 'Dominica', 'DO': 'Dominican Republic', 'EC': 'Ecuador', 'EG': 'Egypt', 'SV': 'El Salvador', 'GQ': 'Equatorial Guinea', 'ER': 'Eritrea', 'EE': 'Estonia', 'ET': 'Ethiopia', 'FJ': 'Fiji', 'FI': 'Finland', 'FR': 'France', 'GA': 'Gabon', 'GM': 'Gambia', 'GE': 'Georgia', 'DE': 'Germany', 'GH': 'Ghana', 'GR': 'Greece', 'GD': 'Grenada', 'GT': 'Guatemala', 'GN': 'Guinea', 'GW': 'Guinea-Bissau', 'GY': 'Guyana', 'HT': 'Haiti', 'HN': 'Honduras', 'HK': 'Hong Kong', 'HU': 'Hungary', 'IS': 'Iceland', 'IN': 'India', 'ID': 'Indonesia', 'IR': 'Iran', 'IQ': 'Iraq', 'IE': 'Ireland', 'IL': 'Israel', 'IT': 'Italy', 'JM': 'Jamaica', 'JP': 'Japan', 'JO': 'Jordan', 'KZ': 'Kazakhstan', 'KE': 'Kenya', 'KI': 'Kiribati', 'KP': 'North Korea', 'KR': 'South Korea', 'KW': 'Kuwait', 'KG': 'Kyrgyzstan', 'LA': 'Laos', 'LV': 'Latvia', 'LB': 'Lebanon', 'LS': 'Lesotho', 'LR': 'Liberia', 'LY': 'Libya', 'LI': 'Liechtenstein', 'LT': 'Lithuania', 'LU': 'Luxembourg', 'MO': 'Macao', 'MK': 'Macedonia', 'MG': 'Madagascar', 'MW': 'Malawi', 'MY': 'Malaysia', 'MV': 'Maldives', 'ML': 'Mali', 'MT': 'Malta', 'MH': 'Marshall Islands', 'MQ': 'Martinique', 'MR': 'Mauritania', 'MU': 'Mauritius', 'MX': 'Mexico', 'FM': 'Micronesia', 'MD': 'Moldova', 'MC': 'Monaco', 'MN': 'Mongolia', 'ME': 'Montenegro', 'MA': 'Morocco', 'MZ': 'Mozambique', 'MM': 'Myanmar', 'NA': 'Namibia', 'NR': 'Nauru', 'NP': 'Nepal', 'NL': 'Netherlands', 'NZ': 'New Zealand', 'NI': 'Nicaragua', 'NE': 'Niger', 'NG': 'Nigeria', 'NO': 'Norway', 'OM': 'Oman', 'PK': 'Pakistan', 'PW': 'Palau', 'PS': 'Palestine', 'PA': 'Panama', 'PG': 'Papua New Guinea', 'PY': 'Paraguay', 'PE': 'Peru', 'PH': 'Philippines', 'PL': 'Poland', 'PT': 'Portugal', 'QA': 'Qatar', 'RE': 'Reunion', 'RO': 'Romania', 'RU': 'Russia', 'RW': 'Rwanda', 'KN': 'Saint Kitts and Nevis', 'LC': 'Saint Lucia', 'VC': 'Saint Vincent and the Grenadines', 'WS': 'Samoa', 'SM': 'San Marino', 'ST': 'Sao Tome and Principe', 'SA': 'Saudi Arabia', 'SN': 'Senegal', 'RS': 'Serbia', 'SC': 'Seychelles', 'SL': 'Sierra Leone', 'SG': 'Singapore', 'SK': 'Slovakia', 'SI': 'Slovenia', 'SB': 'Solomon Islands', 'SO': 'Somalia', 'ZA': 'South Africa', 'SS': 'South Sudan', 'ES': 'Spain', 'LK': 'Sri Lanka', 'SD': 'Sudan', 'SR': 'Suriname', 'SZ': 'Swaziland', 'SE': 'Sweden', 'CH': 'Switzerland', 'SY': 'Syria', 'TW': 'Taiwan', 'TJ': 'Tajikistan', 'TZ': 'Tanzania', 'TH': 'Thailand', 'TL': 'Timor-Leste', 'TG': 'Togo', 'TO': 'Tonga', 'TT': 'Trinidad and Tobago', 'TN': 'Tunisia', 'TR': 'Turkey', 'TM': 'Turkmenistan', 'TV': 'Tuvalu', 'UG': 'Uganda', 'UA': 'Ukraine', 'AE': 'United Arab Emirates', 'GB': 'United Kingdom', 'US': 'United States', 'UY': 'Uruguay', 'UZ': 'Uzbekistan', 'VU': 'Vanuatu', 'VE': 'Venezuela', 'VN': 'Vietnam', 'YE': 'Yemen', 'ZM': 'Zambia', 'ZW': 'Zimbabwe'}
     
+    referral_code = (data.get('referral_code') or '').strip()
+    
     user_doc = {
         'email': email,
         'password': generate_password_hash(data['password']),
         'country': country_map.get(data.get('country'), data.get('country')),
+        'referral_code': referral_code if referral_code else None,
         'created_at': get_current_ist_time(),
         'testimonial_submitted': False
     }
     result = users_collection.insert_one(user_doc)
     
-    logger.info(f"New user registered: {email}")
+    logger.info(f"New user registered: {email}" + (f" with referral code: {referral_code}" if referral_code else ""))
     return jsonify({'success': True, 'redirect': '/signin'})
 
 @app.route('/api/signin', methods=['POST'])
@@ -806,6 +950,7 @@ def api_signin():
     
     if user and user.get('password') and check_password_hash(user['password'], data['password']):
         session['user_id'] = str(user['_id'])
+        session.permanent = True
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         if user.get('is_admin'):
             lock_admin_pin('signin')
@@ -994,6 +1139,7 @@ def google_callback():
             logger.info(f"Existing Google user signed in: {user['email']}")
         
         session['user_id'] = str(user['_id'])
+        session.permanent = True
         session['show_testimonial_prompt'] = should_prompt_for_testimonial(user)
         if user.get('is_admin'):
             lock_admin_pin('google_signin')
@@ -1177,7 +1323,7 @@ def withdrawal(account_id):
         account = accounts_collection.find_one({'_id': ObjectId(account_id), 'user_id': user['_id']})
         if not account:
             return redirect(url_for('my_accounts'))
-        return render_template('withdrawal.html', user=user, account=account)
+        return render_template('withdrawal.html', user=user, account=account, withdrawal_rate=get_withdrawal_rate_setting(), usd_rate=get_usd_rate_setting())
     except (ValueError, Exception) as e:
         logger.error(f"Withdrawal page error: {e}")
         return redirect(url_for('my_accounts'))
@@ -1546,6 +1692,34 @@ def get_admin_notifications():
     
     return jsonify({'success': True, 'notifications': notifications})
 
+@app.route('/api/admin/withdrawal-rate', methods=['GET', 'POST'])
+def admin_withdrawal_rate():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'})
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'rate': get_withdrawal_rate_setting()})
+
+    try:
+        data = request.get_json(silent=True) or {}
+        rate = float(data.get('rate'))
+        if rate <= 0 or rate > 100:
+            return jsonify({'success': False, 'message': 'Withdrawal rate must be between 0 and 100'})
+
+        settings_collection.update_one(
+            {'_id': 'withdrawal_rate'},
+            {'$set': {'rate': round(rate, 4), 'updated_at': get_current_ist_time(), 'updated_by': user['_id']}},
+            upsert=True
+        )
+        clear_admin_dashboard_context_cache(user)
+        return jsonify({'success': True, 'rate': round(rate, 4)})
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Enter a valid withdrawal rate'})
+    except Exception as e:
+        logger.error(f"Withdrawal rate update error: {e}")
+        return jsonify({'success': False, 'message': 'Could not update withdrawal rate'})
+
 @app.route('/api/admin/usd-rate', methods=['GET', 'POST'])
 def admin_usd_rate():
     user = get_current_user()
@@ -1755,6 +1929,31 @@ def get_user_notifications():
     
     notifications.sort(key=lambda x: x['created_at'], reverse=True)
     return jsonify({'success': True, 'notifications': notifications[:10], 'count': len(notifications[:10])})
+
+@app.route('/api/mobile-notification-feed', methods=['GET'])
+def get_mobile_notification_feed():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    try:
+        if user.get('is_admin'):
+            events = build_admin_mobile_notification_feed(user)
+            poll_interval_ms = 15000
+        else:
+            events = build_user_mobile_notification_feed(user)
+            poll_interval_ms = 30000
+
+        events.sort(key=lambda item: item.get('created_at', ''), reverse=True)
+        return jsonify({
+            'success': True,
+            'role': 'admin' if user.get('is_admin') else 'user',
+            'events': events[:30],
+            'poll_interval_ms': poll_interval_ms
+        })
+    except Exception as e:
+        logger.error(f"Mobile notification feed error: {e}")
+        return jsonify({'success': False, 'message': 'Could not load notifications'}), 500
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -2749,18 +2948,34 @@ def get_commission_stats():
     try:
         year = request.args.get('year', type=int)
         month = request.args.get('month', type=int)
-        
+        referral_code = (request.args.get('referral_code') or '').strip()
+
+        # Build user_id filter when referral_code is provided
+        referral_user_ids = None
+        if referral_code:
+            referral_users = users_collection.find(
+                {'referral_code': {'$regex': f'^{referral_code}$', '$options': 'i'}},
+                {'_id': 1}
+            )
+            referral_user_ids = [u['_id'] for u in referral_users]
+
+        def base_match(status, txn_type):
+            q = {'status': status, 'type': txn_type}
+            if referral_user_ids is not None:
+                q['user_id'] = {'$in': referral_user_ids}
+            return q
+
         total_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'completed', 'type': 'deposit'}},
+            {'$match': base_match('completed', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
         total_amount = total_deposits[0]['total'] if total_deposits else 0
         platform_fee = total_amount * 0.016
-        transaction_count = payments_collection.count_documents({'status': 'completed', 'type': 'deposit'})
+        transaction_count = payments_collection.count_documents(base_match('completed', 'deposit'))
         
         pending_deposits = list(payments_collection.aggregate([
-            {'$match': {'status': 'pending', 'type': 'deposit'}},
+            {'$match': base_match('pending', 'deposit')},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
@@ -2779,12 +2994,12 @@ def get_commission_stats():
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             month_end = None
         
-        match_query = {'status': 'completed', 'type': 'deposit', 'approved_at': {'$gte': month_start}}
+        monthly_match = {**base_match('completed', 'deposit'), 'approved_at': {'$gte': month_start}}
         if month_end:
-            match_query['approved_at']['$lt'] = month_end
+            monthly_match['approved_at']['$lt'] = month_end
         
         monthly_deposits = list(payments_collection.aggregate([
-            {'$match': match_query},
+            {'$match': monthly_match},
             {'$group': {'_id': None, 'total': {'$sum': '$amount'}}}
         ]))
         
@@ -2846,6 +3061,14 @@ def periodic_cleanup():
     if (current_time - app.last_cleanup).total_seconds() > 3600:
         cleanup_old_chats_and_notifications()
         app.last_cleanup = current_time
+
+@app.route('/static/sw.js')
+def service_worker():
+    from flask import send_from_directory, make_response
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
 
 @app.route('/health')
 def health_check():

@@ -22,7 +22,7 @@
   
   {% if user %}
   <div class="admin-search-wrapper">
-    <input type="text" id="admin-user-search" class="admin-search-input" placeholder="Search users…">
+    <input type="text" id="admin-user-search" class="admin-search-input" placeholder="Search users or MT login…">
     <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
     </svg>
@@ -189,6 +189,12 @@
     <div class="section-header">
       <h2><em>Users</em> & <em>Accounts</em></h2>
       <div style="display:flex;align-items:center;gap:12px;">
+        <button class="quick-filter-btn" onclick="applyQuickReferralFilter('PratikFxPro')" title="Filter by PratikFxPro">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 3h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"></path><path d="M9 3H5a2 2 0 0 0-2 2v4m6 0v10a2 2 0 0 0 2 2h4"></path>
+          </svg>
+          <span class="quick-filter-text">PratikFxPro</span>
+        </button>
         <div class="user-count-widget">
           <div class="user-count-number">{{ all_users|length }}</div>
           <div class="user-count-label">Active Users</div>
@@ -220,6 +226,7 @@
               <div class="user-name-row">
                 <h3>{{ u.email.split('@')[0] }}</h3>
                 {% if u.is_admin %}<span class="admin-badge">Admin</span>{% endif %}
+                {% if u.referral_code %}<span class="referral-badge" title="Referral Code">{{ u.referral_code }}</span>{% endif %}
                 <span class="new-user-badge" data-user-id="{{ u._id }}" style="display:none;">New</span>
               </div>
               <p class="user-email">{{ u.email }}</p>
@@ -305,7 +312,7 @@
                   {% else %}
                   <div class="mt-pending-status">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>Awaiting MT credentials</span>
+                    <span>Awaiting MT credentials. Make your first deposit first to get MT5 credentials.</span>
                   </div>
                   {% endif %}
                 </div>
@@ -330,15 +337,16 @@
       <span id="pending-payments-badge" class="notification-badge" {% if not pending_payments %}style="display:none;"{% endif %}>{{ pending_payments|length }}</span>
     </div>
 
-    <div class="usd-rate-control">
-      <div>
-        <span class="usd-rate-label">USD rate</span>
-        <span class="usd-rate-helper">Used to show INR deposit value in USDT.</span>
-      </div>
-      <div class="usd-rate-input-wrap">
-        <span>INR</span>
+    <div class="rates-bar">
+      <div class="rate-inline">
+        <span class="rate-inline-label">USD</span>
         <input type="number" id="usd-rate-input" min="0.01" step="0.01" value="{{ '%.2f'|format(usd_rate|default(85)) }}" aria-label="USD rate">
         <button type="button" id="save-usd-rate-btn">Save</button>
+      </div>
+      <div class="rate-inline">
+        <span class="rate-inline-label">W.Rate%</span>
+        <input type="number" id="withdrawal-rate-input" min="0.01" max="100" step="0.01" value="95" aria-label="Withdrawal rate">
+        <button type="button" id="save-withdrawal-rate-btn">Save</button>
       </div>
     </div>
 

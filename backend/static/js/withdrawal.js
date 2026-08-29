@@ -228,6 +228,13 @@ document.addEventListener('DOMContentLoaded', () => {
             slipLiveAmount.classList.toggle('ticking', amount > 0);
         }
 
+        const receiveEl = document.getElementById('s-receive-amount');
+        if (receiveEl) {
+            receiveEl.textContent = amount > 0
+                ? `₹${receiveInr(amount)} INR`
+                : '—';
+        }
+
         if (slipUpi) {
             slipUpi.textContent = destination || '-';
             slipUpi.classList.toggle('valid', destinationValid);
@@ -347,6 +354,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currency = continueButton.dataset.currency;
     const accountId = continueButton.dataset.accountId;
+    const withdrawalRate = parseFloat(continueButton.dataset.withdrawalRate) || 95;
+
+    // withdrawalRate = INR per USDT (e.g. 95 means 1 USDT → ₹95)
+    // So 50 USDT × ₹95 = ₹4750
+    function receiveInr(amount) {
+        return (amount * withdrawalRate).toFixed(2);
+    }
 
     amountInput.addEventListener('input', () => {
         syncSettlementSlip();
@@ -415,6 +429,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('confirm-amount').textContent = amount.toFixed(2);
         document.getElementById('confirm-currency').textContent = currency;
+        document.getElementById('confirm-receive').textContent = `₹${receiveInr(amount)} INR`;
+        document.getElementById('confirm-rate').textContent = `₹${withdrawalRate}/USDT`;
         if (selectedPaymentMethod === 'upi') {
             document.getElementById('confirm-upi').textContent = upiId;
             document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'UPI destination';
