@@ -304,6 +304,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectedPaymentMethod === 'imps') {
             showIMPSModal(amount, config.currency, accountId);
+        } else if (selectedPaymentMethod === 'upi') {
+            showQRModal(amount, config.currency, accountId);
         } else if (selectedPaymentMethod === 'usdt') {
             showUSDTModal(amount, config.currency, accountId);
         }
@@ -327,12 +329,51 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ═══════════════════════════════════════════
        UPI MODAL
     ═══════════════════════════════════════════ */
+    function buildUPIDeepLink(app, upiId, amount, name, ref) {
+        const params = `pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(ref)}`;
+        const schemes = {
+            gpay:    `tez://upi/pay?${params}`,
+            phonepe: `phonepe://pay?${params}`,
+            paytm:   `paytmmp://pay?${params}`,
+            generic: `upi://pay?${params}`
+        };
+        return schemes[app] || schemes.generic;
+    }
+
+    function openUPIApp(app) {
+        if (!pendingPaymentData) return;
+        const { amount, reference } = pendingPaymentData;
+        const config = getMethodConfig('upi');
+        const total = (amount + amount * config.feeRate).toFixed(2);
+        const link = buildUPIDeepLink(app, 'rppawar1811-1@okaxis', total, 'PrintFree', reference);
+
+        // Use a hidden anchor to trigger the deep link without navigating away
+        const a = document.createElement('a');
+        a.href = link;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // After a short delay, show screenshot upload
+        setTimeout(() => {
+            const appsContainer = document.getElementById('upi-apps-container');
+            if (appsContainer) appsContainer.style.display = 'none';
+            const uploadBtn = document.getElementById('upload-screenshot-btn');
+            if (uploadBtn) uploadBtn.style.display = 'flex';
+        }, 2500);
+    }
+
     function showQRModal(amount, currency, accountId) {
         const modal = document.getElementById('qr-modal');
         const fee   = amount * activeFeeRate;
         const total = amount + fee;
         document.getElementById('qr-amount').textContent   = total.toFixed(2);
         document.getElementById('qr-currency').textContent = currency;
+        const appsContainer = document.getElementById('upi-apps-container');
+        if (appsContainer) appsContainer.style.display = 'block';
+        const uploadBtn = document.getElementById('upload-screenshot-btn');
+        if (uploadBtn) uploadBtn.style.display = 'none';
         modal.style.display = 'block';
         initializePaymentData(accountId, amount, currency);
     }
@@ -342,6 +383,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('payment-ref').textContent = reference;
         pendingPaymentData = { accountId, amount, currency, reference };
     }
+
+    /* UPI app button clicks */
+    document.getElementById('upi-apps-container').addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-upi-app]');
+        if (btn) openUPIApp(btn.dataset.upiApp);
+    });
 
     /* Screenshot – UPI */
     document.getElementById('upload-screenshot-btn').addEventListener('click', () => {

@@ -1353,7 +1353,7 @@ def initiate_payment():
                 return jsonify({'success': False, 'message': f'USDT deposit amount must be between {min_amount} and 10000'})
             currency = 'USDT'
             fee_rate = 0.019
-        elif payment_method in ['imps']:
+        elif payment_method in ['imps', 'upi']:
             min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
             max_amount = 100000
             if amount < min_amount or amount > max_amount:
