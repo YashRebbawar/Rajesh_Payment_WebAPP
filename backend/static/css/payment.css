@@ -93,6 +93,17 @@ body::after{
 @keyframes cpulse{0%,100%{box-shadow:0 0 0 2px rgba(45,122,79,.2);}50%{box-shadow:0 0 0 5px rgba(45,122,79,.05);}}
 .header-account-sub{font-size:11px;color:var(--ink-45);margin-top:6px;font-family:'DM Sans',sans-serif;}
 
+/* Processing-hours notice */
+.deposit-timing-notice{
+  grid-column:1/-1;display:flex;align-items:flex-start;gap:12px;
+  margin:-28px 0 36px;padding:16px 20px;border:1.5px solid var(--green-bd);
+  border-radius:14px;background:var(--green-bg);color:var(--ink-70);
+  font-size:13px;line-height:1.5;animation:hdrIn .65s .05s cubic-bezier(.22,1,.36,1) both;
+}
+.deposit-timing-notice svg{flex-shrink:0;margin-top:1px;color:var(--green);}
+.deposit-timing-notice strong{display:block;font-family:'Cabinet Grotesk',sans-serif;font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--ink);}
+.deposit-timing-notice span{display:block;margin-top:2px;}
+
 /* ══ LEFT — FORM ══ */
 .left-section{
   position:relative;z-index:3;
@@ -543,6 +554,7 @@ body::after{
   .header-section{flex-direction:column;align-items:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;}
   .right-section{order:2;position:static;}
   .left-section{order:1;}
+  .deposit-timing-notice{order:0;width:100%;margin:-20px 0 28px;}
   .form-group{margin-bottom:24px;}
   .payment-method-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .payment-method-option{max-width:none;min-height:60px;padding:10px 12px;}
@@ -582,6 +594,8 @@ body::after{
   .header-section .header-eyebrow::before,
   .header-section .header-eyebrow::after{width:16px;}
   .account-title{font-size:30px;letter-spacing:-1.3px;}
+  .deposit-timing-notice{gap:10px;margin:-8px 0 24px;padding:14px 16px;font-size:12px;}
+  .deposit-timing-notice strong{font-size:11px;}
   .left-section{width:100%;}
   .form-group{margin-bottom:20px;}
   .form-label{margin-bottom:10px;font-size:8px;}
@@ -637,6 +651,22 @@ body::after{
   .usdt-wallet-item .bank-detail-value{font-size:10px;line-height:1.5;}
 }
 
+
+/* UPI App Buttons */
+.upi-apps-container{margin-bottom:20px;}
+.upi-app-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.upi-app-btn{
+  padding:14px 12px;border-radius:14px;border:1.5px solid var(--border);
+  background:var(--cream);cursor:pointer;
+  font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:800;
+  color:var(--ink);transition:all .22s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;justify-content:center;
+}
+.upi-app-btn:hover{
+  border-color:var(--green);background:var(--green-bg);color:var(--green);
+  transform:translateY(-2px);box-shadow:0 6px 18px rgba(45,122,79,.14);
+}
+.upi-app-btn:active{transform:translateY(0);}
 
 /* Maintenance Mode Styles */
 .payment-method-option.maintenance-mode {
