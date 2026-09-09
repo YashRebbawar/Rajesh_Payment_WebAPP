@@ -114,7 +114,7 @@
       <div class="select-wrapper mobile-method-select">
         <select id="payment-method-select" class="payment-method-select">
           <option value="imps">Bank Transfer</option>
-          <option value="upi">UPI</option>
+          {% if upi_payments_enabled %}<option value="upi">UPI</option>{% endif %}
           <option value="usdt">USDT</option>
         </select>
         <span class="select-arrow">&#9660;</span>
@@ -128,10 +128,10 @@
           </svg>
           <span style="font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink);vertical-align:middle;">Bank Transfer</span>
         </div>
-        <div class="payment-method-option" data-method="upi">
+        {% if upi_payments_enabled %}<div class="payment-method-option" data-method="upi">
           <img src="{{ url_for('static', filename='images/UPI_logo.png') }}" alt="UPI" class="payment-icon" style="width:24px;height:auto;display:inline-block;vertical-align:middle;margin-right:6px;">
           <span style="font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink);vertical-align:middle;">UPI</span>
-        </div>
+        </div>{% endif %}
         <div class="payment-method-option" data-method="usdt">
           <img src="{{ url_for('static', filename='images/USDT_Logo.png') }}" alt="USDT" class="payment-icon" style="width:24px;height:auto;display:inline-block;vertical-align:middle;margin-right:6px;">
           <span style="font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--ink);vertical-align:middle;">USDT</span>

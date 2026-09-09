@@ -547,6 +547,35 @@ async function saveWithdrawalRate() {
   }
 }
 
+async function saveUpiPaymentsEnabled() {
+  const toggle = document.getElementById('upi-payments-toggle');
+  const status = document.getElementById('upi-payments-status');
+  if (!toggle) return;
+
+  toggle.disabled = true;
+  try {
+    const csrfToken = getCsrfToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+    const data = await fetch('/api/admin/upi-payments', {
+      method: 'POST', headers, body: JSON.stringify({ enabled: toggle.checked })
+    }).then(r => r.json());
+    if (data.success) {
+      toggle.checked = data.enabled;
+      if (status) status.textContent = data.enabled ? 'On' : 'Off';
+      showSuccessMessage(`UPI payments turned ${data.enabled ? 'on' : 'off'}`);
+    } else {
+      toggle.checked = !toggle.checked;
+      showErrorMessage(data.message || 'Could not update UPI payments');
+    }
+  } catch {
+    toggle.checked = !toggle.checked;
+    showErrorMessage('Failed to update UPI payments');
+  } finally {
+    toggle.disabled = false;
+  }
+}
+
 async function approvePayment(paymentId) {
   showConfirmModal('Approve payment?', "Approve and credit the user's account?", async () => {
     try {
@@ -739,6 +768,15 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('withdrawal-rate-input')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') saveWithdrawalRate();
   });
+  const upiToggle = document.getElementById('upi-payments-toggle');
+  upiToggle?.addEventListener('change', saveUpiPaymentsEnabled);
+  fetch('/api/admin/upi-payments').then(r => r.json()).then(data => {
+    if (data.success && upiToggle) {
+      upiToggle.checked = data.enabled;
+      const status = document.getElementById('upi-payments-status');
+      if (status) status.textContent = data.enabled ? 'On' : 'Off';
+    }
+  }).catch(() => {});
   // Load current withdrawal rate
   fetch('/api/admin/withdrawal-rate').then(r => r.json()).then(data => {
     if (data.success) {
