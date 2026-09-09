@@ -3,6 +3,45 @@
     border-left: 5px solid #e0e0e0;
 }
 
+.rate-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rate-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rate-toggle-track {
+    width: 34px;
+    height: 19px;
+    border-radius: 999px;
+    background: #c9c5bd;
+    position: relative;
+    transition: background .2s ease;
+}
+
+.rate-toggle-track::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    top: 2px;
+    left: 2px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .2s ease;
+}
+
+.rate-toggle input:checked + .rate-toggle-track { background: #2d7a4f; }
+.rate-toggle input:checked + .rate-toggle-track::after { transform: translateX(15px); }
+
 .payment-type-indicator {
     position: absolute;
     top: 0;

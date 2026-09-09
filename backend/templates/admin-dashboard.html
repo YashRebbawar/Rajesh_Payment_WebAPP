@@ -348,6 +348,12 @@
         <input type="number" id="withdrawal-rate-input" min="0.01" max="100" step="0.01" value="95" aria-label="Withdrawal rate">
         <button type="button" id="save-withdrawal-rate-btn">Save</button>
       </div>
+      <label class="rate-toggle" for="upi-payments-toggle">
+        <span class="rate-inline-label">UPI</span>
+        <input type="checkbox" id="upi-payments-toggle" aria-label="Enable UPI payments">
+        <span class="rate-toggle-track" aria-hidden="true"></span>
+        <span id="upi-payments-status">Loading</span>
+      </label>
     </div>
 
     {% if pending_payments %}

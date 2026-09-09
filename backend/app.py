@@ -353,6 +353,10 @@ def get_usd_rate_setting():
         rate = DEFAULT_USD_RATE
     return round(rate, 4)
 
+def is_upi_payment_enabled():
+    settings = settings_collection.find_one({'_id': 'upi_payments_enabled'})
+    return settings.get('enabled', True) if settings else True
+
 def notification_time_value(doc):
     return doc.get('approved_at') or doc.get('rejected_at') or doc.get('submitted_at') or doc.get('created_at') or get_current_ist_time()
 
@@ -1306,6 +1310,7 @@ def payment(account_id):
             user=user,
             account=account,
             usd_rate=get_usd_rate_setting(),
+            upi_payments_enabled=is_upi_payment_enabled(),
             has_prior_account_type_deposit=has_prior_deposit,
             fiat_min_amount=get_deposit_min_amount(user['_id'], account, 'imps'),
             usdt_min_amount=get_deposit_min_amount(user['_id'], account, 'usdt')
@@ -1346,6 +1351,9 @@ def initiate_payment():
         
         amount = float(data['amount'])
         payment_method = (data.get('payment_method') or 'imps').lower()
+
+        if payment_method == 'upi' and not is_upi_payment_enabled():
+            return jsonify({'success': False, 'message': 'UPI payments are currently unavailable'})
 
         if payment_method == 'usdt':
             min_amount = get_deposit_min_amount(user['_id'], account, payment_method)
@@ -1751,6 +1759,27 @@ def admin_usd_rate():
     except Exception as e:
         logger.error(f"USD rate update error: {e}")
         return jsonify({'success': False, 'message': 'Could not update USD rate'})
+
+@app.route('/api/admin/upi-payments', methods=['GET', 'POST'])
+def admin_upi_payments():
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'enabled': is_upi_payment_enabled()})
+
+    data = request.get_json(silent=True) or {}
+    enabled = data.get('enabled')
+    if not isinstance(enabled, bool):
+        return jsonify({'success': False, 'message': 'UPI status must be true or false'}), 400
+
+    settings_collection.update_one(
+        {'_id': 'upi_payments_enabled'},
+        {'$set': {'enabled': enabled, 'updated_at': get_current_ist_time(), 'updated_by': user['_id']}},
+        upsert=True
+    )
+    return jsonify({'success': True, 'enabled': enabled})
 
 @app.route('/api/admin/new-account-notifications', methods=['GET'])
 def get_new_account_notifications():
