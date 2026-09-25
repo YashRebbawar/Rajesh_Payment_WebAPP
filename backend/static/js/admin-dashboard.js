@@ -777,7 +777,13 @@ document.addEventListener('DOMContentLoaded', function () {
       if (status) status.textContent = data.enabled ? 'On' : 'Off';
     }
   }).catch(() => {});
-  // Load current withdrawal rate
+  // Load current rates from API (source of truth)
+  fetch('/api/admin/usd-rate').then(r => r.json()).then(data => {
+    if (data.success) {
+      const inp = document.getElementById('usd-rate-input');
+      if (inp) inp.value = Number(data.rate).toFixed(2);
+    }
+  }).catch(() => {});
   fetch('/api/admin/withdrawal-rate').then(r => r.json()).then(data => {
     if (data.success) {
       const inp = document.getElementById('withdrawal-rate-input');
