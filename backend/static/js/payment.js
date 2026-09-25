@@ -91,7 +91,7 @@ function syncReceipt(baseAmount) {
     setText('rcpt-fee',       baseAmount > 0 ? fee.toFixed(2)        : '—');
     setText('rcpt-total-row', baseAmount > 0 ? total.toFixed(0)      : '—');
 
-    setText('rcpt-usdt-value', baseAmount > 0 && activeUsdRate > 0 ? (baseAmount / activeUsdRate).toFixed(2) : '0.00');
+    setText('rcpt-usdt-value', baseAmount > 0 && activeUsdRate > 0 ? (Math.floor((baseAmount / activeUsdRate) * 100) / 100).toFixed(2) : '0.00');
 
     // also update deposit summary display
     setText('deposit-value', total.toFixed(0));
