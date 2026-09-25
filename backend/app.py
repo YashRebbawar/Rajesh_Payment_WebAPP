@@ -366,7 +366,7 @@ def calculate_usdt_receive_amount(amount, usd_rate=None):
         return 0
     if rate <= 0 or base_amount <= 0:
         return 0
-    return round(base_amount / rate, 2)
+    return int(base_amount / rate * 100) / 100
 
 def build_admin_dashboard_context():
     all_users = list(users_collection.find({'is_admin': {'$ne': True}}).sort('created_at', -1))
