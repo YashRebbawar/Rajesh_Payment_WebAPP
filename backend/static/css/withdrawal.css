@@ -230,12 +230,18 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .success-btn{width:100%;padding:14px;border-radius:100px;border:none;cursor:pointer;margin-top:24px;font-family:'Cabinet Grotesk',sans-serif;font-size:14px;font-weight:800;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(26,21,16,.18);transition:all .28s;}
 .success-btn:hover{background:var(--blue);transform:translateY(-2px);box-shadow:0 10px 30px rgba(45,122,79,.22);}
 
+/* IMPS charge notice */
+.imps-charge-notice{grid-column:1/-1;display:flex;gap:12px;align-items:flex-start;padding:14px 18px;margin-bottom:14px;background:rgba(192,57,43,.07);border:1.5px solid rgba(192,57,43,.25);border-radius:14px;color:var(--ink-70);font-size:13px;line-height:1.5;animation:hdrIn .65s .04s cubic-bezier(.22,1,.36,1) both;}
+.imps-charge-notice svg{color:var(--red);flex:0 0 16px;margin-top:2px;}
+.imps-charge-notice span{min-width:0;}
+
 /* Withdrawal timing notice */
 .withdrawal-timing-notice{grid-column:1/-1;display:flex;gap:14px;align-items:flex-start;padding:16px 20px;margin-bottom:36px;background:rgba(184,148,74,.08);border:1.5px solid rgba(184,148,74,.28);border-radius:14px;color:var(--ink-70);font-size:13px;line-height:1.5;animation:hdrIn .65s .05s cubic-bezier(.22,1,.36,1) both;}
-.withdrawal-timing-notice svg{color:var(--gold);margin-top:1px;}
-.timing-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;}
+.withdrawal-timing-notice>svg{color:var(--gold);flex:0 0 16px;margin-top:1px;}
+.withdrawal-timing-notice>div{flex:1;min-width:0;}
+.timing-row{display:grid;grid-template-columns:minmax(96px,126px) minmax(0,1fr);align-items:start;gap:12px;margin-bottom:6px;}
 .timing-row:last-child{margin-bottom:0;}
-.timing-badge{font-family:'Cabinet Grotesk',sans-serif;font-size:9px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+.timing-badge{display:inline-flex;align-items:center;justify-content:center;width:100%;min-height:28px;padding:3px 8px;font-family:'Cabinet Grotesk',sans-serif;font-size:9px;font-weight:800;letter-spacing:.10em;text-align:center;text-transform:uppercase;border-radius:20px;}
 .timing-fast{background:rgba(45,122,79,.12);color:var(--green);border:1px solid rgba(45,122,79,.22);}
 .timing-slow{background:rgba(184,148,74,.12);color:var(--gold);border:1px solid rgba(184,148,74,.28);}
 
@@ -244,12 +250,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   .account-container{grid-template-columns:1fr;padding:0 20px 60px;gap:0;display:flex;flex-direction:column;}
   .header-section{flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:92px 0 36px;margin-bottom:36px;order:1;width:100%;}
   .left-section{order:2;width:100%;}
-  .withdrawal-timing-notice{order:3;width:100%;margin-bottom:-6px;margin-top:15px;}
-  .right-section{order:4;width:100%;position:static;margin:0 0 24px;}
+  .imps-charge-notice{order:3;width:100%;margin-bottom:12px;margin-top:14px;}
+  .withdrawal-timing-notice{order:4;width:100%;margin-bottom:0px;margin-top:0;}
+  .right-section{order:5;width:100%;position:static;margin:0 0 24px;}
   .s-total-amount{font-size:36px;}
 }
 @media(max-width:580px){
   .account-container{padding:0 14px 40px;}
+  .imps-charge-notice{padding:12px 14px;font-size:12px;gap:10px;border-radius:12px;margin-bottom:10px;}
+  .imps-charge-notice svg{width:14px;height:14px;}
+  .withdrawal-timing-notice{padding:14px;gap:10px;font-size:12px;border-radius:12px;}
+  .withdrawal-timing-notice>svg{width:16px;height:16px;}
+  .timing-row{grid-template-columns:minmax(88px,104px) minmax(0,1fr);gap:10px;margin-bottom:8px;}
+  .timing-badge{min-height:26px;padding:3px 6px;font-size:8px;letter-spacing:.08em;}
   .header-section{padding:90px 0 10px;margin-bottom:20px;}
   .header-section>div{width:100%;}
   .header-eyebrow{font-size:8px;letter-spacing:.14em;gap:6px;margin-bottom:6px;}
