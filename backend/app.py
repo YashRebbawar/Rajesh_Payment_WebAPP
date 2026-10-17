@@ -188,7 +188,7 @@ def get_deposit_min_amount(user_id, account, payment_method):
         return 0.01 if payment_method == 'usdt' else 1
 
     if payment_method == 'usdt':
-        return 100
+        return 50
 
     return 1000 if account_type == 'standard' else 50000
 
@@ -1305,6 +1305,16 @@ def initiate_withdrawal():
             upi_id = (data.get('upi_id') or '').strip()
             if not upi_pattern.match(upi_id):
                 return jsonify({'success': False, 'message': 'Please enter a valid UPI ID'})
+        elif payment_method == 'usdt':
+            if amount < 10:
+                return jsonify({'success': False, 'message': 'USDT withdrawal amount must be at least $10'})
+            usdt_address = (data.get('usdt_address') or '').strip()
+            usdt_chain = (data.get('usdt_chain') or '').strip()
+            if len(usdt_address) < 20:
+                return jsonify({'success': False, 'message': 'Please enter a valid USDT wallet address'})
+            valid_chains = {'BEP20'}
+            if usdt_chain not in valid_chains:
+                return jsonify({'success': False, 'message': 'Please select a valid network/chain'})
         else:
             if amount < 50:
                 return jsonify({'success': False, 'message': 'Bank transfer withdrawal amount must be at least $50'})
@@ -1336,6 +1346,9 @@ def initiate_withdrawal():
         
         if payment_method == 'upi':
             withdrawal_doc['upi_id'] = upi_id
+        elif payment_method == 'usdt':
+            withdrawal_doc['usdt_address'] = usdt_address
+            withdrawal_doc['usdt_chain'] = usdt_chain
         else:
             withdrawal_doc['bank_account'] = bank_account
             withdrawal_doc['ifsc_code'] = ifsc_code
@@ -1359,6 +1372,9 @@ def initiate_withdrawal():
         
         if payment_method == 'upi':
             notification_doc['upi_id'] = upi_id
+        elif payment_method == 'usdt':
+            notification_doc['usdt_address'] = usdt_address
+            notification_doc['usdt_chain'] = usdt_chain
         else:
             notification_doc['bank_account'] = bank_account
             notification_doc['ifsc_code'] = ifsc_code

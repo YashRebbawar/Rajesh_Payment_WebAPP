@@ -54,11 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const bankField = document.getElementById('bank-field');
     const ifscField = document.getElementById('ifsc-field');
     const accountHolderField = document.getElementById('account-holder-field');
+    const usdtAddressFieldGroup = document.getElementById('usdt-address-field-group');
+    const usdtChainFieldGroup = document.getElementById('usdt-chain-field-group');
+    const usdtAddressInput = document.getElementById('usdt-address');
+    const usdtChainSelect = document.getElementById('usdt-chain');
+    const usdtAddressField = document.getElementById('usdt-address-field');
     const amountError = document.getElementById('amount-error');
     const upiError = document.getElementById('upi-error');
     const bankAccountError = document.getElementById('bank-account-error');
     const ifscError = document.getElementById('ifsc-error');
     const accountHolderError = document.getElementById('account-holder-error');
+    const usdtAddressError = document.getElementById('usdt-address-error');
+    const usdtChainError = document.getElementById('usdt-chain-error');
 
     let selectedPaymentMethod = 'upi';
     const touchedFields = {
@@ -66,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         upi: false,
         bankAccount: false,
         ifsc: false,
-        accountHolder: false
+        accountHolder: false,
+        usdtAddress: false,
+        usdtChain: false
     };
 
     async function loadSavedCredentials() {
@@ -145,8 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
             upi: '',
             bankAccount: '',
             ifsc: '',
-            accountHolder: ''
+            accountHolder: '',
+            usdtAddress: '',
+            usdtChain: ''
         };
+
+        const usdtAddress = usdtAddressInput ? usdtAddressInput.value.trim() : '';
+        const usdtChain = usdtChainSelect ? usdtChainSelect.value : '';
+        errors.usdtAddress = '';
+        errors.usdtChain = '';
 
         if (amount <= 0) {
             errors.amount = 'Enter a valid withdrawal amount.';
@@ -154,6 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             errors.amount = 'UPI withdrawals must be between $10 and $50.';
         } else if (selectedPaymentMethod === 'bank' && amount < 50) {
             errors.amount = 'Bank transfer withdrawals must be at least $50.';
+        } else if (selectedPaymentMethod === 'usdt' && amount < 10) {
+            errors.amount = 'USDT withdrawals must be at least $10.';
         } else if (amount > accountBalance) {
             errors.amount = `Amount exceeds available balance of ${accountBalance} ${currency}.`;
         }
@@ -164,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (!validateUpiId(upiId)) {
                 errors.upi = 'Enter a valid UPI ID like name@upi.';
             }
-        } else {
+        } else if (selectedPaymentMethod === 'bank') {
             if (!bankAccount) {
                 errors.bankAccount = 'Enter your bank account number.';
             } else if (!validateBankAccount(bankAccount)) {
@@ -184,6 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (!/^[a-zA-Z\s]+$/.test(accountHolder)) {
                 errors.accountHolder = 'Account holder name should contain only letters.';
             }
+        } else if (selectedPaymentMethod === 'usdt') {
+            if (!usdtAddress) {
+                errors.usdtAddress = 'Enter your USDT wallet address.';
+            } else if (usdtAddress.length < 20) {
+                errors.usdtAddress = 'Enter a valid wallet address.';
+            }
+            if (!usdtChain) {
+                errors.usdtChain = 'Select a network/chain.';
+            }
         }
 
         return errors;
@@ -197,18 +224,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const showIfscError = showErrors || touchedFields.ifsc;
         const showAccountHolderError = showErrors || touchedFields.accountHolder;
 
+        const showUsdtAddressError = showErrors || touchedFields.usdtAddress;
+        const showUsdtChainError = showErrors || touchedFields.usdtChain;
+
         setFieldError(amountField, amountError, showAmountError ? errors.amount : '');
         setFieldError(upiField, upiError, selectedPaymentMethod === 'upi' && showUpiError ? errors.upi : '');
         setFieldError(bankField, bankAccountError, selectedPaymentMethod === 'bank' && showBankAccountError ? errors.bankAccount : '');
         setFieldError(ifscField, ifscError, selectedPaymentMethod === 'bank' && showIfscError ? errors.ifsc : '');
         setFieldError(accountHolderField, accountHolderError, selectedPaymentMethod === 'bank' && showAccountHolderError ? errors.accountHolder : '');
+        setFieldError(usdtAddressField, usdtAddressError, selectedPaymentMethod === 'usdt' && showUsdtAddressError ? errors.usdtAddress : '');
+        if (usdtChainError) usdtChainError.textContent = selectedPaymentMethod === 'usdt' && showUsdtChainError ? (errors.usdtChain || '') : '';
 
         if (selectedPaymentMethod === 'upi') {
             setFieldError(bankField, bankAccountError, '');
             setFieldError(ifscField, ifscError, '');
             setFieldError(accountHolderField, accountHolderError, '');
+        } else if (selectedPaymentMethod === 'bank') {
+            setFieldError(upiField, upiError, '');
         } else {
             setFieldError(upiField, upiError, '');
+            setFieldError(bankField, bankAccountError, '');
+            setFieldError(ifscField, ifscError, '');
+            setFieldError(accountHolderField, accountHolderError, '');
         }
 
         return errors;
@@ -218,10 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const amount = parseFloat(amountInput.value) || 0;
         const destination = selectedPaymentMethod === 'upi'
             ? upiIdInput.value.trim()
-            : bankAccountInput.value.trim();
+            : selectedPaymentMethod === 'bank'
+                ? bankAccountInput.value.trim()
+                : (usdtAddressInput ? usdtAddressInput.value.trim() : '');
         const destinationValid = selectedPaymentMethod === 'upi'
             ? validateUpiId(destination)
-            : validateBankAccount(destination);
+            : selectedPaymentMethod === 'bank'
+                ? validateBankAccount(destination)
+                : destination.length >= 20;
 
         if (slipLiveAmount) {
             slipLiveAmount.textContent = amount > 0 ? amount.toFixed(2) : '0';
@@ -240,17 +281,17 @@ document.addEventListener('DOMContentLoaded', () => {
             slipUpi.classList.toggle('valid', destinationValid);
         }
 
-        const destinationLabel = document.querySelector('.s-upi-label');
+        const destinationLabel = document.getElementById('s-dest-label');
         if (destinationLabel) {
-            destinationLabel.textContent = selectedPaymentMethod === 'upi'
-                ? 'Destination UPI'
-                : 'Destination account';
+            if (selectedPaymentMethod === 'upi') destinationLabel.textContent = 'Destination UPI';
+            else if (selectedPaymentMethod === 'bank') destinationLabel.textContent = 'Destination account';
+            else destinationLabel.textContent = 'USDT address';
         }
     }
 
     function updateButtonState() {
         const errors = getValidationErrors();
-        const isValid = !errors.amount && !errors.upi && !errors.bankAccount && !errors.ifsc && !errors.accountHolder;
+        const isValid = !errors.amount && !errors.upi && !errors.bankAccount && !errors.ifsc && !errors.accountHolder && !errors.usdtAddress && !errors.usdtChain;
 
         continueButton.classList.toggle('active', isValid);
         continueButton.disabled = !isValid;
@@ -272,15 +313,28 @@ document.addEventListener('DOMContentLoaded', () => {
             bankFieldGroup.style.display = 'none';
             ifscFieldGroup.style.display = 'none';
             accountHolderFieldGroup.style.display = 'none';
+            usdtAddressFieldGroup.style.display = 'none';
+            usdtChainFieldGroup.style.display = 'none';
             document.getElementById('processing-time').textContent = '~15 minutes';
             document.getElementById('method-display').textContent = 'UPI';
-        } else {
+        } else if (selectedPaymentMethod === 'bank') {
             upiFieldGroup.style.display = 'none';
             bankFieldGroup.style.display = 'block';
             ifscFieldGroup.style.display = 'block';
             accountHolderFieldGroup.style.display = 'block';
+            usdtAddressFieldGroup.style.display = 'none';
+            usdtChainFieldGroup.style.display = 'none';
             document.getElementById('processing-time').textContent = '~30 minutes';
             document.getElementById('method-display').textContent = 'Bank Transfer';
+        } else {
+            upiFieldGroup.style.display = 'none';
+            bankFieldGroup.style.display = 'none';
+            ifscFieldGroup.style.display = 'none';
+            accountHolderFieldGroup.style.display = 'none';
+            usdtAddressFieldGroup.style.display = 'block';
+            usdtChainFieldGroup.style.display = 'block';
+            document.getElementById('processing-time').textContent = '~30 minutes';
+            document.getElementById('method-display').textContent = 'USDT';
         }
 
         renderValidationState(false);
@@ -374,6 +428,26 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonState();
     });
 
+    if (usdtAddressInput) {
+        usdtAddressInput.addEventListener('input', () => {
+            syncSettlementSlip();
+            renderValidationState();
+            updateButtonState();
+        });
+        usdtAddressInput.addEventListener('blur', () => {
+            touchedFields.usdtAddress = true;
+            renderValidationState();
+        });
+    }
+
+    if (usdtChainSelect) {
+        usdtChainSelect.addEventListener('change', () => {
+            touchedFields.usdtChain = true;
+            renderValidationState();
+            updateButtonState();
+        });
+    }
+
     bankAccountInput.addEventListener('input', () => {
         bankAccountInput.value = bankAccountInput.value.replace(/\D/g, '');
         syncSettlementSlip();
@@ -431,15 +505,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('confirm-currency').textContent = currency;
         document.getElementById('confirm-receive').textContent = `₹${receiveInr(amount)} INR`;
         document.getElementById('confirm-rate').textContent = `₹${withdrawalRate}/USDT`;
+        const usdtAddress = usdtAddressInput ? usdtAddressInput.value.trim() : '';
+        const usdtChain = usdtChainSelect ? usdtChainSelect.value : '';
+        const confirmDestLabel = document.getElementById('confirm-dest-label');
         if (selectedPaymentMethod === 'upi') {
             document.getElementById('confirm-upi').textContent = upiId;
-            document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'UPI destination';
+            if (confirmDestLabel) confirmDestLabel.textContent = 'UPI destination';
             document.getElementById('account-holder-detail-row').style.display = 'none';
-        } else {
+        } else if (selectedPaymentMethod === 'bank') {
             document.getElementById('confirm-upi').textContent = `${bankAccount} (${ifscCode})`;
-            document.querySelector('.detail-row:nth-child(2) .detail-label').textContent = 'Bank account';
+            if (confirmDestLabel) confirmDestLabel.textContent = 'Bank account';
             document.getElementById('confirm-account-holder').textContent = accountHolder;
             document.getElementById('account-holder-detail-row').style.display = 'flex';
+        } else {
+            document.getElementById('confirm-upi').textContent = `${usdtAddress} (${usdtChain})`;
+            if (confirmDestLabel) confirmDestLabel.textContent = 'USDT address';
+            document.getElementById('account-holder-detail-row').style.display = 'none';
         }
         confirmationModal.style.display = 'block';
     });
@@ -474,12 +555,17 @@ document.addEventListener('DOMContentLoaded', () => {
             payment_method: selectedPaymentMethod
         };
 
+        const usdtAddress = usdtAddressInput ? usdtAddressInput.value.trim() : '';
+        const usdtChain = usdtChainSelect ? usdtChainSelect.value : '';
         if (selectedPaymentMethod === 'upi') {
             payload.upi_id = upiId;
-        } else {
+        } else if (selectedPaymentMethod === 'bank') {
             payload.bank_account = bankAccount;
             payload.ifsc_code = ifscCode;
             payload.account_holder_name = accountHolder;
+        } else {
+            payload.usdt_address = usdtAddress;
+            payload.usdt_chain = usdtChain;
         }
 
         try {

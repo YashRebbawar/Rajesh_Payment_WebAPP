@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountId          = payButton.dataset.accountId;
     const accountType        = payButton.dataset.accountType;
     const fiatMinAmount      = parseFloat(payButton.dataset.fiatMinAmount) || (accountType === 'standard' ? 1000 : 50000);
-    const usdtMinAmount      = parseFloat(payButton.dataset.usdtMinAmount) || 100;
+    const usdtMinAmount      = parseFloat(payButton.dataset.usdtMinAmount) || 50;
     const fiatCurrency       = accountCurrency === 'USD' ? 'INR' : accountCurrency;
     activeUsdRate            = parseFloat(payButton.dataset.usdRate) || 0;
 
