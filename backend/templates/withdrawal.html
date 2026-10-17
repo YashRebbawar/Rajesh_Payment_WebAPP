@@ -103,6 +103,7 @@
         <select id="payment-method-select" class="payment-method-select">
           <option value="upi">UPI ($10 - $50)</option>
           <option value="bank">Bank Transfer ($50+)</option>
+          <option value="usdt">USDT ($10+)</option>
         </select>
         <span class="select-arrow">▼</span>
       </div>
@@ -144,6 +145,27 @@
         <input type="checkbox" id="save-bank-checkbox">
         <span>Save bank details for future withdrawals</span>
       </label>
+    </div>
+
+    <div class="form-group usdt-field-group" id="usdt-address-field-group" style="display:none;">
+      <span class="form-label">USDT Wallet Address</span>
+      <div class="float-field" id="usdt-address-field">
+        <div class="float-label">e.g. TRx... or 0x...</div>
+        <input type="text" id="usdt-address" autocomplete="off"
+          oninput="document.getElementById('usdt-address-field').classList.toggle('filled', this.value!='')">
+      </div>
+      <p class="field-error" id="usdt-address-error" aria-live="polite"></p>
+    </div>
+
+    <div class="form-group usdt-field-group" id="usdt-chain-field-group" style="display:none;">
+      <span class="form-label">Network / Chain</span>
+      <div class="select-wrapper">
+        <select id="usdt-chain" class="payment-method-select">
+          <option value="BEP20">BEP20 (BSC)</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+      <p class="field-error" id="usdt-chain-error" aria-live="polite"></p>
     </div>
 
     <div class="form-group bank-field-group" id="account-holder-field-group" style="display:none;">
@@ -216,7 +238,7 @@
           </div>
         </div>
         <div class="s-upi-preview">
-          <div class="s-upi-label">Destination UPI</div>
+          <div class="s-upi-label" id="s-dest-label">Destination UPI</div>
           <div class="s-upi-value" id="s-upi-val">-</div>
         </div>
         <div class="settle-terms">
@@ -256,7 +278,7 @@
         <span class="detail-value" id="confirm-account">{{ account.nickname }}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">UPI destination</span>
+        <span class="detail-label" id="confirm-dest-label">UPI destination</span>
         <span class="detail-value mono" id="confirm-upi">-</span>
       </div>
       <div class="detail-row" id="account-holder-detail-row" style="display:none;">
