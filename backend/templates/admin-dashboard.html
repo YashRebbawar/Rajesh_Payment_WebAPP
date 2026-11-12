@@ -403,6 +403,7 @@
             {% if payment.reference %}
             <div class="payment-reference"><span class="ref-value">{{ payment.reference }}</span></div>
             {% endif %}
+            <div class="payment-request-time" data-created-at="{{ payment.created_at.isoformat() if payment.created_at else '' }}"></div>
           </div>
 
           {% if payment.upi_id %}

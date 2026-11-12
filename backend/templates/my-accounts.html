@@ -127,7 +127,7 @@
             <div class="status-item-content">
               <div class="status-item-header">
                 <span class="status-type">{% if is_withdrawal %}&#8599; Withdrawal{% else %}&#8600; Deposit{% endif %}</span>
-                <span class="status-time">{{ payment.created_at.strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</span>
+                <span class="status-time">{{ ensure_ist_datetime(payment.created_at).strftime('%d %b, %H:%M') if payment.created_at else 'N/A' }}</span>
               </div>
               <span class="status-amount">{{ payment.amount }} {{ payment.currency }}</span>
             </div>
@@ -169,7 +169,7 @@
           {% else %}
           <div class="detail-item"><span class="detail-label">Reference</span><span class="detail-value">{{ payment.reference or 'N/A' }}</span></div>
           {% endif %}
-          <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{{ payment.created_at.strftime('%d %b %Y') if payment.created_at else 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Submitted</span><span class="detail-value">{{ ensure_ist_datetime(payment.created_at).strftime('%d %b %Y') if payment.created_at else 'N/A' }}</span></div>
         </div>
       </div>
       {% endfor %}

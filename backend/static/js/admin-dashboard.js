@@ -667,6 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const refreshDashboardMetrics = () => {
       refreshCommissionWidget();
       loadUsersNoAccountType();
+      updatePaymentTimes();
     };
 
     refreshDashboardMetrics();
@@ -800,7 +801,29 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('admin-pin:unlocked', startDashboardPolling);
 });
 
-function updatePaymentTimes() {}
+function formatTimeToIST(isoString) {
+  if (!isoString) return 'N/A';
+  try {
+    // BSON dates come back from PyMongo as naive UTC ISO strings.
+    const normalizedIso = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(isoString) ? isoString : `${isoString}Z`;
+    const date = new Date(normalizedIso);
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kolkata', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).format(date) + ' IST';
+  } catch (e) {
+    return 'N/A';
+  }
+}
+
+function updatePaymentTimes() {
+  document.querySelectorAll('.payment-request-time[data-created-at]').forEach(el => {
+    const createdAt = el.getAttribute('data-created-at');
+    if (createdAt) {
+      el.textContent = 'Requested: ' + formatTimeToIST(createdAt);
+    }
+  });
+}
 
 function showBankDetailsPopup(event, bankAccount, ifscCode, accountHolder = '') {
   event.preventDefault();

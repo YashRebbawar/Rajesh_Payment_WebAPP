@@ -621,8 +621,11 @@ def ensure_ist_datetime(value):
         return None
     ist = timezone(timedelta(hours=5, minutes=30))
     if value.tzinfo is None:
-        return value.replace(tzinfo=ist)
+        # PyMongo returns BSON dates as naive UTC datetimes by default.
+        return value.replace(tzinfo=timezone.utc).astimezone(ist)
     return value.astimezone(ist)
+
+app.jinja_env.globals['ensure_ist_datetime'] = ensure_ist_datetime
 
 def calculate_platform_fee(payment):
     if payment is None:
@@ -2233,7 +2236,7 @@ def get_admin_analytics_tables():
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
 
     try:
-        now = get_current_utc_time()
+        now = get_current_ist_time()
 
         users_no_account_rows = list(users_collection.aggregate([
             {'$match': {'is_admin': {'$ne': True}}},
