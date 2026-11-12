@@ -809,7 +809,7 @@ function formatTimeToIST(isoString) {
     const date = new Date(normalizedIso);
     return new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Asia/Kolkata', day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+      hour: '2-digit', minute: '2-digit', hour12: true
     }).format(date) + ' IST';
   } catch (e) {
     return 'N/A';
